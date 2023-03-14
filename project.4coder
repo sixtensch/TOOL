@@ -1,0 +1,96 @@
+version(2);
+project_name = "TOOL";
+
+patterns = 
+{
+	"*.c",
+	"*.cpp",
+	"*.h",
+	"*.hpp",
+	"*.hlsl",
+	"*.glsl",
+	"*.bat",
+	"*.4coder",
+	"*.vcxproj"
+};
+
+blacklist_patterns = 
+{ 
+	".*" 
+};
+
+load_paths_base = 
+{
+	{ .path = "Source/", .relative = true, .recursive = true, },
+};
+
+load_paths = 
+{
+	.win = load_paths_base,
+	.linux = load_paths_base,
+	.mac = load_paths_base,
+};
+
+commands =
+{
+	.build = 
+	{ 
+		.name = "build",
+		.out = "*build*", 
+		.footer_panel = true, 
+		.save_dirty_files = true,
+		.cursor_at_end = true,
+		.win = "build.bat"
+	},
+
+	.run = 
+	{ 
+		.name = "run",
+		.out = "*run*", 
+		.footer_panel = true, 
+		.save_dirty_files = false,
+		.cursor_at_end = true,
+		.win = "run.bat"
+	},
+
+	.debug = 
+	{ 
+		.name = "debug",
+		.out = "*run*", 
+		.footer_panel = true, 
+		.save_dirty_files = false,
+		.cursor_at_end = true,
+		.win = "debug.bat"
+	},
+
+	.build_release =
+	{
+		.name = "build_release",
+		.out = "*build*",
+		.footer_panel = true,
+		.save_dirty_files = true,
+		.cursor_at_end = true,
+		.win = "build.bat Release"
+	},
+
+	.run_release = 
+	{ 
+		.name = "run_release",
+		.out = "*run*", 
+		.footer_panel = true, 
+		.save_dirty_files = false,
+		.cursor_at_end = true,
+		.win = "run.bat Release"
+	},
+
+	.debug_release = 
+	{ 
+		.name = "debug_release",
+		.out = "*run*", 
+		.footer_panel = true, 
+		.save_dirty_files = false,
+		.cursor_at_end = true,
+		.win = "debug.bat Release"
+	}
+};
+
