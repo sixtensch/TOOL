@@ -37,8 +37,17 @@ namespace Tool
     template<typename T>
         struct Vec3
     {
-        T x;
-        T y;
+        union
+        {
+            Vec2<T> v2;
+            
+            struct 
+            {
+                T x;
+                T y;
+            };
+        };
+        
         T z;
         
         Vec3<T> operator-() const; // Unary negation
@@ -64,9 +73,27 @@ namespace Tool
     template<typename T>
         struct Vec4 
     {
-        T x;
-        T y;
-        T z;
+        union 
+        {
+            Vec3<T> v3;
+            
+            struct 
+            {
+                union 
+                {
+                    Vec2<T> v2;
+                    
+                    struct
+                    {
+                        T x;
+                        T y;
+                    };
+                };
+                
+                T z;
+            };
+        };
+        
         T w;
         
         Vec4<T> operator-() const; // Unary negation
