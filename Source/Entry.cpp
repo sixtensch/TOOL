@@ -3,8 +3,12 @@
 
 int main()
 {
-    v4 vector = { 0.0f, 0.0f, 1.0f, 1.0f };
-    v2 comp = -vector.v2;
+    v2 a = { 0.0f, 1.0f };
+    v2 b = { 2.0f, 3.0f };
     
-    return (i32)comp.x;
+    f32 c = 1.0f;
+    
+    a = a / c;
+    
+    return (i32)a.x;
 }

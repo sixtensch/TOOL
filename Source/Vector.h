@@ -5,7 +5,7 @@
 
 namespace Tool
 {
-    // Struct 
+    //- Struct Declarations
     
     //~ 2D Vector
     
@@ -34,8 +34,6 @@ namespace Tool
     
     //~ 3D Vector
     
-    
-    
     template<typename T>
         struct Vec3
     {
@@ -56,9 +54,9 @@ namespace Tool
         
 		Vec3<T> operator+(const Vec3<T>& b) const; // Addition
 		Vec3<T> operator-(const Vec3<T>& b) const; // Subtraction
+        Vec3<T> operator%(const Vec3<T>& b) const; // Cross product
 		Vec3<T> operator*(const T& b) const; // Scalar multiplication
 		Vec3<T> operator/(const T& b) const; // Scalar division
-        Vec3<T> operator%(const T& b) const; // Cross product
 		T operator*(const Vec3<T>& b) const; // Dot product
         
 		Vec3<T>& operator+=(const Vec3<T>& b);
@@ -117,7 +115,7 @@ namespace Tool
     
     
     
-    // Helper function declarations
+    //- Helper function declarations
     
     //~ 2D Vector
     
@@ -135,7 +133,7 @@ namespace Tool
     
     
     
-    // Operator overload implementations
+    //- Operator overload implementations
     
     //~ 2D Vector
     
@@ -224,21 +222,206 @@ namespace Tool
         return x != b.x || y != b.y;
     }
     
-    
-    
-    // TODO(crazy): Implement
-    
     //~ 3D Vector
     
-    // TODO(crazy): Implement
+    template<typename T>
+        inline Vec3<T> Vec3<T>::operator-() const // Unary negation
+    {
+        return { -x, -y, -z };
+    }
+    
+    template<typename T>
+        inline Vec3<T> Vec3<T>::operator+(const Vec3<T>& b) const // Addition 
+    {
+        return { x + b.x, y + b.y, z + b.z };
+    }
+    
+    template<typename T>
+        inline Vec3<T> Vec3<T>::operator-(const Vec3<T>& b) const // Subtraction 
+    {
+        return { x - b.x, y - b.y, z - b.z };
+    }
+    
+    template<typename T>
+        inline Vec3<T> Vec3<T>::operator%(const Vec3<T>& b) const // Subtraction 
+    {
+        return 
+        { 
+            y * b.z - z * b.y,
+            z * b.x - x * b.z,
+            x * b.y - y * b.x
+        };
+    }
+    
+    template<typename T>
+        inline Vec3<T> Vec3<T>::operator*(const T& b) const // Scalar multiplication 
+    {
+        return { x * b, y * b, z * b }; 
+    }
+    
+    template<typename T>
+        inline Vec3<T> Vec3<T>::operator/(const T& b) const // Scalar division 
+    {
+        return { x / b, y / b, z / b };
+    }
+    
+    template<typename T>
+        inline T Vec3<T>::operator*(const Vec3<T>& b) const // Dot product 
+    {
+        return x * b.x + y * b.y + z * b.z;
+    }
+    
+    template<typename T>
+        inline Vec3<T>& Vec3<T>::operator+=(const Vec3<T>& b) 
+    {
+        x += b.x;
+        y += b.y;
+        z += b.z;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline Vec3<T>& Vec3<T>::operator-=(const Vec3<T>& b) 
+    {
+        x -= b.x;
+        y -= b.y;
+        z -= b.z;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline Vec3<T>& Vec3<T>::operator*=(const T& b) 
+    {
+        x *= b;
+        y *= b;
+        z *= b;
+        
+        return *this;
+    }
+    
+    
+    template<typename T>
+        inline Vec3<T>& Vec3<T>::operator/=(const T& b) 
+    {
+        x /= b;
+        y /= b;
+        z /= b;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline bool Vec3<T>::operator==(const Vec3<T>& b) const // Equality comparison 
+    {
+        return x == b.x && y == b.y && z == b.z;
+    }
+    
+    template<typename T>
+        inline bool Vec3<T>::operator!=(const Vec3<T>& b) const // Inequality comparison 
+    {
+        return x != b.x || y != b.y || z != b.z;
+    }
     
     //~ 4D Vector
     
-    // TODO(crazy): Implement
+    template<typename T>
+        inline Vec4<T> Vec4<T>::operator-() const // Unary negation
+    {
+        return { -x, -y, -z, -w };
+    }
+    
+    template<typename T>
+        inline Vec4<T> Vec4<T>::operator+(const Vec4<T>& b) const // Addition 
+    {
+        return { x + b.x, y + b.y, z + b.z, w + b.w };
+    }
+    
+    template<typename T>
+        inline Vec4<T> Vec4<T>::operator-(const Vec4<T>& b) const // Subtraction 
+    {
+        return { x - b.x, y - b.y, z - b.z, w - b.w };
+    }
+    
+    template<typename T>
+        inline Vec4<T> Vec4<T>::operator*(const T& b) const // Scalar multiplication 
+    {
+        return { x * b, y * b, z * b, w * b }; 
+    }
+    
+    template<typename T>
+        inline Vec4<T> Vec4<T>::operator/(const T& b) const // Scalar division 
+    {
+        return { x / b, y / b, z / b, w / b };
+    }
+    
+    template<typename T>
+        inline T Vec4<T>::operator*(const Vec4<T>& b) const // Dot product 
+    {
+        return x * b.x + y * b.y + z * b.z + w * b.w;
+    }
+    
+    template<typename T>
+        inline Vec4<T>& Vec4<T>::operator+=(const Vec4<T>& b) 
+    {
+        x += b.x;
+        y += b.y;
+        z += b.z;
+        w += b.w;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline Vec4<T>& Vec4<T>::operator-=(const Vec4<T>& b) 
+    {
+        x -= b.x;
+        y -= b.y;
+        z -= b.z;
+        w -= b.w;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline Vec4<T>& Vec4<T>::operator*=(const T& b) 
+    {
+        x *= b;
+        y *= b;
+        z *= b;
+        w *= b;
+        
+        return *this;
+    }
+    
+    
+    template<typename T>
+        inline Vec4<T>& Vec4<T>::operator/=(const T& b) 
+    {
+        x /= b;
+        y /= b;
+        z /= b;
+        w /= b;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline bool Vec4<T>::operator==(const Vec4<T>& b) const // Equality comparison 
+    {
+        return x == b.x && y == b.y && z == b.z && w == b.w;
+    }
+    
+    template<typename T>
+        inline bool Vec4<T>::operator!=(const Vec4<T>& b) const // Inequality comparison 
+    {
+        return x != b.x || y != b.y || z != b.z || w != b.w;
+    }
     
     
     
-    // Helper function implementations
+    //- Helper function implementations
     
     //~ 2D Vector
     
