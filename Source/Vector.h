@@ -5,7 +5,7 @@
 
 namespace Tool
 {
-    // Struct declarations
+    // Struct 
     
     //~ 2D Vector
     
@@ -33,6 +33,8 @@ namespace Tool
     };
     
     //~ 3D Vector
+    
+    
     
     template<typename T>
         struct Vec3
@@ -136,6 +138,93 @@ namespace Tool
     // Operator overload implementations
     
     //~ 2D Vector
+    
+    template<typename T>
+        inline Vec2<T> Vec2<T>::operator-() const // Unary negation
+    {
+        return { -x, -y };
+    }
+    
+    template<typename T>
+        inline Vec2<T> Vec2<T>::operator+(const Vec2<T>& b) const // Addition 
+    {
+        return { x + b.x, y + b.y };
+    }
+    
+    template<typename T>
+        inline Vec2<T> Vec2<T>::operator-(const Vec2<T>& b) const // Subtraction 
+    {
+        return { x - b.x, y - b.y };
+    }
+    
+    template<typename T>
+        inline Vec2<T> Vec2<T>::operator*(const T& b) const // Scalar multiplication 
+    {
+        return { x * b, y * b }; 
+    }
+    
+    template<typename T>
+        inline Vec2<T> Vec2<T>::operator/(const T& b) const // Scalar division 
+    {
+        return { x / b, y / b };
+    }
+    
+    template<typename T>
+        inline T Vec2<T>::operator*(const Vec2<T>& b) const // Dot product 
+    {
+        return x * b.x + y * b.y;
+    }
+    
+    template<typename T>
+        inline Vec2<T>& Vec2<T>::operator+=(const Vec2<T>& b) 
+    {
+        x += b.x;
+        y += b.y;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline Vec2<T>& Vec2<T>::operator-=(const Vec2<T>& b) 
+    {
+        x -= b.x;
+        y -= b.y;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline Vec2<T>& Vec2<T>::operator*=(const T& b) 
+    {
+        x *= b;
+        y *= b;
+        
+        return *this;
+    }
+    
+    
+    template<typename T>
+        inline Vec2<T>& Vec2<T>::operator/=(const T& b) 
+    {
+        x /= b;
+        y /= b;
+        
+        return *this;
+    }
+    
+    template<typename T>
+        inline bool Vec2<T>::operator==(const Vec2<T>& b) const // Equality comparison 
+    {
+        return x == b.x && y == b.y;
+    }
+    
+    template<typename T>
+        inline bool Vec2<T>::operator!=(const Vec2<T>& b) const // Inequality comparison 
+    {
+        return x != b.x || y != b.y;
+    }
+    
+    
     
     // TODO(crazy): Implement
     
