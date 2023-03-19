@@ -20,6 +20,8 @@ int main()
     
     matrix = other;
     
+    m4 another = Tool::M4Identity();
+    
     bool cmp = matrix != other;
     
     return (i32)a.x;

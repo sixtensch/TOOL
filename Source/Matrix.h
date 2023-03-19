@@ -122,6 +122,70 @@ namespace Tool
         bool operator!=(const Mat4<T>& b); // Inequality comparison
     };
     
+    //~ Acronyms
+    
+    typedef Tool::Mat2<f32> m2; // Matrix2x2
+    typedef Tool::Mat3<f32> m3; // Matrix3x3
+    typedef Tool::Mat4<f32> m4; // Matrix4x4
+    
+    typedef Tool::Mat2<f64> m2d; // Matrix2x2 double precision
+    typedef Tool::Mat3<f64> m3d; // Matrix3x3 double precision
+    typedef Tool::Mat4<f64> m4d; // Matrix4x4 double precision
+    
+    
+    
+    //- Helper function declarations
+    
+    //~ 2x2 Matrix
+    
+    m2 M2Identity();
+    
+    m2 M2Downscale(m3 mat3);
+    m2 M2Downscale(m4 mat4);
+    
+    m2 M2Rotation(f32 radians);
+    
+    m2 M2Scale(v2 scale);
+    m2 M2Scale(f32 x, f32 y);
+    
+    //~ 3x3 Matrix
+    
+    m3 M3Identity();
+    
+    m3 M3Upscale(m2 mat2);
+    m3 M3Downscale(m4 mat4);
+    
+    m3 M3Rotation(v3 euler);
+    m3 M3Rotation(f32 pitch, f32 yaw, f32 roll);
+    m3 M3RotationX(f32 pitch);
+    m3 M3RotationY(f32 yaw);
+    m3 M3RotationZ(f32 roll);
+    
+    m3 M3Scale(v3 scale);
+    m3 M3Scale(f32 x, f32 y, f32 z);
+    
+    //~ 4x4 Matrix
+    
+    m4 M4Identity();
+    
+    m4 M4Upscale(m2 mat2);
+    m4 M4Upscale(m3 mat3);
+    
+    m4 M4Rotation(v3 euler);
+    m4 M4Rotation(f32 pitch, f32 yaw, f32 roll);
+    m4 M4RotationX(f32 pitch);
+    m4 M4RotationY(f32 yaw);
+    m4 M4RotationZ(f32 roll);
+    
+    m4 M4Scale(v3 scale);
+    m4 M4Scale(f32 x, f32 y, f32 z);
+    
+    m4 M4Translation(v3 position);
+    m4 M4Translation(f32 x, f32 y, f32 z);
+    
+    m4 M4ProjectionPerspective(f32 verticalFov, f32 aspectRatio, f32 near, f32 far);
+    m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far);
+    
     
     
     //- Operator overload implementations
@@ -516,15 +580,15 @@ namespace Tool
 
 
 
-//~ Acronyms
+//~ Acronym usings
 
-typedef Tool::Mat2<f32> m2; // Matrix2x2
-typedef Tool::Mat3<f32> m3; // Matrix3x3
-typedef Tool::Mat4<f32> m4; // Matrix4x4
+using Tool::m2; // Matrix2x2
+using Tool::m3; // Matrix3x3
+using Tool::m4; // Matrix4x4
 
-typedef Tool::Mat2<f64> m2d; // Matrix2x2 double precision
-typedef Tool::Mat3<f64> m3d; // Matrix3x3 double precision
-typedef Tool::Mat4<f64> m4d; // Matrix4x4 double precision
+using Tool::m2d; // Matrix2x2 double precision
+using Tool::m3d; // Matrix3x3 double precision
+using Tool::m4d; // Matrix4x4 double precision
 
 
 

@@ -113,6 +113,24 @@ namespace Tool
 		bool operator!=(const Vec4<T>& b) const; // Inequality comparison
     };
     
+    //~ Acronyms
+    
+    typedef Tool::Vec2<f32> v2; // Vector2
+    typedef Tool::Vec3<f32> v3; // Vector3
+    typedef Tool::Vec4<f32> v4; // Vector4
+    
+    typedef Tool::Vec2<f64> v2d; // Vector2 double precision
+    typedef Tool::Vec3<f64> v3d; // Vector3 double precision
+    typedef Tool::Vec4<f64> v4d; // Vector4 double precision
+    
+    typedef Tool::Vec2<i32> p2; // Point2
+    typedef Tool::Vec3<i32> p3; // Point3
+    typedef Tool::Vec4<i32> p4; // Point4
+    
+    typedef Tool::Vec2<i64> p2u; // Point2 unsigned
+    typedef Tool::Vec3<i64> p3u; // Point3 unsigned
+    typedef Tool::Vec4<i64> p4u; // Point4 unsigned
+    
     
     
     //- Helper function declarations
@@ -438,27 +456,27 @@ namespace Tool
 
 
 
-//~ Acronyms
+//~ Acronym usings
 
 #ifndef TOOL_NO_ACRONYMS
 
-typedef Tool::Vec2<f32> v2; // Vector2
-typedef Tool::Vec3<f32> v3; // Vector3
-typedef Tool::Vec4<f32> v4; // Vector4
+using Tool::v2; // Vector2
+using Tool::v3; // Vector3
+using Tool::v4; // Vector4
 
-typedef Tool::Vec2<f64> v2d; // Vector2 double precision
-typedef Tool::Vec3<f64> v3d; // Vector3 double precision
-typedef Tool::Vec4<f64> v4d; // Vector4 double precision
+using Tool::v2d; // Vector2 double precision
+using Tool::v3d; // Vector3 double precision
+using Tool::v4d; // Vector4 double precision
 
-typedef Tool::Vec2<i32> p2; // Point2
-typedef Tool::Vec3<i32> p3; // Point3
-typedef Tool::Vec4<i32> p4; // Point4
+using Tool::p2; // Point2
+using Tool::p3; // Point3
+using Tool::p4; // Point4
 
-typedef Tool::Vec2<i64> p2u; // Point2 unsigned
-typedef Tool::Vec3<i64> p3u; // Point3 unsigned
-typedef Tool::Vec4<i64> p4u; // Point4 unsigned
+using Tool::p2u; // Point2 unsigned
+using Tool::p3u; // Point3 unsigned
+using Tool::p4u; // Point4 unsigned
 
-#endif
+#endif //TOOL_NO_ACRONYMS 
 
 
 
