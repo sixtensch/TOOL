@@ -10,5 +10,17 @@ int main()
     
     a = a / c;
     
+    m2 matrix = { 0, 0, 0, 0 };
+    m2 other = { 0, 0, 0, 0 };
+    m2 third = matrix * 2;
+    other *= matrix;
+    
+    v2 v = { 0, 0 };
+    v2 tr = matrix * v;
+    
+    matrix = other;
+    
+    bool cmp = matrix != other;
+    
     return (i32)a.x;
 }

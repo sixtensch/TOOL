@@ -19,14 +19,14 @@ namespace Tool
         
 		Vec2<T> operator+(const Vec2<T>& b) const; // Addition
 		Vec2<T> operator-(const Vec2<T>& b) const; // Subtraction
-		Vec2<T> operator*(const T& b) const; // Scalar multiplication
-		Vec2<T> operator/(const T& b) const; // Scalar division
+		Vec2<T> operator*(T b) const; // Scalar multiplication
+		Vec2<T> operator/(T b) const; // Scalar division
 		T operator*(const Vec2<T>& b) const; // Dot product
         
 		Vec2<T>& operator+=(const Vec2<T>& b);
 		Vec2<T>& operator-=(const Vec2<T>& b);
-		Vec2<T>& operator*=(const T& b);
-		Vec2<T>& operator/=(const T& b);
+		Vec2<T>& operator*=(T b);
+		Vec2<T>& operator/=(T b);
         
 		bool operator==(const Vec2<T>& b) const; // Equality comparison
 		bool operator!=(const Vec2<T>& b) const; // Inequality comparison
@@ -55,14 +55,14 @@ namespace Tool
 		Vec3<T> operator+(const Vec3<T>& b) const; // Addition
 		Vec3<T> operator-(const Vec3<T>& b) const; // Subtraction
         Vec3<T> operator%(const Vec3<T>& b) const; // Cross product
-		Vec3<T> operator*(const T& b) const; // Scalar multiplication
-		Vec3<T> operator/(const T& b) const; // Scalar division
+		Vec3<T> operator*(T b) const; // Scalar multiplication
+		Vec3<T> operator/(T b) const; // Scalar division
 		T operator*(const Vec3<T>& b) const; // Dot product
         
 		Vec3<T>& operator+=(const Vec3<T>& b);
 		Vec3<T>& operator-=(const Vec3<T>& b);
-		Vec3<T>& operator*=(const T& b);
-		Vec3<T>& operator/=(const T& b);
+		Vec3<T>& operator*=(T b);
+		Vec3<T>& operator/=(T b);
         
 		bool operator==(const Vec3<T>& b) const; // Equality comparison
 		bool operator!=(const Vec3<T>& b) const; // Inequality comparison
@@ -100,14 +100,14 @@ namespace Tool
         
 		Vec4<T> operator+(const Vec4<T>& b) const; // Addition
 		Vec4<T> operator-(const Vec4<T>& b) const; // Subtraction
-        Vec4<T> operator*(const T& b) const; // Scalar multiplication
-		Vec4<T> operator/(const T& b) const; // Scalar division
+        Vec4<T> operator*(T b) const; // Scalar multiplication
+		Vec4<T> operator/(T b) const; // Scalar division
 		T operator*(const Vec4<T>& b) const; // Dot product
         
 		Vec4<T>& operator+=(const Vec4<T>& b);
 		Vec4<T>& operator-=(const Vec4<T>& b);
-		Vec4<T>& operator*=(const T& b);
-		Vec4<T>& operator/=(const T& b);
+		Vec4<T>& operator*=(T b);
+		Vec4<T>& operator/=(T b);
         
 		bool operator==(const Vec4<T>& b) const; // Equality comparison
 		bool operator!=(const Vec4<T>& b) const; // Inequality comparison
@@ -156,13 +156,13 @@ namespace Tool
     }
     
     template<typename T>
-        inline Vec2<T> Vec2<T>::operator*(const T& b) const // Scalar multiplication 
+        inline Vec2<T> Vec2<T>::operator*(T b) const // Scalar multiplication 
     {
         return { x * b, y * b }; 
     }
     
     template<typename T>
-        inline Vec2<T> Vec2<T>::operator/(const T& b) const // Scalar division 
+        inline Vec2<T> Vec2<T>::operator/(T b) const // Scalar division 
     {
         return { x / b, y / b };
     }
@@ -192,7 +192,7 @@ namespace Tool
     }
     
     template<typename T>
-        inline Vec2<T>& Vec2<T>::operator*=(const T& b) 
+        inline Vec2<T>& Vec2<T>::operator*=(T b) 
     {
         x *= b;
         y *= b;
@@ -202,7 +202,7 @@ namespace Tool
     
     
     template<typename T>
-        inline Vec2<T>& Vec2<T>::operator/=(const T& b) 
+        inline Vec2<T>& Vec2<T>::operator/=(T b) 
     {
         x /= b;
         y /= b;
@@ -254,13 +254,13 @@ namespace Tool
     }
     
     template<typename T>
-        inline Vec3<T> Vec3<T>::operator*(const T& b) const // Scalar multiplication 
+        inline Vec3<T> Vec3<T>::operator*(T b) const // Scalar multiplication 
     {
         return { x * b, y * b, z * b }; 
     }
     
     template<typename T>
-        inline Vec3<T> Vec3<T>::operator/(const T& b) const // Scalar division 
+        inline Vec3<T> Vec3<T>::operator/(T b) const // Scalar division 
     {
         return { x / b, y / b, z / b };
     }
@@ -292,7 +292,7 @@ namespace Tool
     }
     
     template<typename T>
-        inline Vec3<T>& Vec3<T>::operator*=(const T& b) 
+        inline Vec3<T>& Vec3<T>::operator*=(T b) 
     {
         x *= b;
         y *= b;
@@ -303,7 +303,7 @@ namespace Tool
     
     
     template<typename T>
-        inline Vec3<T>& Vec3<T>::operator/=(const T& b) 
+        inline Vec3<T>& Vec3<T>::operator/=(T b) 
     {
         x /= b;
         y /= b;
@@ -345,13 +345,13 @@ namespace Tool
     }
     
     template<typename T>
-        inline Vec4<T> Vec4<T>::operator*(const T& b) const // Scalar multiplication 
+        inline Vec4<T> Vec4<T>::operator*(T b) const // Scalar multiplication 
     {
         return { x * b, y * b, z * b, w * b }; 
     }
     
     template<typename T>
-        inline Vec4<T> Vec4<T>::operator/(const T& b) const // Scalar division 
+        inline Vec4<T> Vec4<T>::operator/(T b) const // Scalar division 
     {
         return { x / b, y / b, z / b, w / b };
     }
@@ -385,7 +385,7 @@ namespace Tool
     }
     
     template<typename T>
-        inline Vec4<T>& Vec4<T>::operator*=(const T& b) 
+        inline Vec4<T>& Vec4<T>::operator*=(T b) 
     {
         x *= b;
         y *= b;
@@ -395,9 +395,8 @@ namespace Tool
         return *this;
     }
     
-    
     template<typename T>
-        inline Vec4<T>& Vec4<T>::operator/=(const T& b) 
+        inline Vec4<T>& Vec4<T>::operator/=(T b) 
     {
         x /= b;
         y /= b;
@@ -460,5 +459,7 @@ typedef Tool::Vec3<i64> p3u; // Point3 unsigned
 typedef Tool::Vec4<i64> p4u; // Point4 unsigned
 
 #endif
+
+
 
 #endif //_VECTOR_H
