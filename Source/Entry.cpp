@@ -22,7 +22,9 @@ int main()
     
     m4 another = Tool::M4Identity();
     
+    m2 id = Tool::M2Scale(0.0, 0.0);
+    
     bool cmp = matrix != other;
     
-    return (i32)a.x;
+    return (i32)id.m00;
 }

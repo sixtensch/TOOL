@@ -4,6 +4,7 @@
 
 // Basic types and helper functionality
 #include "Basics.h"
+#include "Math.h"
 #include "Vector.h"
 #include "Matrix.h"
 
