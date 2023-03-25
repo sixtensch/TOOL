@@ -39,16 +39,19 @@ namespace Tool
     {
         union
         {
-            Vec2<T> v2;
-            
-            struct 
+            struct
             {
                 T x;
                 T y;
+                T z;
+            };
+            
+            struct 
+            {
+                Vec2<T> v2;
+                T z;
             };
         };
-        
-        T z;
         
         Vec3<T> operator-() const; // Unary negation
         
@@ -75,26 +78,27 @@ namespace Tool
     {
         union 
         {
-            Vec3<T> v3;
+            struct 
+            {
+                T x;
+                T y;
+                T z;
+                T w;
+            };
             
             struct 
             {
-                union 
-                {
-                    Vec2<T> v2;
-                    
-                    struct
-                    {
-                        T x;
-                        T y;
-                    };
-                };
-                
+                Vec2<T> v2;
                 T z;
+                T w;
+            };
+            
+            struct 
+            {
+                Vec3<T> v3;
+                T w;
             };
         };
-        
-        T w;
         
         Vec4<T> operator-() const; // Unary negation
         
