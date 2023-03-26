@@ -1,6 +1,8 @@
 #include "Quaternion.h"
 #include "Math.h"
 
+//~ Static functions
+
 static m4 GetMatrix(q4 q, f32 s)
 {
     f32 x2 = q.x * q.x;
@@ -24,12 +26,12 @@ static m4 GetMatrix(q4 q, f32 s)
 
 namespace Tool
 {
+    //~ Operators
     
     v3 Quaternion::operator*(v3 vector)
     {
         q4 q = { vector.x, vector.y, vector.z, 1.0f };
         q4 c = Q4Conjugate(*this);
-        
         return (*this * q * c).im;
     }
     
@@ -37,7 +39,6 @@ namespace Tool
     {
         q4 q = { vector.x, vector.y, vector.z, vector.w };
         q4 c = Q4Conjugate(*this);
-        
         return (*this * q * c).vec;
     }
     
@@ -69,6 +70,8 @@ namespace Tool
             w + b.w
         };
     }
+    
+    //~ Initializers
     
     q4 Q4Identity()
     {
@@ -122,7 +125,6 @@ namespace Tool
     q4 Q4FromTo(v3 from, v3 to)
     {
         f32 comp = sqrtf(2.0f + from * to);
-        
         return Q4FromComponents((from % to) * (1.0f / comp), comp * 0.5f);
     }
     
@@ -163,9 +165,10 @@ namespace Tool
         f32 dot = from.vec * to.vec;
         f32 theta = acosf(dot);
         f32 invSine = 1.0f / sinf(theta);
-        
         return from * (sinf(theta * (1 - t)) * invSine) + to * (sinf(theta * t) * invSine);
     }
+    
+    //~ Conversions
     
     m4 Q4GetMatrix(q4 quaternion)
     {
@@ -176,9 +179,10 @@ namespace Tool
     {
         f32 n = Q4Norm(quaternion);
         f32 s = 2.0f / (n * n);
-        
         return GetMatrix(quaternion, s);
     }
+    
+    //~ Operations
     
     f32 Q4Norm(q4 quaternion)
     {
@@ -200,7 +204,6 @@ namespace Tool
     {
         f32 n = Q4Norm(quaternion);
         f32 s = -1.0f / (n * n);
-        
         return { quaternion.x * s, quaternion.y * s, quaternion.z * s, quaternion.w * -s };
     }
     
@@ -218,5 +221,4 @@ namespace Tool
     {
         *target = Q4Inverse(*target);
     }
-    
 }
