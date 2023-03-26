@@ -9,14 +9,14 @@ namespace Tool
 {
     //- Struct Predeclarations
     
-    template<typename T>
+    /*template<typename T>;
         struct Mat2;
     
     template<typename T>
         struct Mat3;
     
     template<typename T>
-        struct Mat4;
+        struct Mat4;*/
     
     
     
@@ -125,13 +125,13 @@ namespace Tool
     
     //~ Acronyms
     
-    typedef Tool::Mat2<f32> m2; // Matrix2x2
-    typedef Tool::Mat3<f32> m3; // Matrix3x3
-    typedef Tool::Mat4<f32> m4; // Matrix4x4
+    typedef Mat2<f32> m2; // Matrix2x2
+    typedef Mat3<f32> m3; // Matrix3x3
+    typedef Mat4<f32> m4; // Matrix4x4
     
-    typedef Tool::Mat2<f64> m2d; // Matrix2x2 double precision
-    typedef Tool::Mat3<f64> m3d; // Matrix3x3 double precision
-    typedef Tool::Mat4<f64> m4d; // Matrix4x4 double precision
+    typedef Mat2<f64> m2d; // Matrix2x2 double precision
+    typedef Mat3<f64> m3d; // Matrix3x3 double precision
+    typedef Mat4<f64> m4d; // Matrix4x4 double precision
     
     
     
@@ -977,7 +977,7 @@ namespace Tool
         return {};
     }
     
-    inline m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type)
+    m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type)
     {
         return {};
     }
@@ -987,6 +987,8 @@ namespace Tool
 
 //~ Acronym usings
 
+#ifndef TOOL_NO_ACRONYMS
+
 using Tool::m2; // Matrix2x2
 using Tool::m3; // Matrix3x3
 using Tool::m4; // Matrix4x4
@@ -994,6 +996,8 @@ using Tool::m4; // Matrix4x4
 using Tool::m2d; // Matrix2x2 double precision
 using Tool::m3d; // Matrix3x3 double precision
 using Tool::m4d; // Matrix4x4 double precision
+
+#endif
 
 
 
