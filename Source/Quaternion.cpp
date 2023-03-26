@@ -1,6 +1,8 @@
 #include "Quaternion.h"
 #include "Math.h"
 
+//~ Static functions
+
 static m4 GetMatrix(q4 q, f32 s)
 {
     f32 x2 = q.x * q.x;
@@ -24,6 +26,7 @@ static m4 GetMatrix(q4 q, f32 s)
 
 namespace Tool
 {
+    //~ Operators
     
     v3 Quaternion::operator*(v3 vector)
     {
@@ -69,6 +72,8 @@ namespace Tool
             w + b.w
         };
     }
+    
+    //~ Initializers
     
     q4 Q4Identity()
     {
@@ -167,6 +172,8 @@ namespace Tool
         return from * (sinf(theta * (1 - t)) * invSine) + to * (sinf(theta * t) * invSine);
     }
     
+    //~ Conversions
+    
     m4 Q4GetMatrix(q4 quaternion)
     {
         return GetMatrix(quaternion, 2.0f);
@@ -179,6 +186,8 @@ namespace Tool
         
         return GetMatrix(quaternion, s);
     }
+    
+    //~ Operations
     
     f32 Q4Norm(q4 quaternion)
     {
@@ -218,5 +227,4 @@ namespace Tool
     {
         *target = Q4Inverse(*target);
     }
-    
 }
