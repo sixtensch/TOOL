@@ -12,6 +12,8 @@ int main()
     v4 av = a * v;
     v4 bv = b * v;
     
+    p4 vp = VEC4_CAST(v, i32);
+    
     m3 c = Tool::M3RotationX(PI * 0.1f);
     m3 d = Tool::M3RotationY(PI * 0.1f);
     m3 e = Tool::M3RotationZ(PI * 0.1f);

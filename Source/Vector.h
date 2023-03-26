@@ -3,6 +3,18 @@
 
 #include "Basics.h"
 
+
+
+//- Definitions
+
+//~ Parametric
+
+#define VEC2_CAST(v, T) (Tool::Vec2<T> { (T)(v).x, (T)(v).y } )
+#define VEC3_CAST(v, T) (Tool::Vec3<T> { (T)(v).x, (T)(v).y, (T)(v).z } )
+#define VEC4_CAST(v, T) (Tool::Vec4<T> { (T)(v).x, (T)(v).y, (T)(v).z, (T)(v).w } )
+
+
+
 namespace Tool
 {
     //- Struct Declarations
