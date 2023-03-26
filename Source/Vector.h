@@ -2,6 +2,7 @@
 #define _VECTOR_H
 
 #include "Basics.h"
+#include "Math.h"
 
 
 
@@ -131,21 +132,21 @@ namespace Tool
     
     //~ Acronyms
     
-    typedef Tool::Vec2<f32> v2; // Vector2
-    typedef Tool::Vec3<f32> v3; // Vector3
-    typedef Tool::Vec4<f32> v4; // Vector4
+    typedef Vec2<f32> v2; // Vector2
+    typedef Vec3<f32> v3; // Vector3
+    typedef Vec4<f32> v4; // Vector4
     
-    typedef Tool::Vec2<f64> v2d; // Vector2 double precision
-    typedef Tool::Vec3<f64> v3d; // Vector3 double precision
-    typedef Tool::Vec4<f64> v4d; // Vector4 double precision
+    typedef Vec2<f64> v2d; // Vector2 double precision
+    typedef Vec3<f64> v3d; // Vector3 double precision
+    typedef Vec4<f64> v4d; // Vector4 double precision
     
-    typedef Tool::Vec2<i32> p2; // Point2
-    typedef Tool::Vec3<i32> p3; // Point3
-    typedef Tool::Vec4<i32> p4; // Point4
+    typedef Vec2<i32> p2; // Point2
+    typedef Vec3<i32> p3; // Point3
+    typedef Vec4<i32> p4; // Point4
     
-    typedef Tool::Vec2<i64> p2u; // Point2 unsigned
-    typedef Tool::Vec3<i64> p3u; // Point3 unsigned
-    typedef Tool::Vec4<i64> p4u; // Point4 unsigned
+    typedef Vec2<i64> p2u; // Point2 unsigned
+    typedef Vec3<i64> p3u; // Point3 unsigned
+    typedef Vec4<i64> p4u; // Point4 unsigned
     
     
     
@@ -153,17 +154,27 @@ namespace Tool
     
     //~ 2D Vector
     
-    // TODO(crazy): Implement
+    v2 V2Normalize(v2 vector);
+    void V2Normalize(v2* target);
     
+    f32 V2Length(v2 vector);
+    f32 V2LengthSquared(v2 vector);
     
     //~ 3D Vector
     
-    // TODO(crazy): Implement
+    v3 V3Normalize(v3 vector);
+    void V3Normalize(v3* target);
     
+    f32 V3Length(v3 vector);
+    f32 V3LengthSquared(v3 vector);
     
     //~ 4D Vector
     
-    // TODO(crazy): Implement
+    v4 V4Normalize(v4 vector);
+    void V4Normalize(v4* target);
+    
+    f32 V4Length(v4 vector);
+    f32 V4LengthSquared(v4 vector);
     
     
     
@@ -458,15 +469,69 @@ namespace Tool
     
     //~ 2D Vector
     
-    // TODO(crazy): Implement
+    inline v2 V2Normalize(v2 vector)
+    {
+        return vector * (1.0f / V2Length(vector));
+    }
+    
+    inline void V2Normalize(v2* target)
+    {
+        *target = V2Normalize(*target);
+    }
+    
+    inline f32 V2Length(v2 vector)
+    {
+        return sqrtf(vector.x * vector.x + vector.y * vector.y);
+    }
+    
+    inline f32 V2LengthSquared(v2 vector)
+    {
+        return vector.x * vector.x + vector.y * vector.y;
+    }
     
     //~ 3D Vector
     
-    // TODO(crazy): Implement
+    inline v3 V3Normalize(v3 vector)
+    {
+        return vector * (1.0f / V3Length(vector));
+    }
+    
+    inline void V3Normalize(v3* target)
+    {
+        *target = V3Normalize(*target);
+    }
+    
+    inline f32 V3Length(v3 vector)
+    {
+        return sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+    }
+    
+    inline f32 V3LengthSquared(v3 vector)
+    {
+        return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z;
+    }
     
     //~ 4D Vector
     
-    // TODO(crazy): Implement
+    inline v4 V4Normalize(v4 vector)
+    {
+        return vector * (1.0f / V4Length(vector));
+    }
+    
+    inline void V4Normalize(v4* target)
+    {
+        *target = V4Normalize(*target);
+    }
+    
+    inline f32 V4Length(v4 vector)
+    {
+        return sqrtf(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z + vector.w * vector.w);
+    }
+    
+    inline f32 V4LengthSquared(v4 vector)
+    {
+        return vector.x * vector.x + vector.y * vector.y + vector.z * vector.z + vector.w * vector.w;
+    }
     
 }
 

@@ -141,8 +141,8 @@ namespace Tool
     
     m2 M2Identity();
     
-    m2 M2Downscale(m3 mat3);
-    m2 M2Downscale(m4 mat4);
+    m2 M2Downscale(const m3& mat3);
+    m2 M2Downscale(const m4& mat4);
     
     m2 M2Rotation(f32 radians);
     
@@ -150,12 +150,15 @@ namespace Tool
     m2 M2Scale(f32 uniform);
     m2 M2Scale(f32 x, f32 y);
     
+    f32 M2Trace(const m2& mat2);
+    f32 M2Determinant(const m2& mat2);
+    
     //~ 3x3 Matrix
     
     m3 M3Identity();
     
-    m3 M3Upscale(m2 mat2);
-    m3 M3Downscale(m4 mat4);
+    m3 M3Upscale(const m2& mat2);
+    m3 M3Downscale(const m4& mat4);
     
     m3 M3Rotation(v3 euler);
     m3 M3Rotation(f32 pitch, f32 yaw, f32 roll);
@@ -167,12 +170,15 @@ namespace Tool
     m3 M3Scale(f32 uniform);
     m3 M3Scale(f32 x, f32 y, f32 z);
     
+    f32 M3Trace(const m4& mat3);
+    f32 M3Determinant(const m4& mat3);
+    
     //~ 4x4 Matrix
     
     m4 M4Identity();
     
-    m4 M4Upscale(m2 mat2);
-    m4 M4Upscale(m3 mat3);
+    m4 M4Upscale(const m2& mat2);
+    m4 M4Upscale(const m3& mat3);
     
     m4 M4Rotation(v3 euler);
     m4 M4Rotation(f32 pitch, f32 yaw, f32 roll);
@@ -198,6 +204,9 @@ namespace Tool
     
     m4 M4ProjectionPerspective(f32 verticalFov, f32 aspectRatio, f32 near, f32 far, ClipType type);
     m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type);
+    
+    f32 M4Trace(const m4& mat4);
+    //f32 M4Determinant(const m4& mat4);
     
     
     
@@ -605,7 +614,7 @@ namespace Tool
         };
     }
     
-    inline m2 M2Downscale(m3 mat3) 
+    inline m2 M2Downscale(const m3& mat3) 
     {
         return
         {
@@ -614,7 +623,7 @@ namespace Tool
         };
     }
     
-    inline m2 M2Downscale(m4 mat4) 
+    inline m2 M2Downscale(const m4& mat4) 
     {
         return
         {
@@ -662,6 +671,16 @@ namespace Tool
         };
     }
     
+    inline f32 M2Trace(const m2& mat2)
+    {
+        return mat2.m00 + mat2.m11;
+    }
+    
+    inline f32 M2Determinant(const m2& mat2)
+    {
+        return mat2.m00 * mat2.m11 - mat2.m01 * mat2.m10;
+    }
+    
     //~ 3x3 Matrix
     
     inline m3 M3Identity()
@@ -674,7 +693,7 @@ namespace Tool
         };
     }
     
-    inline m3 M3Upscale(m2 mat2)
+    inline m3 M3Upscale(const m2& mat2)
     {
         return
         {
@@ -684,7 +703,7 @@ namespace Tool
         };
     }
     
-    inline m3 M3Downscale(m4 mat4)
+    inline m3 M3Downscale(const m4& mat4)
     {
         return
         {
@@ -788,6 +807,22 @@ namespace Tool
         };
     }
     
+    inline f32 M3Trace(const m4& mat3)
+    {
+        return mat3.m00 + mat3.m11 + mat3.m22;
+    }
+    
+    inline f32 M3Determinant(const m4& mat3) 
+    {
+        return
+            mat3.m00 * mat3.m11 * mat3.m22 +
+            mat3.m10 * mat3.m21 * mat3.m02 +
+            mat3.m20 * mat3.m01 * mat3.m12 -
+            mat3.m00 * mat3.m21 * mat3.m12 -
+            mat3.m10 * mat3.m01 * mat3.m22 -
+            mat3.m20 * mat3.m11 * mat3.m02;
+    }
+    
     //~ 4x4 Matrix
     
     inline m4 M4Identity()
@@ -801,7 +836,7 @@ namespace Tool
         };
     }
     
-    inline m4 M4Upscale(m2 mat2)
+    inline m4 M4Upscale(const m2& mat2)
     {
         return
         {
@@ -812,7 +847,7 @@ namespace Tool
         };
     }
     
-    inline m4 M4Upscale(m3 mat3)
+    inline m4 M4Upscale(const m3& mat3)
     {
         return
         {
@@ -977,10 +1012,20 @@ namespace Tool
         return {};
     }
     
-    m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type)
+    inline m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type)
     {
         return {};
     }
+    
+    inline f32 M4Trace(const m4& mat4)
+    {
+        return mat4.m00 + mat4.m11 + mat4.m22 + mat4.m33;
+    }
+    
+    /*inline f32 M4Determinant(const m4& mat4)
+    {
+        
+    }*/
 }
 
 
