@@ -39,10 +39,10 @@ commands =
 		.out = "*build*", 
 		.footer_panel = true, 
 		.save_dirty_files = true,
-		.cursor_at_end = true,
+		.cursor_at_end = false,
 		.win = "build.bat"
 	},
-
+    
 	.run = 
 	{ 
 		.name = "run",
@@ -52,7 +52,7 @@ commands =
 		.cursor_at_end = true,
 		.win = "run.bat"
 	},
-
+    
 	.debug = 
 	{ 
 		.name = "debug",
@@ -62,17 +62,17 @@ commands =
 		.cursor_at_end = true,
 		.win = "debug.bat"
 	},
-
+    
 	.build_release =
 	{
 		.name = "build_release",
 		.out = "*build*",
 		.footer_panel = true,
 		.save_dirty_files = true,
-		.cursor_at_end = true,
+		.cursor_at_end = false,
 		.win = "build.bat Release"
 	},
-
+    
 	.run_release = 
 	{ 
 		.name = "run_release",
@@ -82,7 +82,7 @@ commands =
 		.cursor_at_end = true,
 		.win = "run.bat Release"
 	},
-
+    
 	.debug_release = 
 	{ 
 		.name = "debug_release",
