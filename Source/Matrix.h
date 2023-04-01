@@ -5,6 +5,8 @@
 #include "Vector.h"
 #include "Math.h"
 
+
+
 namespace Tool
 {
     //- Struct Predeclarations
@@ -634,8 +636,8 @@ namespace Tool
     
     inline m2 M2Rotation(f32 radians)
     {
-        f32 c = cosf(radians);
-        f32 s = sinf(radians);
+        f32 c = FCos(radians);
+        f32 s = FSin(radians);
         
         return
         {
@@ -720,12 +722,12 @@ namespace Tool
     
     inline m3 M3Rotation(f32 pitch, f32 yaw, f32 roll)
     {
-        f32 cx = cosf(pitch);
-        f32 sx = sinf(pitch);
-        f32 cy = cosf(yaw);
-        f32 sy = sinf(yaw);
-        f32 cz = cosf(roll);
-        f32 sz = sinf(roll);
+        f32 cx = FCos(pitch);
+        f32 sx = FSin(pitch);
+        f32 cy = FCos(yaw);
+        f32 sy = FSin(yaw);
+        f32 cz = FCos(roll);
+        f32 sz = FSin(roll);
         
         f32 sxsy = sx * sy;
         f32 sxcy = sx * cy;
@@ -740,8 +742,8 @@ namespace Tool
     
     inline m3 M3RotationX(f32 pitch)
     {
-        f32 c = cosf(pitch);
-        f32 s = sinf(pitch);
+        f32 c = FCos(pitch);
+        f32 s = FSin(pitch);
         
         return 
         {
@@ -753,8 +755,8 @@ namespace Tool
     
     inline m3 M3RotationY(f32 yaw)
     {
-        f32 c = cosf(yaw);
-        f32 s = sinf(yaw);
+        f32 c = FCos(yaw);
+        f32 s = FSin(yaw);
         
         return
         {
@@ -766,8 +768,8 @@ namespace Tool
     
     inline m3 M3RotationZ(f32 roll)
     {
-        f32 c = cosf(roll);
-        f32 s = sinf(roll);
+        f32 c = FCos(roll);
+        f32 s = FSin(roll);
         
         return
         {
@@ -865,12 +867,12 @@ namespace Tool
     
     inline m4 M4Rotation(f32 pitch, f32 yaw, f32 roll)
     {
-        f32 cx = cosf(pitch);
-        f32 sx = sinf(pitch);
-        f32 cy = cosf(yaw);
-        f32 sy = sinf(yaw);
-        f32 cz = cosf(roll);
-        f32 sz = sinf(roll);
+        f32 cx = FCos(pitch);
+        f32 sx = FSin(pitch);
+        f32 cy = FCos(yaw);
+        f32 sy = FSin(yaw);
+        f32 cz = FCos(roll);
+        f32 sz = FSin(roll);
         
         f32 sxsy = sx * sy;
         f32 sxcy = sx * cy;
@@ -886,8 +888,8 @@ namespace Tool
     
     inline m4 M4RotationX(f32 pitch)
     {
-        f32 c = cosf(pitch);
-        f32 s = sinf(pitch);
+        f32 c = FCos(pitch);
+        f32 s = FSin(pitch);
         
         return 
         {
@@ -900,8 +902,8 @@ namespace Tool
     
     inline m4 M4RotationY(f32 yaw)
     {
-        f32 c = cosf(yaw);
-        f32 s = sinf(yaw);
+        f32 c = FCos(yaw);
+        f32 s = FSin(yaw);
         
         return
         {
@@ -914,8 +916,8 @@ namespace Tool
     
     inline m4 M4RotationZ(f32 roll)
     {
-        f32 c = cosf(roll);
-        f32 s = sinf(roll);
+        f32 c = FCos(roll);
+        f32 s = FSin(roll);
         
         return
         {

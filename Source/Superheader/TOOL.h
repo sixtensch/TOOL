@@ -13,7 +13,8 @@
 
 //~ All flags:
 // 
-// TOOL_NO_ACRONYMS: Do not use acronyms (f32, v2, m4, etc) in the public namespace.
+// TOOL_NO_ACRONYMS: Do not use TOOL acronyms (f32, v2, m4, etc) in the public namespace.
+// TOOL_NO_MATH:     Do not use TOOL math functions or aliases in the public namespace.
 
 
 

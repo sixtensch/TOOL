@@ -96,7 +96,7 @@ namespace Tool
     q4 Q4Axis(v3 normalizedAxis, f32 radians)
     {
         f32 r = radians * 0.5f;
-        return Q4FromComponents(normalizedAxis * sinf(r), cosf(r));
+        return Q4FromComponents(normalizedAxis * FSin(r), FCos(r));
     }
     
     q4 Q4Euler(v3 euler)
@@ -106,12 +106,12 @@ namespace Tool
     
     q4 Q4Euler(f32 pitch, f32 yaw, f32 roll)
     {
-        f32 sx = sinf(pitch * 0.5f);
-        f32 sy = sinf(yaw * 0.5f);
-        f32 sz = sinf(roll * 0.5f);
-        f32 cx = cosf(pitch * 0.5f);
-        f32 cy = cosf(yaw * 0.5f);
-        f32 cz = cosf(roll * 0.5f);
+        f32 sx = FSin(pitch * 0.5f);
+        f32 sy = FSin(yaw * 0.5f);
+        f32 sz = FSin(roll * 0.5f);
+        f32 cx = FCos(pitch * 0.5f);
+        f32 cy = FCos(yaw * 0.5f);
+        f32 cz = FCos(roll * 0.5f);
         
         return
         {
@@ -124,7 +124,7 @@ namespace Tool
     
     q4 Q4FromTo(v3 from, v3 to)
     {
-        f32 comp = sqrtf(2.0f + from * to);
+        f32 comp = FSqrt(2.0f + from * to);
         return Q4FromComponents((from % to) * (1.0f / comp), comp * 0.5f);
     }
     
@@ -135,7 +135,7 @@ namespace Tool
         v3 right = up % direction;
         
         Quaternion q = { 0 };
-        q.w = 0.5f * sqrtf(1.0f + right.x + up.y + direction.z);
+        q.w = 0.5f * FSqrt(1.0f + right.x + up.y + direction.z);
         
         f32 rec = 0.25f / q.w;
         
@@ -148,7 +148,7 @@ namespace Tool
     
     q4 Q4Deconstruct(const m4& matrix)
     {
-        f32 w = 0.5f * sqrtf(M4Trace(matrix)); 
+        f32 w = 0.5f * FSqrt(M4Trace(matrix)); 
         f32 inv = 0.25f / w;
         
         return 
@@ -163,9 +163,9 @@ namespace Tool
     q4 Q4Slerp(q4 from, q4 to, f32 t)
     {
         f32 dot = from.vec * to.vec;
-        f32 theta = acosf(dot);
-        f32 invSine = 1.0f / sinf(theta);
-        return from * (sinf(theta * (1 - t)) * invSine) + to * (sinf(theta * t) * invSine);
+        f32 theta = FAcos(dot);
+        f32 invSine = 1.0f / FSin(theta);
+        return from * (FSin(theta * (1 - t)) * invSine) + to * (FSin(theta * t) * invSine);
     }
     
     //~ Conversions

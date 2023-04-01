@@ -5,8 +5,6 @@
 #include "Vector.h"
 #include "Matrix.h"
 
-
-
 namespace Tool
 {
     //~ Quaternion

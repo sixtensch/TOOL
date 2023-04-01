@@ -1,9 +1,7 @@
 #ifndef _MATH_H
 #define _MATH_H
 
-
-
-#include <math.h>
+#include "Basics.h"
 
 
 
@@ -19,120 +17,173 @@
 
 #ifndef PI
 #define PI 3.14159265359f
+#define PI_D 3.14159265359
 #endif
 
 
 
-/*
+namespace Tool
+{
+    //- Standard math aliases
+    
+    //~ Float
+    
+    // Trigonometry
+    f32 FCos(f32 x); // Cosine
+    f32 FCosh(f32 x); // Hyperbolic cosine
+    f32 FAcos(f32 x); // Arc cosine
+    f32 FAcosh(f32 x); // Hyperbolic arc cosine
+    
+    f32 FSin(f32 x); // Sine
+    f32 FSinh(f32 x); // Hyperbolic sine
+    f32 FAsin(f32 x); // Arc sine
+    f32 FAsinh(f32 x); // Hyperbolic arc sine
+    
+    f32 FTan(f32 x); // Tangent
+    f32 FTanh(f32 x); // Hyperbolic tangent
+    f32 FAtan(f32 x); // Arc tangent
+    f32 FAtan2(f32 y, f32 x); // Arc tangent of (y / x)
+    f32 FAtanh(f32 x); // Hyperbolic arc tangent
+    
+    // Rounding
+    f32 FRound(f32 x); // Round to nearest whole number
+    f32 FCeil(f32 x); // Ceiling (round up absolute)
+    f32 FFloor(f32 x); // Floor (round down absolute)
+    f32 FTrunc(f32 x); // Truncation. Round towards 0.
+    
+    // Exponentiation
+    f32 FPow(f32 x, f32 y); // Raise x to the power of y 
+    f32 FExp2(f32 x); // Raise 2 to the power of x
+    f32 FExp(f32 x); // Raise e to the power of x
+    
+    f32 FLog2(f32 x); // 2-logarithm
+    f32 FLog10(f32 x); // 10-logarithm
+    f32 FLog(f32 x); // e-logarithm
+    
+    // Root
+    f32 FSqrt(f32 x); // Square root
+    f32 FCbrt(f32 x); // Cube root
+    
+    // Other
+    f32 FMod(f32 x, f32 y); // Modulo
+    
+    
+    
+    //- Custom math function declarations
+    
+    //~ Float
+    
+    f32 FClamp(f32 x, f32 min, f32 max);
+    f32 FWrap(f32 x, f32 min, f32 max);
+    
+    //~ Int
+    
+    i32 IClamp(i32 x, i32 min, i32 max); // Min inclusive, max exclusive
+    i32 IWrap(i32 x, i32 min, i32 max); // Min inclusive, max exclusive
+    
+    
+    
+    //- Custom math function definitions
+    
+    //~ Float
+    
+    inline f32 FClamp(f32 x, f32 min, f32 max)
+    {
+        bool lesser = x < min;
+        bool greater = x >= max;
+        
+        return 
+            min * lesser +
+            max * greater +
+            x * !(lesser || greater);
+    }
+    
+    inline f32 FWrap(f32 x, f32 min, f32 max)
+    {
+        if (x >= min && x <= max)
+        {
+            return x;
+        }
+        
+        return min + /*fmodf(*/FMod(x - min, max - min)/*, max - min)*/;
+    }
+    
+    //~ Int
+    
+    inline i32 IClamp(i32 x, i32 min, i32 max) // Min inclusive, max exclusive
+    {
+        bool lesser = x < min;
+        bool greater = x >= max;
+        
+        return 
+            min * lesser +
+            max * greater +
+            x * !(lesser || greater);
+    }
+    
+    inline i32 IWrap(i32 x, i32 min, i32 max) // Min inclusive, max exclusive
+    {
+        if (x >= min && x < max)
+        {
+            return x;
+        }
+        
+        return min + ((x - min) % (max - min))/* % (max - min)*/;
+    }
+    
+}
 
-//- Standard math function declarations
 
-//~ Float
+
+#ifndef TOOL_NO_MATH
 
 // Trigonometry
-f32 __cdecl cosf(f32 x); // Cosine
-f32 __cdecl coshf(f32 x); // Hyperbolic cosine
-f32 __cdecl acosf(f32 x); // Arc cosine
-f32 __cdecl acoshf(f32 x); // Hyperbolic arc cosine
+using Tool::FCos; // Cosine
+using Tool::FCosh; // Hyperbolic cosine
+using Tool::FAcos; // Arc cosine
+using Tool::FAcosh; // Hyperbolic arc cosine
 
-f32 __cdecl sinf(f32 x); // Sine
-f32 __cdecl sinhf(f32 x); // Hyperbolic sine
-f32 __cdecl asinf(f32 x); // Arc sine
-f32 __cdecl asinhf(f32 x); // Hyperbolic arc sine
+using Tool::FSin; // Sine
+using Tool::FSinh; // Hyperbolic sine
+using Tool::FAsin; // Arc sine
+using Tool::FAsinh; // Hyperbolic arc sine
 
-f32 __cdecl tanf(f32 x); // Tangent
-f32 __cdecl tanhf(f32 x); // Hyperbolic tangent
-f32 __cdecl atanf(f32 x); // Arc tangent
-f32 __cdecl atan2f(f32 y, f32 x); // Arc tangent of (y / x)
-f32 __cdecl atanhf(f32 x); // Hyperbolic arc tangent
+using Tool::FTan; // Tangent
+using Tool::FTanh; // Hyperbolic tangent
+using Tool::FAtan; // Arc tangent
+using Tool::FAtan2; // Arc tangent of (y / x)
+using Tool::FAtanh; // Hyperbolic arc tangent
 
 // Rounding
-f32 __cdecl roundf(f32 x); // Round to nearest whole number
-f32 __cdecl ceilf(f32 x); // Ceiling (round up absolute)
-f32 __cdecl floorf(f32 x); // Floor (round down absolute)
-f32 __cdecl truncf(f32 x); // Truncation. Round towards 0.
+using Tool::FRound; // Round to nearest whole number
+using Tool::FCeil; // Ceiling (round up absolute)
+using Tool::FFloor; // Floor (round down absolute)
+using Tool::FTrunc; // Truncation. Round towards 0.
 
 // Exponentiation
-f32 __cdecl powf(f32 x, f32 y); // Raise x to the power of y 
-f32 __cdecl exp2f(f32 x); // Raise 2 to the power of x
-f32 __cdecl expf(f32 x); // Raise e to the power of x
+using Tool::FPow; // Raise x to the power of y 
+using Tool::FExp2; // Raise 2 to the power of x
+using Tool::FExp; // Raise e to the power of x
 
-f32 __cdecl log2f(f32 x); // 2-logarithm
-f32 __cdecl log10f(f32 x); // 10-logarithm
-f32 __cdecl logf(f32 x); // e-logarithm
+using Tool::FLog2; // 2-logarithm
+using Tool::FLog10; // 10-logarithm
+using Tool::FLog; // e-logarithm
 
 // Root
-f32 __cdecl sqrtf(f32 x); // Square root
-f32 __cdecl cbrtf(f32 x); // Cube root
+using Tool::FSqrt; // Square root
+using Tool::FCbrt; // Cube root
 
 // Other
-f32 __cdecl fmodf(f32 x, f32 y);
+using Tool::FMod; // Modulo
 
-*/
+// Custom
+using Tool::FClamp;
+using Tool::FWrap;
+using Tool::IClamp; // Min inclusive, max exclusive
+using Tool::IWrap; // Min inclusive, max exclusive
 
+#endif
 
-
-//- Custom math function declarations
-
-//~ Float
-
-f32 clampf(f32 x, f32 min, f32 max);
-f32 wrapf(f32 x, f32 min, f32 max);
-
-//~ Int
-
-i32 clampi(i32 x, i32 min, i32 max); // Min inclusive, max exclusive
-i32 wrapi(i32 x, i32 min, i32 max); // Min inclusive, max exclusive
-
-
-
-//- Custom math function definitions
-
-//~ Float
-
-inline f32 clampf(f32 x, f32 min, f32 max)
-{
-    bool lesser = x < min;
-    bool greater = x >= max;
-    
-    return 
-        min * lesser +
-        max * greater +
-        x * !(lesser || greater);
-}
-
-inline f32 wrapf(f32 x, f32 min, f32 max)
-{
-    if (x >= min && x <= max)
-    {
-        return x;
-    }
-    
-    return min + /*fmodf(*/fmodf(x - min, max - min)/*, max - min)*/;
-}
-
-//~ Int
-
-inline i32 clampi(i32 x, i32 min, i32 max) // Min inclusive, max exclusive
-{
-    bool lesser = x < min;
-    bool greater = x >= max;
-    
-    return 
-        min * lesser +
-        max * greater +
-        x * !(lesser || greater);
-}
-
-inline i32 wrapi(i32 x, i32 min, i32 max) // Min inclusive, max exclusive
-{
-    if (x >= min && x < max)
-    {
-        return x;
-    }
-    
-    return min + ((x - min) % (max - min))/* % (max - min)*/;
-}
 
 
 #endif //_MATH_H
