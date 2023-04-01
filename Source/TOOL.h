@@ -7,5 +7,7 @@
 #include "Math.h"
 #include "Vector.h"
 #include "Matrix.h"
+#include "Color.h"
+#include "Box.h"
 
 #endif

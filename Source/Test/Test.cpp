@@ -3,7 +3,7 @@
 
 int main()
 {
-    
+    f32 asq = Tool::FSqrt(1.0f);
     
     m4 a = Tool::M4Scale(1, 2, 3, 4);
     m4 b = Tool::M4Translation(1, 2, 3, 4);
