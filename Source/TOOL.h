@@ -7,6 +7,7 @@
 #include "Color.h"
 #include "String.h"
 #include "Memory.h"
+#include "Variadic.h"
 
 // Mathematics and linear algebra
 #include "Math.h"

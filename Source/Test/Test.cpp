@@ -1,8 +1,17 @@
 
 #include "TOOL.h"
 
+void Destroy()
+{
+    
+}
+
 int main()
 {
+    Destroy();
+    
+    Variadic vari = VariadicStart();
+    
     f32 asq = Tool::FSqrt(1.0f);
     
     m4 a = Tool::M4Scale(1, 2, 3, 4);

@@ -1,9 +1,12 @@
 
 #include "Memory.h"
 #include "Exception.h"
+
 #include <Windows.h>
 
 
+
+// TODO(crazy): Extend these to work on Linux and MacOS
 
 namespace Tool
 {
@@ -11,6 +14,8 @@ namespace Tool
     
     void* ClassicAlloc(u64 size)
     {
+#ifdef TOOL_WINDOWS
+        
         void* result = (void*)VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         
 #ifndef TOOL_OPTIMIZED
@@ -21,6 +26,8 @@ namespace Tool
 #endif
         
         return result;
+        
+#endif // TOOL_WINDOWS
     }
     
     void* ClassicAlloc(u64 count, u64 size)
@@ -30,6 +37,8 @@ namespace Tool
     
     void ClassicDealloc(void* start, u64 size)
     {
+#ifdef TOOL_WINDOWS
+        
         b32 result = VirtualFree(start, size, MEM_RELEASE);
         
 #ifndef TOOL_OPTIMIZED
@@ -38,6 +47,8 @@ namespace Tool
             ExceptWindowsLast();
         }
 #endif
+        
+#endif // TOOL_WINDOWS
     }
     
     void ClassicDealloc(void* start, u64 count, u64 size)
@@ -47,10 +58,14 @@ namespace Tool
     
     void ClassicRealloc(void** target, u64 currentSize, u64 newSize)
     {
+#ifdef TOOL_WINDOWS
+        
         void* p = ClassicAlloc(newSize);
         Copy(p, *target, currentSize);
         ClassicDealloc(*target, currentSize);
         *target = p;
+        
+#endif // TOOL_WINDOWS
     }
     
     void ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size)
@@ -64,6 +79,8 @@ namespace Tool
     
     void RegionReserve(Region* region, u64 size)
     {
+#ifdef TOOL_WINDOWS
+        
         if (region->start != nullptr)
         {
             Except("Cannot reserve a Region which is already initialized."); 
@@ -80,6 +97,8 @@ namespace Tool
         
         region->reserved = size;
         region->committed = 0;
+        
+#endif // TOOL_WINDOWS
     }
     
     void RegionReserve(Region* region, u64 count, u64 size)
@@ -89,6 +108,8 @@ namespace Tool
     
     void RegionCommit(Region* region, u64 newSize)
     {
+#ifdef TOOL_WINDOWS
+        
         if (region->reserved < newSize)
         {
             Except("Cannot commit more memory to a Region than is reserved. (%ull > %ull)", newSize, region->reserved);
@@ -104,6 +125,8 @@ namespace Tool
 #endif
         
         region->committed = newSize;
+        
+#endif // TOOL_WINDOWS
     }
     
     void RegionCommit(Region* region, u64 newCount, u64 size)
@@ -113,6 +136,8 @@ namespace Tool
     
     void RegionRevert(Region* region, u64 newSize)
     {
+#ifdef TOOL_WINDOWS
+        
         if (newSize >= region->committed)
         {
             return;
@@ -128,6 +153,8 @@ namespace Tool
 #endif
         
         region->committed = newSize;
+        
+#endif // TOOL_WINDOWS
     }
     
     void RegionRevert(Region* region, u64 newCount, u64 size)
@@ -137,6 +164,8 @@ namespace Tool
     
     void RegionDealloc(Region* region)
     {
+#ifdef TOOL_WINDOWS
+        
         if (region->start == nullptr)
         {
             return;
@@ -154,6 +183,8 @@ namespace Tool
         region->start = nullptr;
         region->reserved = 0;
         region->committed = 0;
+        
+#endif // TOOL_WINDOWS
     }
     
     
@@ -162,16 +193,22 @@ namespace Tool
     
     void ArenaInit(Arena* arena, u64 reservedSize)
     {
+#ifdef TOOL_WINDOWS
+        
         RegionReserve(&arena->region, reservedSize);
         RegionCommit(&arena->region, TOOL_ARENA_COMMIT_SIZE);
         arena->size = 0;
         
         arena->startCurrent = arena->region.start;
         arena->sizeCurrent = 0;
+        
+#endif // TOOL_WINDOWS
     }
     
     void* ArenaAlloc(Arena* arena, u64 size)
     {
+#ifdef TOOL_WINDOWS
+        
         u64 newSize = arena->size + size;
         
         if (newSize > arena->region.reserved)
@@ -193,6 +230,8 @@ namespace Tool
         arena->size = newSize;
         
         return result; 
+        
+#endif // TOOL_WINDOWS
     }
     
     void* ArenaAlloc(Arena* arena, u64 count, u64 size)
@@ -202,6 +241,8 @@ namespace Tool
     
     void ArenaPush(Arena* arena)
     {
+#ifdef TOOL_WINDOWS
+        
         ArenaFrame frame = { arena->startCurrent, arena->sizeCurrent };
         
         arena->startCurrent = (u8*)arena->startCurrent + arena->sizeCurrent;
@@ -209,24 +250,34 @@ namespace Tool
         
         ArenaFrame* destination = (ArenaFrame*)ArenaAlloc(arena, sizeof(ArenaFrame));
         *destination = frame;
+        
+#endif // TOOL_WINDOWS
     }
     
     void ArenaPop(Arena* arena)
     {
+#ifdef TOOL_WINDOWS
+        
         ArenaFrame* frame = (ArenaFrame*)arena->startCurrent;
         
         arena->size -= arena->sizeCurrent;
         arena->startCurrent = frame->start;
         arena->sizeCurrent = frame->size;
+        
+#endif // TOOL_WINDOWS
     }
     
     void ArenaDenit(Arena* arena)
     {
+#ifdef TOOL_WINDOWS
+        
         RegionDealloc(&arena->region);
         
         arena->size = 0;
         arena->startCurrent = nullptr;
         arena->sizeCurrent = 0;
+        
+#endif // TOOL_WINDOWS
     }
 }
 

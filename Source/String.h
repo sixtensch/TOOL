@@ -9,18 +9,16 @@ namespace Tool
 {
     //- Struct definitions
     
-    //~ 8-bit string
+    //~ 8-bit string (narrow string)
     // Suitable for ASCII or UTF-8 encoded strings
-    
     struct String8
     {
         c8* str;
         u64 size;
     };
     
-    //~ 16-bit string
-    // Suitable for UTF-16 encoded strings
-    
+    //~ 16-bit string (wide string)
+    // Suitable for UTF-16 encoded strings.
     struct String16
     {
         c16* str;
@@ -29,7 +27,6 @@ namespace Tool
     
     //~ 32-bit string
     // Suitable for UTF-32 encoded strings
-    
     struct String32
     {
         c32* str;

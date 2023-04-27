@@ -1,6 +1,36 @@
 #ifndef _BASICS_H
 #define _BASICS_H
 
+//- Definitions
+
+//~ Maximums and minimums
+
+#define I8_MAX 0x7F
+#define I16_MAX 0x7FFF
+#define I32_MAX 0x7FFFFFFF
+#define I64_MAX 0x7FFFFFFFFFFFFFFF
+
+#define I8_MIN -0x80
+#define I16_MIN -0x8000
+#define I32_MIN -0x80000000
+#define I64_MIN -0x8000000000000000
+
+#define U8_MAX 0xFFu
+#define U16_MAX 0xFFFFu
+#define U32_MAX 0xFFFFFFFFu
+#define U64_MAX 0xFFFFFFFFFFFFFFFFu
+
+#define U8_MIN 0u
+#define U16_MIN 0u
+#define U32_MIN 0u
+#define U64_MIN 0u
+
+#define B8_FALSE ((b8)0u)
+#define B8_TRUE ((b8)1u)
+
+#define B32_FALSE ((b32)0u)
+#define B32_TRUE ((b32)1u)
+
 
 
 //- Acronyms
