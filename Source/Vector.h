@@ -59,11 +59,7 @@ namespace Tool
                 T z;
             };
             
-            struct 
-            {
-                Vec2<T> v2;
-                T z;
-            };
+            Vec2<T> v2;
         };
         
         Vec3<T> operator-() const; // Unary negation
@@ -99,18 +95,8 @@ namespace Tool
                 T w;
             };
             
-            struct 
-            {
-                Vec2<T> v2;
-                T z;
-                T w;
-            };
-            
-            struct 
-            {
-                Vec3<T> v3;
-                T w;
-            };
+            Vec2<T> v2;
+            Vec3<T> v3;
         };
         
         Vec4<T> operator-() const; // Unary negation
@@ -144,9 +130,9 @@ namespace Tool
     typedef Vec3<i32> p3; // Point3
     typedef Vec4<i32> p4; // Point4
     
-    typedef Vec2<i64> p2u; // Point2 unsigned
-    typedef Vec3<i64> p3u; // Point3 unsigned
-    typedef Vec4<i64> p4u; // Point4 unsigned
+    typedef Vec2<u32> p2u; // Point2 unsigned
+    typedef Vec3<u32> p3u; // Point3 unsigned
+    typedef Vec4<u32> p4u; // Point4 unsigned
     
     
     

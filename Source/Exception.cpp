@@ -2,7 +2,7 @@
 #include "Exception.h"
 
 #include <Windows.h>
-#include <cstring>
+#include <string.h>
 #include <cstdio>
 #include <cstdarg>
 

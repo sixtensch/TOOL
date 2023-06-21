@@ -31,11 +31,7 @@ namespace Tool
                 u8 a;
             };
             
-            struct
-            {
-                Color3U rgb;
-                u8 a;
-            };
+            Color3U rgb;
         };
     };
     
@@ -68,18 +64,9 @@ namespace Tool
                 f32 a;
             };
             
-            struct
-            {
-                Color3F rgb;
-                f32 a;
-            };
-            
-            struct
-            {
-                v3 v3;
-                f32 a;
-            };
-            
+            Color3F rgb;
+        
+            v3 v3;
             v4 v4;
         };
     };

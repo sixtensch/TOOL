@@ -2,7 +2,9 @@
 #include "Memory.h"
 #include "Exception.h"
 
+#ifdef TOOL_WINDOWS
 #include <Windows.h>
+#endif
 
 
 

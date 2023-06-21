@@ -611,8 +611,8 @@ namespace Tool
     {
         return 
         { 
-            1.0f, 0.0f,
-            0.0f, 1.0f 
+            {{1.0f, 0.0f,
+            0.0f, 1.0f}} 
         };
     }
     
@@ -1007,9 +1007,9 @@ namespace Tool
     
     inline m4 M4ProjectionPerspective(f32 verticalFov, f32 aspectRatio, f32 near, f32 far, ClipType type)
     {
-        f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
-        f32 zFactor = 1.0f + (type == ClipTypeOpenGL) * 1.0f;
-        f32 zOffset = (type == ClipTypeOpenGL) * 2.0f;
+        // f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
+        // f32 zFactor = 1.0f + (type == ClipTypeOpenGL) * 1.0f;
+        // f32 zOffset = (type == ClipTypeOpenGL) * 2.0f;
         
         return {};
     }

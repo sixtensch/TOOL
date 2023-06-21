@@ -1,0 +1,8 @@
+# ninja log v5
+47	251	7090884712622904	CMakeFiles/TOOL.dir/Source/Variadic.cpp.obj	f722595aa38ecad2
+39	253	7090884712622904	CMakeFiles/TOOL.dir/Source/Random.cpp.obj	acdfbe2039cd0203
+8	252	7090884712622904	CMakeFiles/TOOL.dir/Source/Entry.cpp.obj	b804899b0c02baf
+33	253	7090884712642894	CMakeFiles/TOOL.dir/Source/Quaternion.cpp.obj	3e002f9e47e4d672
+20	253	7090884712622904	CMakeFiles/TOOL.dir/Source/Math.cpp.obj	30e0d2f660a924a5
+1	426	7090884714462906	CMakeFiles/TOOL.dir/Source/Basics.cpp.obj	4ce4b2d5f9816ca3
+14	447	7090884714662905	CMakeFiles/TOOL.dir/Source/Exception.cpp.obj	695ec753a5f64c34

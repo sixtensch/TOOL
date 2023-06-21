@@ -1,6 +1,9 @@
 
 #include "TOOL.h"
 
+#include "TOOL/Random.h"
+#include "TOOL/Intrinsics.h"
+
 void Destroy()
 {
     
@@ -8,32 +11,14 @@ void Destroy()
 
 int main()
 {
-    Destroy();
+    float data[4] = { 1.0f, 2.0f, 2.0f, 1.0f };
     
-    Variadic vari = VariadicStart();
+    f32_x4 a = Tool::F32x4Load(data);
+    f32_x4 b = Tool::F32x4Set(1.0f, 3.0f, 1.0f, 1.0f);
+    f32_x4 c = Tool::F32x4AddSub(a, b);
+    Tool::F32x4Store(c, data);
     
-    f32 asq = Tool::FSqrt(1.0f);
+    f32_x4 d = { _mm_cmp_ps(a.m, b.m, Tool::ComparisonEquals) };
     
-    m4 a = Tool::M4Scale(1, 2, 3, 4);
-    m4 b = Tool::M4Translation(1, 2, 3, 4);
-    
-    v4 v = { 1, 1, 1, 1 };
-    v4 av = a * v;
-    v4 bv = b * v;
-    
-    p4 vp = VEC4_CAST(v, i32);
-    
-    m3 c = Tool::M3RotationX(PI * 0.1f);
-    m3 d = Tool::M3RotationY(PI * 0.1f);
-    m3 e = Tool::M3RotationZ(PI * 0.1f);
-    
-    v3 u = { 1, 0, 0 };
-    v3 uc = c * u;
-    v3 ud = d * u;
-    v3 ue = e * u;
-    
-    m3 f = d * c * e;
-    m3 g = Tool::M3Rotation(PI * 0.1f, PI * 0.1f, PI * 0.1f);
-    
-    return 0;
+    return (int)c.f[0];
 }

@@ -21,12 +21,7 @@ namespace Tool
                 f32 w;
             };
             
-            struct
-            {
-                v3 im;
-                f32 w;
-            };
-            
+            v3 im;
             v4 vec;
         };
         

@@ -50,7 +50,7 @@ namespace Tool
     
     void* ClassicAlloc(u64 size); 
     void* ClassicAlloc(u64 count, u64 size);
-    template<typename T> inline T* HeapAlloc() { return (T*)HeapAlloc(sizeof(T)); }
+    template<typename T> inline T* ClassicAlloc() { return (T*)ClassicAlloc(sizeof(T)); }
     
     void ClassicDealloc(void* start, u64 size);
     void ClassicDealloc(void* start, u64 count, u64 size);

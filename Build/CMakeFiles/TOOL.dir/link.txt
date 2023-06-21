@@ -1,0 +1,2 @@
+C:/msys64/clang64/bin/llvm-ar.exe qc libTOOL.a CMakeFiles/TOOL.dir/Source/Basics.cpp.obj CMakeFiles/TOOL.dir/Source/Entry.cpp.obj CMakeFiles/TOOL.dir/Source/Exception.cpp.obj CMakeFiles/TOOL.dir/Source/Math.cpp.obj CMakeFiles/TOOL.dir/Source/Memory.cpp.obj CMakeFiles/TOOL.dir/Source/Quaternion.cpp.obj CMakeFiles/TOOL.dir/Source/Random.cpp.obj CMakeFiles/TOOL.dir/Source/Variadic.cpp.obj
+C:/msys64/clang64/bin/llvm-ranlib.exe libTOOL.a
