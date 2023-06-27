@@ -1,7 +1,8 @@
 
 #include "Basics.h"
 
-#include "Windows.h"
+#include <cstring>
+#include <Windows.h>
 
 
 

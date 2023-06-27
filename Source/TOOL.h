@@ -5,12 +5,12 @@
 // Basic types and helper functionality
 #include "Basics.h"
 #include "Color.h"
-#include "String.h"
+#include "Text.h"
 #include "Memory.h"
 #include "Variadic.h"
 
 // Mathematics and linear algebra
-#include "Math.h"
+#include "Mathematics.h"
 #include "Vector.h"
 #include "Matrix.h"
 #include "Box.h"

@@ -5,7 +5,7 @@ project(
     TOOL
     VERSION 0.1.0
     DESCRIPTION "The Tired-Of-Objects Library!"
-    LANGUAGES CXX)
+    LANGUAGES C CXX)
 
 if (WIN32)
     add_compile_definitions(TOOL_WINDOWS)
@@ -17,7 +17,7 @@ add_library(TOOL
     Source/Basics.cpp
     Source/Entry.cpp
     Source/Exception.cpp
-    Source/Math.cpp
+    Source/Mathematics.cpp
     Source/Memory.cpp
     Source/Quaternion.cpp
     Source/Random.cpp

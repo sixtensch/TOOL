@@ -1,5 +1,5 @@
 #include "Quaternion.h"
-#include "Math.h"
+#include "Mathematics.h"
 
 //~ Static functions
 
