@@ -97,9 +97,8 @@ namespace Tool
     void Copy(void* destination, const void* source, u64 size);
     void Copy(void* destination, const void* source, u64 count, u64 size);
     
-    u64 CStringLength(const c8* string, u64 capacity = 0x10000); 
-    u64 CStringCopy(c8* destination, const c8* source, u64 capacity); // Copies up to capacity - 1 characters. 
 }
+
 
 
 #endif

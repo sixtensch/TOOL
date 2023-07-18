@@ -1,8 +1,8 @@
 #ifndef _VECTOR_H
 #define _VECTOR_H
 
-#include "Basics.h"
-#include "Mathematics.h"
+#include "basics.h"
+#include "mathematics.h"
 
 
 

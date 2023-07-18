@@ -1,13 +1,17 @@
 #ifndef _MEMORY_H
 #define _MEMORY_H
 
-#include "Basics.h"
+#include "basics.h"
 
 
 
 //~ Definitions
 
 #define TOOL_ARENA_COMMIT_SIZE 1024
+
+#ifndef TOOL_NO_ALLOC
+#define ALLOC(...) (Tool::Allocator(__VA_ARGS__))
+#endif
 
 
 
@@ -40,6 +44,16 @@ namespace Tool
         
         void* startCurrent = nullptr;
         u64 sizeCurrent;
+    };
+    
+    //~ Allocator
+    
+    typedef void* (*AllocatorFunction)(u64 size, void* data);
+    
+    struct MemoryAllocator
+    {
+        AllocatorFunction function;
+        void* data;
     };
     
     
@@ -93,6 +107,18 @@ namespace Tool
     
     // De-initializes and frees memory arena.
     void ArenaDeInit(Arena* arena);
+    
+    //~ Allocators
+    
+    // Produces an allocator
+    MemoryAllocator Allocator();             // Heap
+    MemoryAllocator Allocator(Arena* arena); // Arena
+    
+    // Allocates space using the given allocator method
+    void* AllocatorAlloc(MemoryAllocator allocator, u64 size);
+    void* AllocatorAlloc(MemoryAllocator allocator, u64 count, u64 size);
+    template<typename T> inline T* AllocatorAlloc(MemoryAllocator allocator) { return (T*)AllocatorAlloc(allocator, sizeof(T)); }
+    
 }
 
 

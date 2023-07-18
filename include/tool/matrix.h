@@ -1,9 +1,9 @@
 #ifndef _MATRIX_H
 #define _MATRIX_H
 
-#include "Basics.h"
-#include "Vector.h"
-#include "Mathematics.h"
+#include "basics.h"
+#include "vector.h"
+#include "mathematics.h"
 
 
 

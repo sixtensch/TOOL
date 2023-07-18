@@ -1,5 +1,5 @@
 
-#include "TOOL.h"
+#include "tool.h"
 
 i32 main()
 {

@@ -1,5 +1,6 @@
 
-#include "Exception.h"
+#include "exception.h"
+#include "text.h"
 
 #include <Windows.h>
 #include <string.h>
@@ -15,7 +16,7 @@ namespace Tool
             { '\0' }, 0, ExceptionTypeEmpty, 0
         };
         
-        CStringCopy(e.str, "Unknown exception", TOOL_EXCEPTION_CAPACITY);
+        CStr8Copy(e.str, "Unknown exception", TOOL_EXCEPTION_CAPACITY);
         
         throw e;
     }
@@ -31,7 +32,7 @@ namespace Tool
         va_start(args, format);
         
         vsnprintf(e.str, TOOL_EXCEPTION_CAPACITY, format, args);
-        e.size = CStringLength(e.str, TOOL_EXCEPTION_CAPACITY);
+        e.size = CStr8Size(e.str, TOOL_EXCEPTION_CAPACITY);
         
         va_end(args);
         

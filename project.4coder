@@ -21,7 +21,8 @@ blacklist_patterns =
 
 load_paths_base = 
 {
-	{ .path = "Source/", .relative = true, .recursive = true, },
+	{ .path = "source/", .relative = true, .recursive = true, },
+	{ .path = "include/", .relative = true, .recursive = true, },
 };
 
 load_paths = 

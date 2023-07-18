@@ -1,8 +1,8 @@
 #ifndef _COLOR_H
 #define _COLOR_H
 
-#include "Basics.h"
-#include "Vector.h"
+#include "basics.h"
+#include "vector.h"
 
 
 

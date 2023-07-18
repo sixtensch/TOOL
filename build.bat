@@ -1,3 +1,3 @@
 @echo off
 
-call cmake --build Build
+call cmake --build build

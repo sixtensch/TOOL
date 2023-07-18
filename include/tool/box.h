@@ -1,8 +1,8 @@
 #ifndef _BOX_H
 #define _BOX_H
 
-#include "Basics.h"
-#include "Vector.h"
+#include "basics.h"
+#include "vector.h"
 
 
 

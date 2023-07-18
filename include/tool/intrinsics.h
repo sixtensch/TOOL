@@ -8,9 +8,9 @@
 // Try to include AVX intrinsics
 #include <immintrin.h>
 
-#include "Basics.h"
-#include "Vector.h"
-#include "Matrix.h"
+#include "basics.h"
+#include "vector.h"
+#include "matrix.h"
 
 
 
@@ -271,14 +271,17 @@ namespace Tool
     inline f32_x8  F32x8Div(f32_x8 a, f32_x8 b)            { return { _mm256_div_ps(a.m, b.m) }; }
     inline f64_x2  F64x2Div(f64_x2 a, f64_x2 b)            { return { _mm_div_pd(a.m, b.m) }; }
     inline f64_x4  F64x4Div(f64_x4 a, f64_x4 b)            { return { _mm256_div_pd(a.m, b.m) }; }
-    inline i8_x16  I8x16Div(i8_x16  a, i8_x16  b)          { return { _mm_div_epi8(a.m, b.m) }; }
-    inline i8_x32  I8x32Div(i8_x32  a, i8_x32  b)          { return { _mm256_div_epi8(a.m, b.m) }; }
-    inline i16_x8  I16x8Div(i16_x8  a, i16_x8  b)          { return { _mm_div_epi16(a.m, b.m) }; }
-    inline i16_x16 I16x16Div(i16_x16 a, i16_x16 b)         { return { _mm256_div_epi16(a.m, b.m) }; }
-    inline i32_x4  I32x4Div(i32_x4  a, i32_x4  b)          { return { _mm_div_epi32(a.m, b.m) }; }
-    inline i32_x8  I32x8Div(i32_x8  a, i32_x8  b)          { return { _mm256_div_epi32(a.m, b.m) }; }
-    inline i64_x2  I64x2Div(i64_x2  a, i64_x2  b)          { return { _mm_div_epi64(a.m, b.m) }; }
-    inline i64_x4  I64x4Div(i64_x4  a, i64_x4  b)          { return { _mm256_div_epi64(a.m, b.m) }; }
+
+    // Seemingly unsupported by Clang
+
+    // inline i8_x16  I8x16Div(i8_x16  a, i8_x16  b)          { return { _mm_div_epi8(a.m, b.m) }; }
+    // inline i8_x32  I8x32Div(i8_x32  a, i8_x32  b)          { return { _mm256_div_epi8(a.m, b.m) }; }
+    // inline i16_x8  I16x8Div(i16_x8  a, i16_x8  b)          { return { _mm_div_epi16(a.m, b.m) }; }
+    // inline i16_x16 I16x16Div(i16_x16 a, i16_x16 b)         { return { _mm256_div_epi16(a.m, b.m) }; }
+    // inline i32_x4  I32x4Div(i32_x4  a, i32_x4  b)          { return { _mm_div_epi32(a.m, b.m) }; }
+    // inline i32_x8  I32x8Div(i32_x8  a, i32_x8  b)          { return { _mm256_div_epi32(a.m, b.m) }; }
+    // inline i64_x2  I64x2Div(i64_x2  a, i64_x2  b)          { return { _mm_div_epi64(a.m, b.m) }; }
+    // inline i64_x4  I64x4Div(i64_x4  a, i64_x4  b)          { return { _mm256_div_epi64(a.m, b.m) }; }
     
     
     

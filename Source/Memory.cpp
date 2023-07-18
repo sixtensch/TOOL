@@ -1,6 +1,6 @@
 
-#include "Memory.h"
-#include "Exception.h"
+#include "memory.h"
+#include "exception.h"
 
 #ifdef TOOL_WINDOWS
 #include <Windows.h>
@@ -117,7 +117,7 @@ namespace Tool
             Except("Cannot commit more memory to a Region than is reserved. (%ull > %ull)", newSize, region->reserved);
         }
         
-        void* result = (void*)VirtualAlloc(region->start, newSize, MEM_COMMIT, PAGE_READWRITE);
+        VirtualAlloc(region->start, newSize, MEM_COMMIT, PAGE_READWRITE);
         
 #ifndef TOOL_OPTIMIZED
         if (region->start == nullptr)
@@ -125,9 +125,7 @@ namespace Tool
             ExceptWindowsLast();
         }
 #endif
-        
         region->committed = newSize;
-        
 #endif // TOOL_WINDOWS
     }
     
@@ -280,6 +278,40 @@ namespace Tool
         arena->sizeCurrent = 0;
         
 #endif // TOOL_WINDOWS
+    }
+    
+    //~ Allocator triggers
+    
+    static void* AllocatorTriggerClassic(u64 size, void* data)
+    {
+        return ClassicAlloc(size);
+    }
+    
+    static void* AllocatorTriggerArena(u64 size, void* data)
+    {
+        return ArenaAlloc((Arena*)data, size);
+    }
+    
+    //~ Exposed allocator functions
+    
+    MemoryAllocator Allocator()             // Heap
+    {
+        return { &AllocatorTriggerClassic, nullptr };
+    }
+    
+    MemoryAllocator Allocator(Arena* arena) // Arena
+    {
+        return { &AllocatorTriggerArena, (void*)arena };
+    }
+    
+    void* AllocatorAlloc(MemoryAllocator allocator, u64 size)
+    {
+        return allocator.function(size, allocator.data);
+    }
+    
+    void* AllocatorAlloc(MemoryAllocator allocator, u64 count, u64 size)
+    {
+        return AllocatorAlloc(allocator, count * size);
     }
 }
 

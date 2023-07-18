@@ -1,5 +1,5 @@
 
-#include "Mathematics.h"
+#include "mathematics.h"
 #include <math.h>
 
 namespace Tool

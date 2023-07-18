@@ -1,9 +1,9 @@
 #ifndef _QUATERNION_H
 #define _QUATERNION_H
 
-#include "Basics.h"
-#include "Vector.h"
-#include "Matrix.h"
+#include "basics.h"
+#include "vector.h"
+#include "matrix.h"
 
 namespace Tool
 {
