@@ -66,7 +66,12 @@ namespace Tool
         
 #if TOOL_WINDOWS
         
+        symbol = (void*)GetProcAddress((HMODULE)module, name);
         
+        if (symbol == nullptr)
+        {
+            ExceptWindowsLast();
+        }
         
 #elif TOOL_LINUX
         

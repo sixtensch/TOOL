@@ -36,8 +36,8 @@ namespace Tool
         inline T* ModuleGetVariable(Module module, const c8* name) { return (T*)ModuleGetSymbol(module, name); }
     
     // Retrieve a functin pointer from a loaded module.
-    template<typename T_return, typename... T_params>
-        inline T* ModuleGetFunction(Module module, const c8* name) { return (T_return (*)(T_params...))ModuleGetSymbol(module, name); }
+    //template<typename T_return, typename... T_params>
+    //inline T_return (*ModuleGetFunction(Module module, const c8* name))(int, int) { return (T_return (*)(T_params...))ModuleGetSymbol(module, name); }
     
 }
 
