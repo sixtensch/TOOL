@@ -37,8 +37,11 @@ namespace Tool
     
     void Except();
     void Except(const c8* format, ...);
+    
+#if TOOL_WINDOWS
     void ExceptWindows(u32 code);
     void ExceptWindowsLast();
+#endif
 }
 
 

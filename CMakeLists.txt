@@ -8,8 +8,10 @@ project(
     LANGUAGES C CXX
 )
 
-if (WIN32)
-    add_compile_definitions(TOOL_WINDOWS)
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    add_compile_definitions(TOOL_WINDOWS=1)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_compile_definitions(TOOL_LINUX=1)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -37,6 +39,7 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/random.cpp"
     "${TOOL_SOURCE_DIR}/variadic.cpp"
     "${TOOL_SOURCE_DIR}/text.cpp"
+    "${TOOL_SOURCE_DIR}/linking.cpp"
 )
 
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")

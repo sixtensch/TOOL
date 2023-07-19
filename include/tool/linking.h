@@ -21,8 +21,24 @@ namespace Tool
     
     //~ Dynamic library run-time functions
     
-    Module ModuleLoad(const c8* filename);
+    // Open and load a dynamic library (module).
+    Module ModuleLoad(const c8* filename, bool lazy = true);
+    
+    // Unload a previously loaded module.
     void ModuleUnload(Module module);
+    
+    // Retrieve a symbol pointer from a loaded module.
+    // These can represent either function pointers or variables.
+    void* ModuleGetSymbol(Module module, const c8* name);
+    
+    // Retrieve a variable pointer from a loaded module.
+    template<typename T>
+        inline T* ModuleGetVariable(Module module, const c8* name) { return (T*)ModuleGetSymbol(module, name); }
+    
+    // Retrieve a functin pointer from a loaded module.
+    template<typename T_return, typename... T_params>
+        inline T* ModuleGetFunction(Module module, const c8* name) { return (T_return (*)(T_params...))ModuleGetSymbol(module, name); }
+    
 }
 
 #endif //_LINKING_H
