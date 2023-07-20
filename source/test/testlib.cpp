@@ -1,8 +1,10 @@
 
+#include <cstdio>
+
 #define SCRIPT(name) \
-static void name##_cpp(int a, int b); \
-static __declspec(dllexport) extern "C" void name(int a, int b) { name##function(a, b) } \
-static void name##_cpp(int a, int b)
+void name##_cpp(int a, int b); \
+__declspec(dllexport) extern "C" void name(int a, int b) { name##_cpp(a, b); } \
+void name##_cpp(int a, int b)
 
 int main()
 {
@@ -30,5 +32,5 @@ extern "C"
 
 SCRIPT(another)
 {
-    return a * b;
+    printf("Result: %i", a + b);
 }

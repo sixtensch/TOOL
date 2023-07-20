@@ -18,8 +18,8 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces -march=native")
 endif()
 
-set(TOOL_SOURCE_DIR "${CMAKE_SOURCE_DIR}/source")
-set(TOOL_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(TOOL_SOURCE_DIR "source")
+set(TOOL_INCLUDE_DIR "include")
 
 # set(TOOL_OUT_DIR "${CMAKE_SOURCE_DIR}/out")
 # set(TOOL_BIN_DIR "${TOOL_OUT_DIR}/lib")
