@@ -55,6 +55,24 @@ set_target_properties(TOOL PROPERTIES
 
 
 
+# Test library
+
+add_library(TOOLTestLib SHARED
+    "${TOOL_SOURCE_DIR}/test/testlib.cpp"
+)
+
+target_link_libraries(TOOLTestLib TOOL)
+
+target_compile_features(TOOLTestLib PUBLIC cxx_std_20)
+
+set_target_properties(TOOLTestLib PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+)
+
+
+
 # Test executable
 
 add_executable(TOOLTest
