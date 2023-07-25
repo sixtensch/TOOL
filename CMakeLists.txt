@@ -57,35 +57,40 @@ set_target_properties(TOOL PROPERTIES
 
 # Test library
 
-add_library(TOOLTestLib SHARED
+
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+
+    add_library(TOOLTestLib SHARED
     "${TOOL_SOURCE_DIR}/test/testlib.cpp"
-)
+    )
 
-target_link_libraries(TOOLTestLib TOOL)
+    target_link_libraries(TOOLTestLib TOOL)
 
-target_compile_features(TOOLTestLib PUBLIC cxx_std_20)
+    target_compile_features(TOOLTestLib PUBLIC cxx_std_20)
 
-set_target_properties(TOOLTestLib PROPERTIES
+    set_target_properties(TOOLTestLib PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
-)
+    )
 
 
 
-# Test executable
+    # Test executable
 
-add_executable(TOOLTest
+    add_executable(TOOLTest
     "${TOOL_SOURCE_DIR}/test/test.cpp"
-)
+    )
 
-target_link_libraries(TOOLTest TOOL)
-# target_include_directories(TOOLTest ${TOOL_INCLUDE_DIRS})
+    target_link_libraries(TOOLTest TOOL)
+    # target_include_directories(TOOLTest ${TOOL_INCLUDE_DIRS})
 
-target_compile_features(TOOLTest PRIVATE cxx_std_20)
+    target_compile_features(TOOLTest PRIVATE cxx_std_20)
 
-set_target_properties(TOOLTest PROPERTIES
+    set_target_properties(TOOLTest PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
-)
+    )
+    
+endif()
