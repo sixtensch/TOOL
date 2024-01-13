@@ -171,7 +171,7 @@ namespace Tool
             return;
         }
         
-        b32 result = VirtualFree(region->start, region->reserved, MEM_RELEASE); 
+        b32 result = VirtualFree(region->start, 0, MEM_RELEASE); 
         
 #ifndef TOOL_OPTIMIZED
         if (!result)

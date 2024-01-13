@@ -59,7 +59,7 @@ namespace Tool
                 T z;
             };
             
-            Vec2<T> v2;
+            Vec2<T> xy;
         };
         
         Vec3<T> operator-() const; // Unary negation
@@ -95,8 +95,8 @@ namespace Tool
                 T w;
             };
             
-            Vec2<T> v2;
-            Vec3<T> v3;
+            Vec2<T> xy;
+            Vec3<T> xyz;
         };
         
         Vec4<T> operator-() const; // Unary negation

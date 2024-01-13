@@ -45,7 +45,13 @@ add_library(TOOL
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")
 target_include_directories(TOOL PRIVATE "${TOOL_INCLUDE_DIR}/tool")
 
-target_compile_features(TOOL PUBLIC cxx_std_20)
+target_compile_features(TOOL PUBLIC 
+    cxx_std_20
+)
+
+target_compile_definitions(TOOL PRIVATE
+    $<$<CONFIG:Debug>:DEBUG_BUILD>
+)
 
 set_target_properties(TOOL PROPERTIES
     CXX_STANDARD 20
@@ -56,7 +62,6 @@ set_target_properties(TOOL PROPERTIES
 
 
 # Test library
-
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
