@@ -1,5 +1,5 @@
-#ifndef _MATRIX_H
-#define _MATRIX_H
+#ifndef _TOOL_MATRIX_H
+#define _TOOL_MATRIX_H
 
 #include "basics.h"
 #include "vector.h"
@@ -612,7 +612,7 @@ namespace Tool
         return 
         { 
             {{1.0f, 0.0f,
-            0.0f, 1.0f}} 
+                    0.0f, 1.0f}} 
         };
     }
     

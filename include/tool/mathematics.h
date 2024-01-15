@@ -1,5 +1,5 @@
-#ifndef _MATH_H
-#define _MATH_H
+#ifndef _TOOL_MATHEMATICS_H
+#define _TOOL_MATHEMATICS_H
 
 #include "basics.h"
 

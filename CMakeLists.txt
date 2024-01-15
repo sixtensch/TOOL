@@ -5,13 +5,17 @@ project(
     TOOL
     VERSION 0.1.0
     DESCRIPTION "The Tired-Of-Objects Library!"
-    LANGUAGES C CXX
+    LANGUAGES CXX
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_compile_definitions(TOOL_WINDOWS=1)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_compile_definitions(TOOL_LINUX=1)
+endif()
+
+if (UNIX)
+    add_compile_definitions(TOOL_UNIX=1)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")

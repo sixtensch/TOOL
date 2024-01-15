@@ -1,5 +1,5 @@
-#ifndef _INTRINSICS_H
-#define _INTRINSICS_H
+#ifndef _TOOL_INTRINSICS_H
+#define _TOOL_INTRINSICS_H
 
 #ifndef __AVX__
 //#error AVX intrinsics not supported by the compiler.
@@ -26,8 +26,8 @@ namespace Tool
         
         f32 f[4];
         
-        v2 v2[2];
-        v4 v4;
+        v2 vector2[2];
+        v4 vector4;
     };
     
     union Float64x2
@@ -36,20 +36,20 @@ namespace Tool
         
         f64 f[2];
         
-        v2d v2d;
+        v2d vector2d;
     };
     
     union Integer128
     {
         __m128i m;
         
-        i8  i8[16];
-        i16 i16[8];
-        i32 i32[4];
-        i64 i64[2];
+        i8  int8[16];
+        i16 int16[8];
+        i32 int32[4];
+        i64 int64[2];
         
-        p2  p2[2];
-        p4  p4;
+        p2  point2[2];
+        p4  point4;
     };
     
     //~ 256-bit intrinsics
@@ -60,8 +60,8 @@ namespace Tool
         
         f32 f[8];
         
-        v2 v2[4];
-        v4 v4[2];
+        v2 vector2[4];
+        v4 vector4[2];
     };
     
     union Float64x4
@@ -70,21 +70,21 @@ namespace Tool
         
         f64 f[4];
         
-        v2d v2d[2];
-        v4d v4d;
+        v2d vector2d[2];
+        v4d vector4d;
     };
     
     union Integer256
     {
         __m256i m;
         
-        i8  i8[32];
-        i16 i16[16];
-        i32 i32[8];
-        i64 i64[4];
+        i8  int8[32];
+        i16 int16[16];
+        i32 int32[8];
+        i64 int64[4];
         
-        p2  p2[4];
-        p4  p4[2];
+        p2  point2[4];
+        p4  point4[2];
     };
     
     //~ Masks
@@ -271,9 +271,9 @@ namespace Tool
     inline f32_x8  F32x8Div(f32_x8 a, f32_x8 b)            { return { _mm256_div_ps(a.m, b.m) }; }
     inline f64_x2  F64x2Div(f64_x2 a, f64_x2 b)            { return { _mm_div_pd(a.m, b.m) }; }
     inline f64_x4  F64x4Div(f64_x4 a, f64_x4 b)            { return { _mm256_div_pd(a.m, b.m) }; }
-
+    
     // Seemingly unsupported by Clang
-
+    
     // inline i8_x16  I8x16Div(i8_x16  a, i8_x16  b)          { return { _mm_div_epi8(a.m, b.m) }; }
     // inline i8_x32  I8x32Div(i8_x32  a, i8_x32  b)          { return { _mm256_div_epi8(a.m, b.m) }; }
     // inline i16_x8  I16x8Div(i16_x8  a, i16_x8  b)          { return { _mm_div_epi16(a.m, b.m) }; }

@@ -2,18 +2,29 @@
 #include "exception.h"
 #include "text.h"
 
-#include <Windows.h>
 #include <string.h>
-#include <cstdio>
-#include <cstdarg>
+#include <stdio.h>
+#include <stdarg.h>
+
+#ifdef TOOL_WINDOWS
+#include <Windows.h>
+#endif
+
+#ifdef TOOL_UNIX
+#include <errno.h>
+#endif
 
 namespace Tool
 {
     void Except()
     {
+        
         Exception e =
         {
-            { '\0' }, 0, ExceptionTypeEmpty, 0
+            .str = { '\0' }, 
+            .size = 0, 
+            .type = ExceptionTypeEmpty, 
+            .dataUnsigned = 0
         };
         
         CStr8Copy(e.str, "Unknown exception", TOOL_EXCEPTION_CAPACITY);
@@ -23,9 +34,13 @@ namespace Tool
     
     void Except(const c8* format, ...)
     {
+        
         Exception e =
         {
-            { '\0' }, 0, ExceptionTypeMessage, 0
+            .str = { '\0' }, 
+            .size = 0, 
+            .type = ExceptionTypeMessage, 
+            .dataUnsigned = 0
         };
         
         va_list args;
@@ -39,25 +54,15 @@ namespace Tool
         throw e;
     }
     
-    /*
-    void Except(const c8* string, u64 size)
-    {
-        Exception e =
-        {
-            { '\0' }, size, ExceptionTypeMessage, 0
-        };
-        
-        Copy(e.str, string, size);
-        
-        throw e;
-    }
-    */
-    
+#ifdef TOOL_WINDOWS
     void ExceptWindows(u32 code)
     {
         Exception e =
         {
-            { '\0' }, 0, ExceptionTypeWindows, (u64)code
+            .str = { '\0' }, 
+            .size = 0, 
+            .type = ExceptionTypeWindows, 
+            .dataUnsigned = (u64)code
         };
         
         e.size = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM,
@@ -75,4 +80,29 @@ namespace Tool
     {
         ExceptWindows(GetLastError());
     }
+#endif // TOOL_WINDOWS
+    
+#ifdef TOOL_UNIX
+    void ExceptUnix(i32 code)
+    {
+        Exception e =
+        {
+            .str = { '\0' }, 
+            .size = 0, 
+            .type = ExceptionTypeUnix, 
+            .dataSigned = (i64)code
+        };
+        
+        c8* string = strerror(code);
+        
+        CStr8Copy(e.str, string, TOOL_EXCEPTION_CAPACITY);
+        
+        throw e;
+    }
+    
+    void ExceptErrno()
+    {
+        ExceptUnix(errno);
+    }
+#endif // TOOL_UNIX
 }

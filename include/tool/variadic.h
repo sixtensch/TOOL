@@ -1,5 +1,5 @@
-#ifndef _VARIADIC_H
-#define _VARIADIC_H
+#ifndef _TOOL_VARIADIC_H
+#define _TOOL_VARIADIC_H
 
 #include "basics.h"
 

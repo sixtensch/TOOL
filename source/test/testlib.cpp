@@ -1,9 +1,17 @@
 
 #include <cstdio>
 
+#ifdef TOOL_WINDOWS
+#define DLL_EXPORT __declspec(dllexport)
+#endif
+
+#ifdef TOOL_UNIX
+#define DLL_EXPORT __attribute__((visibility("default")))
+#endif
+
 #define SCRIPT(name) \
 void name##_cpp(int a, int b); \
-__declspec(dllexport) extern "C" void name(int a, int b) { name##_cpp(a, b); } \
+DLL_EXPORT extern "C" void name(int a, int b) { name##_cpp(a, b); } \
 void name##_cpp(int a, int b)
 
 
@@ -20,17 +28,17 @@ int cppfoo(int a, int b)
 extern "C"
 {
     
-    int __declspec(dllexport) foo(int a, int b)
+    int DLL_EXPORT foo(int a, int b)
     {
         return cppfoo(a, b);
     }
     
-    int __declspec(dllexport) bar()
+    int DLL_EXPORT bar()
     {
         return 10;
     }
     
-    void __declspec(dllexport) callsets(void (*sets)())
+    void DLL_EXPORT callsets(void (*sets)())
     {
         sets();
     }

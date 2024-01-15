@@ -1,5 +1,7 @@
-#ifndef _BASICS_H
-#define _BASICS_H
+#ifndef _TOOL_BASICS_H
+#define _TOOL_BASICS_H
+
+
 
 //- Definitions
 
@@ -94,6 +96,9 @@ using Tool::c32;
 
 namespace Tool
 {
+    
+    //~ Memory transformation
+    
     void Copy(void* destination, const void* source, u64 size);
     void Copy(void* destination, const void* source, u64 count, u64 size);
     

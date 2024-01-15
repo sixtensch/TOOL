@@ -1,5 +1,5 @@
-#ifndef _VECTOR_H
-#define _VECTOR_H
+#ifndef _TOOL_VECTOR_H
+#define _TOOL_VECTOR_H
 
 #include "basics.h"
 #include "mathematics.h"

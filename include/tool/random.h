@@ -1,5 +1,5 @@
-#ifndef _RANDOM_H
-#define _RANDOM_H
+#ifndef _TOOL_RANDOM_H
+#define _TOOL_RANDOM_H
 
 #include "basics.h"
 

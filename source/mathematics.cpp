@@ -1,6 +1,7 @@
 
 #include "mathematics.h"
-#include <math.h>
+
+#include <cmath>
 
 namespace Tool
 {
