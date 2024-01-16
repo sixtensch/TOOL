@@ -6,30 +6,82 @@
 #include <Windows.h>
 #endif
 
+#ifdef TOOL_UNIX
+#include <sys/mman.h>
+#endif
+
 
 
 // TODO(crazy): Extend these to work on Linux and MacOS
 
 namespace Tool
 {
-    //~ Heap functionality
+    //- Classic allocation
+    
+    //~ Classic allocation Windows implementation
+    
+#ifdef TOOL_WINDOWS
     
     void* ClassicAlloc(u64 size)
     {
-#ifdef TOOL_WINDOWS
-        
         void* result = (void*)VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         
-#ifndef TOOL_OPTIMIZED
         if (result == nullptr)
         {
             ExceptWindowsLast();
         }
-#endif
         
         return result;
+    }
+    
+    void ClassicDealloc(void* start, u64 size)
+    {
+        b32 result = VirtualFree(start, size, MEM_RELEASE);
         
+        if (!result)
+        {
+            ExceptWindowsLast();
+        }
+    }
+    
 #endif // TOOL_WINDOWS
+    
+    //~ Classic allocation Unix implementation
+    
+#ifdef TOOL_UNIX
+    
+    void* ClassicAlloc(u64 size)
+    {
+        void* result = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        
+        if (result == MAP_FAILED)
+        {
+            ExceptErrno();
+        }
+        
+        return result;
+    }
+    
+    void ClassicDealloc(void* start, u64 size)
+    {
+        i32 result = munmap(start, size);
+        
+        if (result < 0)
+        {
+            ExceptErrno();
+        }
+    }
+    
+#endif // TOOL_WINDOWS
+    
+    //~ Classic allocation general functions
+    
+    void ClassicRealloc(void** target, u64 currentSize, u64 newSize)
+    {
+        void* p = ClassicAlloc(newSize);
+        Copy(p, *target, currentSize);
+        ClassicDealloc(*target, currentSize);
+        *target = p;
     }
     
     void* ClassicAlloc(u64 count, u64 size)
@@ -37,37 +89,9 @@ namespace Tool
         return ClassicAlloc(count * size);
     }
     
-    void ClassicDealloc(void* start, u64 size)
-    {
-#ifdef TOOL_WINDOWS
-        
-        b32 result = VirtualFree(start, size, MEM_RELEASE);
-        
-#ifndef TOOL_OPTIMIZED
-        if (!result)
-        {
-            ExceptWindowsLast();
-        }
-#endif
-        
-#endif // TOOL_WINDOWS
-    }
-    
     void ClassicDealloc(void* start, u64 count, u64 size)
     {
         ClassicDealloc(start, count * size);
-    }
-    
-    void ClassicRealloc(void** target, u64 currentSize, u64 newSize)
-    {
-#ifdef TOOL_WINDOWS
-        
-        void* p = ClassicAlloc(newSize);
-        Copy(p, *target, currentSize);
-        ClassicDealloc(*target, currentSize);
-        *target = p;
-        
-#endif // TOOL_WINDOWS
     }
     
     void ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size)
@@ -77,12 +101,14 @@ namespace Tool
     
     
     
-    //~ Memory region
+    //- Memory region
+    
+    //~ Memory region Windows implementation
+    
+#ifdef TOOL_WINDOWS
     
     void RegionReserve(Region* region, u64 size)
     {
-#ifdef TOOL_WINDOWS
-        
         if (region->start != nullptr)
         {
             Except("Cannot reserve a Region which is already initialized."); 
@@ -90,54 +116,34 @@ namespace Tool
         
         region->start = (void*)VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_READWRITE);
         
-#ifndef TOOL_OPTIMIZED
         if (region->start == nullptr)
         {
             ExceptWindowsLast();
         }
-#endif
         
         region->reserved = size;
         region->committed = 0;
-        
-#endif // TOOL_WINDOWS
-    }
-    
-    void RegionReserve(Region* region, u64 count, u64 size)
-    {
-        RegionReserve(region, count * size);
     }
     
     void RegionCommit(Region* region, u64 newSize)
     {
-#ifdef TOOL_WINDOWS
-        
-        if (region->reserved < newSize)
+        if (newSize >region->reserved)
         {
             Except("Cannot commit more memory to a Region than is reserved. (%ull > %ull)", newSize, region->reserved);
         }
         
         VirtualAlloc(region->start, newSize, MEM_COMMIT, PAGE_READWRITE);
         
-#ifndef TOOL_OPTIMIZED
         if (region->start == nullptr)
         {
             ExceptWindowsLast();
         }
-#endif
+        
         region->committed = newSize;
-#endif // TOOL_WINDOWS
-    }
-    
-    void RegionCommit(Region* region, u64 newCount, u64 size)
-    {
-        RegionCommit(region, newCount * size);
     }
     
     void RegionRevert(Region* region, u64 newSize)
     {
-#ifdef TOOL_WINDOWS
-        
         if (newSize >= region->committed)
         {
             return;
@@ -145,16 +151,133 @@ namespace Tool
         
         b32 result = VirtualFree((u8*)region->start + newSize, region->committed - newSize, MEM_DECOMMIT); 
         
-#ifndef TOOL_OPTIMIZED
         if (!result)
         {
             ExceptWindowsLast();
         }
-#endif
         
         region->committed = newSize;
+    }
+    
+    void RegionDealloc(Region* region)
+    {
+        if (region->start == nullptr)
+        {
+            return;
+        }
         
+        b32 result = VirtualFree(region->start, 0, MEM_RELEASE); 
+        
+        if (!result)
+        {
+            ExceptWindowsLast();
+        }
+        
+        region->start = nullptr;
+        region->reserved = 0;
+        region->committed = 0;
+    }
+    
 #endif // TOOL_WINDOWS
+    
+    //~ Memory region Unix implementation
+    
+#ifdef TOOL_UNIX
+    
+    // On Unix, mmap does not actually allocate the memory. Physical pages will only be assigned when the memory is acted upon, such as by writing.
+    
+    // Reservation will mmap the entire region, and *protect* virtual pages beyond the boundary from being interacted with.
+    
+    static void UnixRegionProtect(void* memory, u64 accessible, u64 total)
+    {
+        void* startAccessible = memory;
+        void* startInaccessible = (void*)((char*)memory + accessible);
+        
+        i32 result = 0; 
+        result |= mprotect(startAccessible, accessible, PROT_READ | PROT_WRITE);
+        result |= mprotect(startInaccessible, total - accessible, PROT_NONE);
+        
+        if (result < 0)
+        {
+            ExceptErrno();
+        }
+    }
+    
+    void RegionReserve(Region* region, u64 size)
+    {
+        if (region->start != nullptr)
+        {
+            Except("Cannot reserve a Region which is already initialized."); 
+        }
+        
+        // Initialize the memory with no access rights
+        region->start = mmap(nullptr, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        
+        if (region->start == MAP_FAILED)
+        {
+            region->start = nullptr;
+            ExceptErrno();
+        }
+        
+        region->reserved = size;
+        region->committed = 0;
+    }
+    
+    void RegionCommit(Region* region, u64 newSize)
+    {
+        if (newSize > region->reserved)
+        {
+            Except("Cannot commit more memory to a Region than is reserved. (%ull > %ull)", newSize, region->reserved);
+        }
+        
+        UnixRegionProtect(region->start, newSize, region->reserved);
+        
+        region->committed = newSize;
+    }
+    
+    void RegionRevert(Region* region, u64 newSize)
+    {
+        if (newSize >= region->committed)
+        {
+            return;
+        }
+        
+        UnixRegionProtect(region->start, newSize, region->reserved);
+        
+        region->committed = newSize;
+    }
+    
+    void RegionDealloc(Region* region)
+    {
+        if (region->start == nullptr)
+        {
+            return;
+        }
+        
+        i32 result = munmap(region->start, region->reserved);
+        
+        if (result < 0)
+        {
+            ExceptErrno();
+        }
+        
+        region->start = nullptr;
+        region->reserved = 0;
+        region->committed = 0;
+    }
+    
+#endif
+    
+    //~ Memory region general functions
+    
+    void RegionReserve(Region* region, u64 count, u64 size)
+    {
+        RegionReserve(region, count * size);
+    }
+    
+    void RegionCommit(Region* region, u64 newCount, u64 size)
+    {
+        RegionCommit(region, newCount * size);
     }
     
     void RegionRevert(Region* region, u64 newCount, u64 size)
@@ -162,53 +285,24 @@ namespace Tool
         RegionRevert(region, newCount * size);
     }
     
-    void RegionDealloc(Region* region)
-    {
-#ifdef TOOL_WINDOWS
-        
-        if (region->start == nullptr)
-        {
-            return;
-        }
-        
-        b32 result = VirtualFree(region->start, region->reserved, MEM_RELEASE); 
-        
-#ifndef TOOL_OPTIMIZED
-        if (!result)
-        {
-            ExceptWindowsLast();
-        }
-#endif
-        
-        region->start = nullptr;
-        region->reserved = 0;
-        region->committed = 0;
-        
-#endif // TOOL_WINDOWS
-    }
     
     
+    //- Arena
     
-    //~ Arena
+    //~ Arena general implementation
     
     void ArenaInit(Arena* arena, u64 reservedSize)
     {
-#ifdef TOOL_WINDOWS
-        
         RegionReserve(&arena->region, reservedSize);
         RegionCommit(&arena->region, TOOL_ARENA_COMMIT_SIZE);
         arena->size = 0;
         
         arena->startCurrent = arena->region.start;
         arena->sizeCurrent = 0;
-        
-#endif // TOOL_WINDOWS
     }
     
     void* ArenaAlloc(Arena* arena, u64 size)
     {
-#ifdef TOOL_WINDOWS
-        
         u64 newSize = arena->size + size;
         
         if (newSize > arena->region.reserved)
@@ -230,19 +324,10 @@ namespace Tool
         arena->size = newSize;
         
         return result; 
-        
-#endif // TOOL_WINDOWS
-    }
-    
-    void* ArenaAlloc(Arena* arena, u64 count, u64 size)
-    {
-        return ArenaAlloc(arena, count * size);
     }
     
     void ArenaPush(Arena* arena)
     {
-#ifdef TOOL_WINDOWS
-        
         ArenaFrame frame = { arena->startCurrent, arena->sizeCurrent };
         
         arena->startCurrent = (u8*)arena->startCurrent + arena->sizeCurrent;
@@ -250,35 +335,34 @@ namespace Tool
         
         ArenaFrame* destination = (ArenaFrame*)ArenaAlloc(arena, sizeof(ArenaFrame));
         *destination = frame;
-        
-#endif // TOOL_WINDOWS
     }
     
     void ArenaPop(Arena* arena)
     {
-#ifdef TOOL_WINDOWS
-        
         ArenaFrame* frame = (ArenaFrame*)arena->startCurrent;
         
         arena->size -= arena->sizeCurrent;
         arena->startCurrent = frame->start;
         arena->sizeCurrent = frame->size;
-        
-#endif // TOOL_WINDOWS
     }
     
     void ArenaDenit(Arena* arena)
     {
-#ifdef TOOL_WINDOWS
-        
         RegionDealloc(&arena->region);
         
         arena->size = 0;
         arena->startCurrent = nullptr;
         arena->sizeCurrent = 0;
-        
-#endif // TOOL_WINDOWS
     }
+    
+    void* ArenaAlloc(Arena* arena, u64 count, u64 size)
+    {
+        return ArenaAlloc(arena, count * size);
+    }
+    
+    
+    
+    //- Allocators
     
     //~ Allocator triggers
     

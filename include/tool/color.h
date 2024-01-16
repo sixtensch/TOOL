@@ -1,5 +1,5 @@
-#ifndef _COLOR_H
-#define _COLOR_H
+#ifndef _TOOL_COLOR_H
+#define _TOOL_COLOR_H
 
 #include "basics.h"
 #include "vector.h"
@@ -31,7 +31,7 @@ namespace Tool
                 u8 a;
             };
             
-            Color3U rgb;
+            Color3U c3;
         };
     };
     
@@ -48,7 +48,7 @@ namespace Tool
                 f32 b;
             };
             
-            v3 v3;
+            v3 rgb;
         };
     };
     
@@ -64,10 +64,10 @@ namespace Tool
                 f32 a;
             };
             
-            Color3F rgb;
-        
-            v3 v3;
-            v4 v4;
+            Color3F c3;
+            
+            v3 rgb;
+            v4 rgba;
         };
     };
     

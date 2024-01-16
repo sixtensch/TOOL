@@ -1,5 +1,5 @@
-#ifndef _QUATERNION_H
-#define _QUATERNION_H
+#ifndef _TOOL_QUATERNION_H
+#define _TOOL_QUATERNION_H
 
 #include "basics.h"
 #include "vector.h"

@@ -2,7 +2,14 @@
 #include "basics.h"
 
 #include <cstring>
+
+#ifdef TOOL_WINDOWS
 #include <Windows.h>
+#endif
+
+#ifdef TOOL_UNIX
+
+#endif
 
 
 
@@ -12,7 +19,13 @@ namespace Tool
 {
     void Copy(void* destination, const void* source, u64 size)
     {
+#ifdef TOOL_WINDOWS
         CopyMemory(destination, source, size);
+#endif
+        
+#ifdef TOOL_UNIX
+        memcpy(destination, source, size);
+#endif
     }
     
     void Copy(void* destination, const void* source, u64 count, u64 size)

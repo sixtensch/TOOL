@@ -7,87 +7,99 @@
 #include <Windows.h>
 #endif
 
-#ifdef TOOL_LINUX
+#ifdef TOOL_UNIX
 #include <dlfcn.h>
 #endif
 
 namespace Tool
 {
+    
+    //- Module
+    
+    //~ Module Windows implementation
+    
+#if TOOL_WINDOWS
+    
     Module ModuleLoad(const c8* filename, bool lazy)
     {
-        Module module = nullptr;
+        StringBuilder name;
+        StringBuilderInit(&name, 256, StringTypeUTF16);
         
-#if TOOL_WINDOWS
-        
+        // Convert the string to Windows-proper wide character UTF16
         s16 wstr = S16FromCStr8(filename, ALLOC());
-        module = LoadLibraryW((wchar_t*)wstr.str);
+        
+        Module module = LoadLibraryW((wchar_t*)wstr.str);
         
         if (module == nullptr)
         {
             ExceptWindowsLast();
         }
-        
-#elif TOOL_LINUX
-        
-        module = dlopen(filename, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
-        
-        if (module == nullptr)
-        {
-            Except(dlerror());
-        }
-        
-#endif
         
         return module;
     }
     
     void ModuleUnload(Module module)
     {
-#if TOOL_WINDOWS
-        
         if (!FreeLibrary((HMODULE)module))
         {
             ExceptWindowsLast();
         }
-        
-#elif TOOL_LINUX
-        
-        if (dlclose(module))
-        {
-            Except(dlerror());
-        }
-        
-#endif
     }
     
     void* ModuleGetSymbol(Module module, const c8* name)
     {
-        void* symbol = nullptr;
-        
-#if TOOL_WINDOWS
-        
-        symbol = (void*)GetProcAddress((HMODULE)module, name);
+        void* symbol = (void*)GetProcAddress((HMODULE)module, name);
         
         if (symbol == nullptr)
         {
             ExceptWindowsLast();
         }
         
-#elif TOOL_LINUX
+        return symbol;
+    }
+    
+#endif // TOOL_WINDOWS
+    
+    //~ Module Unix implementation
+    
+#if TOOL_UNIX
+    
+    Module ModuleLoad(const c8* filename, bool lazy)
+    {
+        Module module = dlopen(filename, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
         
+        if (module == nullptr)
+        {
+            Except(dlerror());
+        }
+        
+        return module;
+    }
+    
+    void ModuleUnload(Module module)
+    {
+        if (dlclose(module))
+        {
+            Except(dlerror());
+        }
+    }
+    
+    void* ModuleGetSymbol(Module module, const c8* name)
+    {
         // Clear previous error state
         dlerror();
         
-        symbol = dlsym(module, name);
+        void* symbol = dlsym(module, name);
         
         const c8* error = dlerror();
-        if (error != null)
+        if (error != nullptr)
         {
             Except(error);
         }
         
-#endif
-        
         return symbol;
     }
+    
+#endif // TOOL_UNIX
+    
 }

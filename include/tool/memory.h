@@ -1,5 +1,5 @@
-#ifndef _MEMORY_H
-#define _MEMORY_H
+#ifndef _TOOL_MEMORY_H
+#define _TOOL_MEMORY_H
 
 #include "basics.h"
 
@@ -84,7 +84,7 @@ namespace Tool
     
     // De-commits committed memory pages, reverting them to "reserved".
     void RegionRevert(Region* region, u64 newSize); 
-    void RegionRevert(Region* region, u64 newCount, u64 size); 
+    void RegionRevert(Region* region, u64 newCount, u64 size);
     
     // Deallocates region, returning it to an uninitialized state.
     void RegionDealloc(Region* region);
@@ -111,7 +111,7 @@ namespace Tool
     //~ Allocators
     
     // Produces an allocator
-    MemoryAllocator Allocator();             // Heap
+    MemoryAllocator Allocator();             // Classic
     MemoryAllocator Allocator(Arena* arena); // Arena
     
     // Allocates space using the given allocator method

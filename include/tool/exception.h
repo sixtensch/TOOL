@@ -1,5 +1,5 @@
-#ifndef _EXCEPTION_H
-#define _EXCEPTION_H
+#ifndef _TOOL_EXCEPTION_H
+#define _TOOL_EXCEPTION_H
 
 #include "basics.h"
 
@@ -19,7 +19,8 @@ namespace Tool
     {
         ExceptionTypeEmpty,   // Data is nothing
         ExceptionTypeMessage, // Data is nothing
-        ExceptionTypeWindows  // Data is a Windows error code
+        ExceptionTypeWindows, // Data is an unsigned integer Windows error code
+        ExceptionTypeUnix     // Data is a signed integer Unix error code (potentially errno)
     };
     
     struct Exception
@@ -28,7 +29,12 @@ namespace Tool
         u64 size;
         
         ExceptionType type;
-        u64 data;
+        
+        union
+        {
+            u64 dataUnsigned;
+            i64 dataSigned;
+        };
     };
     
     
@@ -38,9 +44,14 @@ namespace Tool
     void Except();
     void Except(const c8* format, ...);
     
-#if TOOL_WINDOWS
+#ifdef TOOL_WINDOWS
     void ExceptWindows(u32 code);
     void ExceptWindowsLast();
+#endif
+    
+#ifdef TOOL_UNIX
+    void ExceptUnix(i32 code);
+    void ExceptErrno();
 #endif
 }
 

@@ -1,5 +1,5 @@
-#ifndef _BOX_H
-#define _BOX_H
+#ifndef _TOOL_BOX_H
+#define _TOOL_BOX_H
 
 #include "basics.h"
 #include "vector.h"

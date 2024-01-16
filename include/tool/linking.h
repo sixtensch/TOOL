@@ -1,5 +1,5 @@
-#ifndef _LINKING_H
-#define _LINKING_H
+#ifndef _TOOL_LINKING_H
+#define _TOOL_LINKING_H
 
 #include "basics.h"
 #include "text.h"

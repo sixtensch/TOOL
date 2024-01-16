@@ -1,5 +1,5 @@
-#ifndef _STRING_H
-#define _STRING_H
+#ifndef _TOOL_TEXT_H
+#define _TOOL_TEXT_H
 
 #include "basics.h"
 #include "memory.h"
@@ -19,7 +19,7 @@
 
 namespace Tool 
 {
-    //- Struct definitions
+    //- Core string struct definitions
     
     //~ 8-bit string (narrow string)
     // Suitable for ASCII or UTF-8 encoded strings
@@ -42,7 +42,7 @@ namespace Tool
     struct String32
     {
         c32* str;
-        u64 size; // Number of -bit characters
+        u64 size; // Number of 32-bit characters
     };
     
     //~ Acronyms
@@ -50,6 +50,36 @@ namespace Tool
     typedef String8 s8;
     typedef String16 s16;
     typedef String32 s32;
+    
+    
+    
+    //- String helper struct definitions
+    
+    //~ String type
+    
+    enum StringType
+    {
+        StringTypeNone = 0,
+        StringTypeUTF8,
+        StringTypeUTF16,
+        StringTypeUTF32
+    };
+    
+    //~ String draft
+    
+    struct StringBuilder
+    {
+        StringType type;
+        u64 size; // In bytes
+        
+        union
+        {
+            c8* str8;
+            c16* str16;
+        };
+        
+        Region region;
+    };
     
     
     
@@ -83,6 +113,15 @@ namespace Tool
     //~ 32-bit string
     
     // TODO(crazy): Implement
+    
+    //~ String builder
+    
+    void StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type = StringTypeUTF8);
+    void StringBuilderDestroy(StringBuilder* builder);
+    void StringBuilderAdd(StringBuilder* builder, const s8* string);
+    void StringBuilderAdd(StringBuilder* builder, const s16* string);
+    void StringBuilderAdd(StringBuilder* builder, const c8* cstr);
+    void StringBuilderAdd(StringBuilder* builder, const c16* cstr);
     
 }
 
