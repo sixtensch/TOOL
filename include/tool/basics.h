@@ -90,13 +90,12 @@ using Tool::c32;
 
 
 
-//- Most basic functions
-
 namespace Tool
 {
+    //~ Most basic functions
+    
     void Copy(void* destination, const void* source, u64 size);
     void Copy(void* destination, const void* source, u64 count, u64 size);
-    
 }
 
 
