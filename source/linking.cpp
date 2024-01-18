@@ -1,7 +1,10 @@
 
-#include <basics.h>
-#include <linking.h>
-#include <exception.h>
+#include "basics.h"
+#include "linking.h"
+#include "exception.h"
+#include "text.h"
+
+//#include <stdio.h>
 
 #ifdef TOOL_WINDOWS
 #include <Windows.h>
@@ -22,20 +25,37 @@ namespace Tool
     
     Module ModuleLoad(const c8* filename, bool lazy)
     {
-        StringBuilder name;
-        StringBuilderInit(&name, 256, StringTypeUTF16);
-        
         // Convert the string to Windows-proper wide character UTF16
-        s16 wstr = S16FromCStr8(filename, ALLOC());
+        StringBuilder builder;
+        StringBuilderInit(&builder, 256, StringTypeUTF16);
+        StringBuilderAdd(&builder, filename);
+        StringBuilderAdd(&builder, UTF16(".dll"));
         
-        Module module = LoadLibraryW((wchar_t*)wstr.str);
+        //printf("Trying to open %ls\n", (wchar_t*)builder.str16); 
+        Module module = LoadLibraryW((wchar_t*)builder.str16);
         
-        if (module == nullptr)
+        if (module != nullptr)
         {
-            ExceptWindowsLast();
+            StringBuilderDestroy(&builder);
+            return module;
         }
         
-        return module;
+        StringBuilderReset(&builder);
+        StringBuilderAdd(&builder, UTF16("lib"));
+        StringBuilderAdd(&builder, filename);
+        StringBuilderAdd(&builder, UTF16(".dll"));
+        StringBuilderDestroy(&builder);
+        
+        //printf("Trying to open %ls\n", (wchar_t*)builder.str16); 
+        module = LoadLibraryW((wchar_t*)builder.str16);
+        
+        if (module != nullptr)
+        {
+            return module;
+        }
+        
+        ExceptWindowsLast();
+        return nullptr;
     }
     
     void ModuleUnload(Module module)
@@ -66,14 +86,37 @@ namespace Tool
     
     Module ModuleLoad(const c8* filename, bool lazy)
     {
-        Module module = dlopen(filename, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
+        StringBuilder builder;
+        StringBuilderInit(&builder, 256, StringTypeUTF8);
+        StringBuilderAdd(&builder, "./lib");
+        StringBuilderAdd(&builder, filename);
+        StringBuilderAdd(&builder, ".so");
         
-        if (module == nullptr)
+        //printf("Trying to open %s\n", builder.str8); 
+        Module module = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
+        
+        if (module != nullptr)
         {
-            Except(dlerror());
+            StringBuilderDestroy(&builder);
+            return module;
         }
         
-        return module;
+        StringBuilderReset(&builder);
+        StringBuilderAdd(&builder, "./");
+        StringBuilderAdd(&builder, filename);
+        StringBuilderAdd(&builder, ".so");
+        StringBuilderDestroy(&builder);
+        
+        //printf("Trying to open %s\n", builder.str8); 
+        module = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
+        
+        if (module != nullptr)
+        {
+            return module;
+        }
+        
+        Except(dlerror());
+        return nullptr;
     }
     
     void ModuleUnload(Module module)

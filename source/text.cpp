@@ -481,17 +481,81 @@ namespace Tool
     
     //- Other utilities
     
-    //~ String Builder
+    //~ String Builder helper functions
+    
+    static void StringBuilderAddConst(StringBuilder* builder, const c8* string, u64 size)
+    {
+        switch (builder->type)
+        {
+            case StringTypeUTF8:
+            {
+                u64 offset = builder->size;
+                builder->size += size; 
+                RegionCommit(&builder->region, builder->size + 1);
+                Copy(builder->str8 + offset, string, size);
+                builder->str8[builder->size] = '\0';
+            }
+            break;
+            
+            case StringTypeUTF16:
+            {
+                u64 offset = builder->size / 2;
+                u64 needed = size * 2 + 1;
+                RegionCommit(&builder->region, builder->size + needed);
+                u64 realCount = UTF8ToUTF16(string, size, builder->str16 + offset, needed); // TODO(crazy): Maybe this is technical debt?
+                builder->size += realCount * 2; 
+                builder->str16[builder->size / 2] = L'\0';
+            }
+            break;
+            
+            default:
+            break;
+        }
+    }
+    
+    static void StringBuilderAddConst(StringBuilder* builder, const c16* string, u64 size)
+    {
+        switch (builder->type)
+        {
+            case StringTypeUTF8:
+            {
+                u64 offset = builder->size;
+                u64 needed = size * 2 + 1;
+                RegionCommit(&builder->region, builder->size + needed);
+                u64 realSize = UTF16ToUTF8(string, size, builder->str8 + offset, needed); // TODO(crazy): Maybe this is technical debt?
+                builder->size += realSize; 
+                builder->str8[builder->size] = '\0';
+            }
+            break;
+            
+            case StringTypeUTF16:
+            {
+                u64 offset = builder->size / 2;
+                u64 realSize = size * 2;
+                builder->size += realSize; 
+                RegionCommit(&builder->region, builder->size + 1);
+                Copy(builder->str16 + offset, string, realSize);
+                builder->str16[builder->size / 2] = L'\0';
+                
+            }
+            break;
+            
+            default:
+            break;
+        }
+    }
+    
+    //~ String builder
     
     void StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type)
     {
         RegionReserve(&builder->region, capacity);
-        RegionCommit(&builder->region, TOOL_MIN(capacity, 256));
+        RegionCommit(&builder->region, TOOL_MIN(capacity, 16));
         
+        builder->type = type;
         builder->size = 0;
-        
         builder->str8 = (c8*)builder->region.start;
-        builder->str8[0] = '\0';
+        builder->str16[0] = L'\0';
     }
     
     void StringBuilderDestroy(StringBuilder* builder)
@@ -503,73 +567,31 @@ namespace Tool
         builder->str8 = nullptr;
     }
     
+    void StringBuilderReset(StringBuilder* builder)
+    {
+        builder->size = 0;
+        builder->str16[0] = (c16)L'\0';
+    }
+    
     void StringBuilderAdd(StringBuilder* builder, const s8* string)
     {
-        
+        StringBuilderAddConst(builder, string->str, string->size);
     }
     
     void StringBuilderAdd(StringBuilder* builder, const s16* string)
     {
-        
+        StringBuilderAddConst(builder, string->str, string->size);
     }
     
     void StringBuilderAdd(StringBuilder* builder, const c8* cstr)
     {
-        u64 length = CStr8Size(cstr);
-        
-        switch (builder->type)
-        {
-            case StringTypeUTF8:
-            {
-                u64 offset = builder->size;
-                builder->size += length; 
-                RegionCommit(&builder->region, builder->size + 1);
-                Copy(builder->str8 + offset, cstr, length + 1);
-            }
-            break;
-            
-            case StringTypeUTF16:
-            {
-                u64 offset = builder->size / 2;
-                builder->size += length * 2; 
-                RegionCommit(&builder->region, builder->size + 2);
-                UTF8ToUTF16(cstr, length, builder->str16 + offset, length * 2); // TODO(crazy): Maybe this is technical debt? 
-                builder->str16[builder->size / 2] = L'\0';
-            }
-            break;
-            
-            default:
-            break;
-        }
+        u64 size = CStr8Size(cstr);
+        StringBuilderAddConst(builder, cstr, size);
     }
     
     void StringBuilderAdd(StringBuilder* builder, const c16* cstr)
     {
-        u64 length = CStr16Size(cstr);
-        
-        switch (builder->type)
-        {
-            /*case StringTypeUTF8:
-            {
-                u64 offset = builder->size;
-                builder->size += length; 
-                RegionCommit(&builder->region, builder->size + 1);
-                Copy(builder->str8 + offset, cstr, length + 1);
-            }
-            break;
-            
-            case StringTypeUTF16:
-            {
-                u64 offset = builder->size / 2;
-                builder->size += length * 2; 
-                RegionCommit(&builder->region, builder->size + 2);
-                UTF8ToUTF16(cstr, length, builder->str16 + offset, length * 2); // TODO(crazy): Maybe this is technical debt? 
-                builder->str16[builder->size / 2] = L'\0';
-            }
-            break;*/
-            
-            default:
-            break;
-        }
+        u64 count = CStr16Count(cstr);
+        StringBuilderAddConst(builder, cstr, count);
     }
 }

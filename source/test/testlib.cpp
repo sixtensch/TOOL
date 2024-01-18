@@ -46,5 +46,5 @@ extern "C"
 
 SCRIPT(another)
 {
-    printf("Result: %i", a + b);
+    printf("Result: %i\n", a + b);
 }

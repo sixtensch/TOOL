@@ -18,7 +18,6 @@ namespace Tool
 {
     void Except()
     {
-        
         Exception e =
         {
             .str = { '\0' }, 
@@ -34,7 +33,6 @@ namespace Tool
     
     void Except(const c8* format, ...)
     {
-        
         Exception e =
         {
             .str = { '\0' }, 

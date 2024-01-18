@@ -65,12 +65,12 @@ namespace Tool
         StringTypeUTF32
     };
     
-    //~ String draft
+    //~ String builder
     
     struct StringBuilder
     {
         StringType type;
-        u64 size; // In bytes
+        u64 size; // Of string content, in bytes
         
         union
         {
@@ -117,6 +117,7 @@ namespace Tool
     //~ String builder
     
     void StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type = StringTypeUTF8);
+    void StringBuilderReset(StringBuilder* builder);
     void StringBuilderDestroy(StringBuilder* builder);
     void StringBuilderAdd(StringBuilder* builder, const s8* string);
     void StringBuilderAdd(StringBuilder* builder, const s16* string);

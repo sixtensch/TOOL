@@ -8,6 +8,7 @@
 
 #ifdef TOOL_UNIX
 #include <sys/mman.h>
+#include <unistd.h>
 #endif
 
 
@@ -190,12 +191,20 @@ namespace Tool
     
     static void UnixRegionProtect(void* memory, u64 accessible, u64 total)
     {
+        static u64 pageSize = (u64)getpagesize();
+        
+        u64 accessibleAligned = pageSize * ((accessible - 1) / pageSize + 1);
+        
         void* startAccessible = memory;
-        void* startInaccessible = (void*)((char*)memory + accessible);
+        void* startInaccessible = (void*)((char*)memory + accessibleAligned);
         
         i32 result = 0; 
-        result |= mprotect(startAccessible, accessible, PROT_READ | PROT_WRITE);
-        result |= mprotect(startInaccessible, total - accessible, PROT_NONE);
+        result |= mprotect(startAccessible, accessibleAligned, PROT_READ | PROT_WRITE);
+        
+        if (total > accessibleAligned)
+        {
+            result |= mprotect(startInaccessible, total - accessibleAligned, PROT_NONE);
+        }
         
         if (result < 0)
         {

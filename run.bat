@@ -4,4 +4,6 @@ echo Executing run.bat
 
 if [%1] == [] (set ConfigName=Debug) else set ConfigName=%1
 
-start /D ".\Bin\Test-x64-%ConfigName%\" "TOOL (Test)" ".\Bin\Test-x64-%ConfigName%\Test.exe"
+pushd ".\build\%ConfigName%\"
+start "TOOL (Test)" /b "TOOLTest.exe"
+popd
