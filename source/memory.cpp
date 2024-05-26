@@ -355,7 +355,7 @@ namespace Tool
         arena->sizeCurrent = frame->size;
     }
     
-    void ArenaDenit(Arena* arena)
+    void ArenaDeInit(Arena* arena)
     {
         RegionDealloc(&arena->region);
         
