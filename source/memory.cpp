@@ -320,12 +320,12 @@ namespace Tool
                    arena->size, size, arena->region.reserved);
         }
         
-        if (newSize > arena->region.committed)
+        while (newSize > arena->region.committed)
         {
             u64 newCommitSize = arena->region.committed * 2;
             newCommitSize = (newCommitSize > arena->region.reserved) ? arena->region.reserved : newCommitSize;
             
-            RegionCommit(&arena->region, newSize);
+            RegionCommit(&arena->region, newCommitSize);
         }
         
         void* result = (u8*)arena->startCurrent + arena->sizeCurrent;
