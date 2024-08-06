@@ -44,10 +44,11 @@ namespace Tool
         StringBuilderAdd(&builder, UTF16("lib"));
         StringBuilderAdd(&builder, filename);
         StringBuilderAdd(&builder, UTF16(".dll"));
-        StringBuilderDestroy(&builder);
         
         //printf("Trying to open %ls\n", (wchar_t*)builder.str16); 
         module = LoadLibraryW((wchar_t*)builder.str16);
+        
+        StringBuilderDestroy(&builder);
         
         if (module != nullptr)
         {
@@ -105,10 +106,11 @@ namespace Tool
         StringBuilderAdd(&builder, "./");
         StringBuilderAdd(&builder, filename);
         StringBuilderAdd(&builder, ".so");
-        StringBuilderDestroy(&builder);
         
         //printf("Trying to open %s\n", builder.str8); 
         module = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
+        
+        StringBuilderDestroy(&builder);
         
         if (module != nullptr)
         {

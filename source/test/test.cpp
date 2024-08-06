@@ -1,48 +1,73 @@
 
 #include "tool.h"
-
 #include <stdio.h>
+#include <windows.h>
+#include <directxmath.h>
 
-typedef int (*foofunc)(int, int);
-typedef int (*barfunc)();
-typedef void (*anotherfunc)(int, int);
-typedef void (*setsfunc)(void (*)());
+using namespace Tool;
+using namespace DirectX;
 
-static int s = 0;
+#pragma comment (lib, "d3d12.lib")
 
-void sets()
-{
-    s = 10;
-}
+//Mutex mutex = MutexCreate();
+//Semaphore semaphore = SemaphoreCreate();
+//int total = 0;
+//
+//void foo(void* data)
+//{
+//SemaphoreWait(semaphore);
+//for (i32 i = 0; i < 100000; i++)
+//{
+//total += 100;
+//}
+//}
+//
+//int main()
+//{
+//const i32 count = 20;
+//Thread threads[count];
+//
+//for (i32 i = 0; i < count; i++)
+//threads[i] = ThreadCreate(foo, nullptr);
+//
+//SemaphorePost(semaphore);
+//
+//Sleep(100);
+//
+//SemaphorePost(semaphore);
+//SemaphorePost(semaphore);
+//SemaphorePost(semaphore);
+//
+//Sleep(100);
+//
+//return 0;
+//}
 
 int main()
 {
-    Tool::Module testLib;
+    m4 matrix = M4ProjectionPerspective(90.0f, 1.0f, 1, 3, ClipTypeDX);
+    XMMATRIX xmatrix = XMMatrixPerspectiveFovLH(PI * 0.5f, 1.0f, 1, 3);
     
-    try
-    {
-        testLib = Tool::ModuleLoad("TOOLTestLib");
-    }
-    catch (Tool::Exception e)
-    {
-        printf("Error: %s\n", e.str);
-    };
+    v4 a0 = matrix * v4{ 0, 0, 1, 1 };
+    v4 b0 = matrix * v4{ 0, 0, 2, 1 };
+    v4 c0 = matrix * v4{ 0, 0, 3, 1 };
     
-    foofunc a = (foofunc)Tool::ModuleGetSymbol(testLib, "foo");
-    barfunc b = (barfunc)Tool::ModuleGetSymbol(testLib, "bar");
-    anotherfunc e = (anotherfunc)Tool::ModuleGetSymbol(testLib, "another");
-    setsfunc f = (setsfunc)Tool::ModuleGetSymbol(testLib, "callsets");
+    v4 a1i = v4{ 1, 0, 1, 1 };
+    v4 b1i = v4{ 1, 0, 2, 1 };
+    v4 c1i = v4{ 1, 0, 3, 1 };
     
-    int c = a(5, 5);
-    int d = b();
+    v4 a1 = matrix * a1i;
+    v4 b1 = matrix * b1i;
+    v4 c1 = matrix * c1i;
     
-    printf("c: %i, d: %i\n", c, d);
+    XMVECTOR a1x = XMVector4Transform(XMLoadFloat4((XMFLOAT4*)&a1i), xmatrix);
+    XMVECTOR b1x = XMVector4Transform(XMLoadFloat4((XMFLOAT4*)&b1i), xmatrix);
+    XMVECTOR c1x = XMVector4Transform(XMLoadFloat4((XMFLOAT4*)&c1i), xmatrix);
     
-    e(10, 10);
-    
-    f(sets);
-    
-    printf("s: %i\n", s);
+    v4 a2 = matrix * v4{ 0, 1, 1, 1 };
+    v4 b2 = matrix * v4{ 0, 1, 2, 1 };
+    v4 c2 = matrix * v4{ 0, 1, 3, 1 };
     
     return 0;
 }
+

@@ -44,6 +44,7 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/variadic.cpp"
     "${TOOL_SOURCE_DIR}/text.cpp"
     "${TOOL_SOURCE_DIR}/linking.cpp"
+    "${TOOL_SOURCE_DIR}/threading.cpp"
 )
 
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")
