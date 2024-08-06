@@ -193,9 +193,8 @@ namespace Tool
     m4 M4Scale(f32 uniform);
     m4 M4Scale(f32 x, f32 y, f32 z, f32 w = 1.0f);
     
-    m4 M4Translation(v4 position);
-    m4 M4Translation(v3 position, f32 w = 0.0f);
-    m4 M4Translation(f32 x, f32 y, f32 z, f32 w = 0.0f);
+    m4 M4Translation(v3 position);
+    m4 M4Translation(f32 x, f32 y, f32 z);
     
     enum ClipType
     {
@@ -972,36 +971,25 @@ namespace Tool
         };
     }
     
-    inline m4 M4Translation(v4 position)
+    inline m4 M4Translation(v3 position)
     {
         return
         {
-            0, 0, 0, position.x,
-            0, 0, 0, position.y,
-            0, 0, 0, position.z,
-            0, 0, 0, position.w
+            1, 0, 0, position.x,
+            0, 1, 0, position.y,
+            0, 0, 1, position.z,
+            0, 0, 0, 1
         };
     }
     
-    inline m4 M4Translation(v3 position, f32 w)
+    inline m4 M4Translation(f32 x, f32 y, f32 z)
     {
         return
         {
-            0, 0, 0, position.x,
-            0, 0, 0, position.y,
-            0, 0, 0, position.z,
-            0, 0, 0, w
-        };
-    }
-    
-    inline m4 M4Translation(f32 x, f32 y, f32 z, f32 w)
-    {
-        return
-        {
-            0, 0, 0, x,
-            0, 0, 0, y,
-            0, 0, 0, z,
-            0, 0, 0, w
+            1, 0, 0, x,
+            0, 1, 0, y,
+            0, 0, 1, z,
+            0, 0, 0, 1
         };
     }
     

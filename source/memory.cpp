@@ -332,7 +332,7 @@ namespace Tool
         arena->sizeCurrent += size;
         arena->size = newSize;
         
-        return result; 
+        return result;
     }
     
     void ArenaPush(Arena* arena)
