@@ -32,6 +32,7 @@
 #include "tool/linking.h"
 #include "tool/exception.h"
 #include "tool/threading.h"
+#include "tool/temporal.h"
 
 // Mathematics and linear algebra
 #include "tool/mathematics.h"

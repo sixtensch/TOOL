@@ -45,28 +45,12 @@ using namespace DirectX;
 
 int main()
 {
-    m4 matrix = M4ProjectionPerspective(90.0f, 1.0f, 1, 3, ClipTypeDX);
-    XMMATRIX xmatrix = XMMatrixPerspectiveFovLH(PI * 0.5f, 1.0f, 1, 3);
+    Timepoint before = TimepointNow();
     
-    v4 a0 = matrix * v4{ 0, 0, 1, 1 };
-    v4 b0 = matrix * v4{ 0, 0, 2, 1 };
-    v4 c0 = matrix * v4{ 0, 0, 3, 1 };
+    Sleep(1000);
     
-    v4 a1i = v4{ 1, 0, 1, 1 };
-    v4 b1i = v4{ 1, 0, 2, 1 };
-    v4 c1i = v4{ 1, 0, 3, 1 };
-    
-    v4 a1 = matrix * a1i;
-    v4 b1 = matrix * b1i;
-    v4 c1 = matrix * c1i;
-    
-    XMVECTOR a1x = XMVector4Transform(XMLoadFloat4((XMFLOAT4*)&a1i), xmatrix);
-    XMVECTOR b1x = XMVector4Transform(XMLoadFloat4((XMFLOAT4*)&b1i), xmatrix);
-    XMVECTOR c1x = XMVector4Transform(XMLoadFloat4((XMFLOAT4*)&c1i), xmatrix);
-    
-    v4 a2 = matrix * v4{ 0, 1, 1, 1 };
-    v4 b2 = matrix * v4{ 0, 1, 2, 1 };
-    v4 c2 = matrix * v4{ 0, 1, 3, 1 };
+    Timepoint after = TimepointNow();
+    f32 time = SecondsFromTo<f32>(before, after);
     
     return 0;
 }

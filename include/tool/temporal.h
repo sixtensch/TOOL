@@ -9,7 +9,7 @@ namespace Tool
 {
     //- Type definitions
     
-    //~ Performance clock time units
+    //~ Monotonic performance clock
     
     // Represents performance counter clocks on Windows, nanoseconds on Linux. Access through utility functions.
     typedef i64 Timepoint;
@@ -17,10 +17,10 @@ namespace Tool
     struct Duration
     {
         i32 seconds;
-        i32 nanoseconds
+        i32 nanoseconds;
     };
     
-    //~ Wall/system clock time units
+    //~ Wall/system clock
     // Only precise to seconds on Linux
     
     enum Weekday
@@ -35,7 +35,7 @@ namespace Tool
     };
     
     // TODO(crazy): Implement
-    struct SystemTime
+    struct SystemTimepoint
     {
         i16 year;
         i16 month;
@@ -66,30 +66,21 @@ namespace Tool
     
     //- Function definitions
     
-    //~ Thread
+    //~ Monotonic measurement
     
-    Thread ThreadCreate(ThreadFunction function, void* data);
+    Timepoint TimepointNow();
     
-    void ThreadDetach(Thread thread);
-    void ThreadJoin(Thread thread);
-    b8 ThreadTryJoin(Thread thread); // Value of true indicates successful join and release
+    i64 NanosecondsFromTo(Timepoint from, Timepoint to);
+    i64 NanosecondsSince(Timepoint then);
     
-    //~ Semaphore
+    i64 ClocksFromTo(Timepoint from, Timepoint to);
+    i64 ClocksSince(Timepoint then);
     
-    Semaphore SemaphoreCreate(u32 value = 0);
-    void SemaphoreDestroy(Semaphore semaphore);
+    template<typename T>
+        T SecondsFromTo(Timepoint from, Timepoint to) { return NanosecondsFromTo(from, to) / ((T)1000000000); }
     
-    void SemaphorePost(Semaphore semaphore);
-    void SemaphoreWait(Semaphore semaphore);
-    b8 SemaphoreTryWait(Semaphore semaphore); // Value of true indicates successful decrement
-    
-    //~ Mutex
-    
-    Mutex MutexCreate();
-    void MutexDestroy(Mutex mutex);
-    
-    void MutexLock(Mutex mutex);
-    void MutexUnlock(Mutex mutex);
+    template<typename T>
+        T SecondsSince(Timepoint then) { return NanosecondsSince(then) / ((T)1000000000); }
 };
 
 
