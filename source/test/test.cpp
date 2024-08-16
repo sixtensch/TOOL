@@ -45,12 +45,10 @@ using namespace DirectX;
 
 int main()
 {
-    Timepoint before = TimepointNow();
-    
-    Sleep(1000);
-    
-    Timepoint after = TimepointNow();
-    f32 time = SecondsFromTo<f32>(before, after);
+    File file = 0;
+    b8 success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
+    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
+    Tool::FileClose(file);
     
     return 0;
 }
