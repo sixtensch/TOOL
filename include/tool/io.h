@@ -2,6 +2,7 @@
 #define _TOOL_IO_H
 
 #include "basics.h"
+#include "memory.h"
 
 
 
@@ -58,8 +59,10 @@ namespace Tool
     void FileClose(File file);
     
     u64 FileSize(File file);
-    void FileRead(File file, void* destination, u32 size, u32* actual = nullptr);
-    void FileWrite(File file, const void* source, u32 size, u32* actual = nullptr);
+    void FileRead(File file, void* destination, u32 size, u32* outSize = nullptr);
+    void FileWrite(File file, const void* source, u32 size, u32* outSize = nullptr);
+    
+    b8 FileDump(const c8* filename, void** outDump, u32* outSize, MemoryAllocator allocator);
     
 }
 

@@ -46,9 +46,31 @@ using namespace DirectX;
 int main()
 {
     File file = 0;
-    b8 success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
+    b8 success = false;
+    /*
+    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
     Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
     Tool::FileClose(file);
+    
+    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
+    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
+    Tool::FileClose(file);
+    
+    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
+    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
+    Tool::FileClose(file);
+    
+    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
+    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
+    Tool::FileClose(file);
+    */
+    
+    Arena arena;
+    ArenaInit(&arena, 10000);
+    
+    void* dump = nullptr;
+    u32 size = 0;
+    success = FileDump("Testfile.txt", &dump, &size, Allocator(&arena));
     
     return 0;
 }

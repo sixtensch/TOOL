@@ -149,6 +149,30 @@ namespace Tool
         WriteFile(*handle, source, size, (LPDWORD)actual, nullptr);
     }
     
+    b8 FileDump(const c8* filename, void** outDump, u32* outSize, MemoryAllocator allocator)
+    {
+        File file = 0;
+        b8 success = FileOpen(&file, filename, OpenModeRead);
+        if (!success)
+        {
+            return false;
+        }
+        
+        u32 size = (u32)FileSize(file);
+        void* allocation = AllocatorAlloc(allocator, size + 1);
+        if (allocation == nullptr)
+        {
+            return false;
+        }
+        
+        FileRead(file, allocation, size);
+        FileClose(file);
+        
+        *outDump = allocation;
+        *outSize = size;
+        return true;
+    }
+    
 #endif 
     
 }
