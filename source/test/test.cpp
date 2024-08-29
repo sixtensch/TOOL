@@ -1,76 +1,23 @@
 
 #include "tool.h"
+#include "test.h"
 #include <stdio.h>
-#include <windows.h>
-#include <directxmath.h>
 
 using namespace Tool;
-using namespace DirectX;
-
-#pragma comment (lib, "d3d12.lib")
-
-//Mutex mutex = MutexCreate();
-//Semaphore semaphore = SemaphoreCreate();
-//int total = 0;
-//
-//void foo(void* data)
-//{
-//SemaphoreWait(semaphore);
-//for (i32 i = 0; i < 100000; i++)
-//{
-//total += 100;
-//}
-//}
-//
-//int main()
-//{
-//const i32 count = 20;
-//Thread threads[count];
-//
-//for (i32 i = 0; i < count; i++)
-//threads[i] = ThreadCreate(foo, nullptr);
-//
-//SemaphorePost(semaphore);
-//
-//Sleep(100);
-//
-//SemaphorePost(semaphore);
-//SemaphorePost(semaphore);
-//SemaphorePost(semaphore);
-//
-//Sleep(100);
-//
-//return 0;
-//}
 
 int main()
 {
-    File file = 0;
-    b8 success = false;
-    /*
-    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
-    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
-    Tool::FileClose(file);
+    Module module = Tool::ModuleLoad("TOOLTestLib");
     
-    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
-    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
-    Tool::FileClose(file);
+    IntFunc getValue = (IntFunc)Tool::ModuleGetSymbol(module, "GetValue");
+    VoidFunc resetValue = (VoidFunc)Tool::ModuleGetSymbol(module, "ResetValue");
+    VoidFunc callModule = (VoidFunc)Tool::ModuleGetSymbol(module, "CallModule");
     
-    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
-    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
-    Tool::FileClose(file);
+    resetValue();
+    int value = getValue();
     
-    success = Tool::FileOpen(&file, "Testfile.txt", OpenModeNewOrAppend); 
-    Tool::FileWrite(file, "Hello world!", sizeof("Hello world!") - 1);
-    Tool::FileClose(file);
-    */
-    
-    Arena arena;
-    ArenaInit(&arena, 10000);
-    
-    void* dump = nullptr;
-    u32 size = 0;
-    success = FileDump("Testfile.txt", &dump, &size, Allocator(&arena));
+    callModule();
+    value = getValue();
     
     return 0;
 }

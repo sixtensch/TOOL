@@ -1,50 +1,62 @@
 
-#include <cstdio>
+#include "test.h"
+#include "tool.h"
 
-#ifdef TOOL_WINDOWS
-#define DLL_EXPORT __declspec(dllexport)
-#endif
+static int value;
 
-#ifdef TOOL_UNIX
-#define DLL_EXPORT __attribute__((visibility("default")))
-#endif
 
-#define SCRIPT(name) \
-void name##_cpp(int a, int b); \
-DLL_EXPORT extern "C" void name(int a, int b) { name##_cpp(a, b); } \
-void name##_cpp(int a, int b)
 
+// Core
 
 int main()
 {
-    return 0;
+    value = 1;
 }
 
-int cppfoo(int a, int b)
+Tool::Module GetModule()
 {
-    return a + b;
+    static Tool::Module module = nullptr;
+    
+    if (module == nullptr)
+    {
+        module = Tool::ModuleLoad("TOOLTestModule");
+    }
+    
+    return module;
 }
 
-extern "C"
+
+
+// For the module
+
+DLL_EXPORT void Add3()
 {
-    
-    int DLL_EXPORT foo(int a, int b)
-    {
-        return cppfoo(a, b);
-    }
-    
-    int DLL_EXPORT bar()
-    {
-        return 10;
-    }
-    
-    void DLL_EXPORT callsets(void (*sets)())
-    {
-        sets();
-    }
+    value += 3;
 }
 
-SCRIPT(another)
+DLL_EXPORT void Add5()
 {
-    printf("Result: %i\n", a + b);
+    value += 5;
 }
+
+
+
+// For the nugget
+
+DLL_EXPORT void ResetValue()
+{
+    value = 1;
+}
+
+DLL_EXPORT int GetValue()
+{
+    return value;
+}
+
+DLL_EXPORT void CallModule()
+{
+    VoidFunc func = (VoidFunc)Tool::ModuleGetSymbol(GetModule(), "CallAdd");
+    func();
+}
+
+

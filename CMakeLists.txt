@@ -72,6 +72,8 @@ set_target_properties(TOOL PROPERTIES
 
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
+	# Core library
+	
     add_library(TOOLTestLib SHARED
     "${TOOL_SOURCE_DIR}/test/testlib.cpp"
     )
@@ -81,6 +83,24 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     target_compile_features(TOOLTestLib PUBLIC cxx_std_20)
 
     set_target_properties(TOOLTestLib PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED ON
+    CXX_EXTENSIONS OFF
+    )
+
+
+
+	# Module library
+	
+    add_library(TOOLTestModule SHARED
+    "${TOOL_SOURCE_DIR}/test/testmodule.cpp"
+    )
+
+    target_link_libraries(TOOLTestModule TOOL TOOLTestLib)
+
+    target_compile_features(TOOLTestModule PUBLIC cxx_std_20)
+
+    set_target_properties(TOOLTestModule PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
