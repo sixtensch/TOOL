@@ -66,9 +66,7 @@ namespace Tool
     void* ClassicAlloc(u64 count, u64 size);
     template<typename T> inline T* ClassicAlloc() { return (T*)ClassicAlloc(sizeof(T)); }
     
-    void ClassicDealloc(void* start, u64 size);
-    void ClassicDealloc(void* start, u64 count, u64 size);
-    template<typename T> inline void ClassicDealloc(T* target) { ClassicDealloc(target, sizeof(T)); }
+    void ClassicDealloc(void* start);
     
     void ClassicRealloc(void** target, u64 currentSize, u64 newSize);
     void ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size);

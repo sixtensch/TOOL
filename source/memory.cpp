@@ -35,9 +35,9 @@ namespace Tool
         return result;
     }
     
-    void ClassicDealloc(void* start, u64 size)
+    void ClassicDealloc(void* start)
     {
-        b32 result = VirtualFree(start, size, MEM_RELEASE);
+        b32 result = VirtualFree(start, 0, MEM_RELEASE);
         
         if (!result)
         {
@@ -81,18 +81,13 @@ namespace Tool
     {
         void* p = ClassicAlloc(newSize);
         Copy(p, *target, currentSize);
-        ClassicDealloc(*target, currentSize);
+        ClassicDealloc(*target);
         *target = p;
     }
     
     void* ClassicAlloc(u64 count, u64 size)
     {
         return ClassicAlloc(count * size);
-    }
-    
-    void ClassicDealloc(void* start, u64 count, u64 size)
-    {
-        ClassicDealloc(start, count * size);
     }
     
     void ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size)
