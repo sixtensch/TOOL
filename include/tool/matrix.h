@@ -131,6 +131,8 @@ namespace Tool
     
     m2 M2Identity();
     
+    m2 M2Transpose(const m2& mat2);
+    
     m2 M2Downscale(const m3& mat3);
     m2 M2Downscale(const m4& mat4);
     
@@ -146,6 +148,8 @@ namespace Tool
     //~ 3x3 Matrix
     
     m3 M3Identity();
+    
+    m3 M3Transpose(const m3& mat3);
     
     m3 M3Upscale(const m2& mat2);
     m3 M3Downscale(const m4& mat4);
@@ -166,6 +170,8 @@ namespace Tool
     //~ 4x4 Matrix
     
     m4 M4Identity();
+    
+    m4 M4Transpose(const m4& mat4);
     
     m4 M4Upscale(const m2& mat2);
     m4 M4Upscale(const m3& mat3);
@@ -598,8 +604,17 @@ namespace Tool
     {
         return 
         { 
-            {{1.0f, 0.0f,
-                    0.0f, 1.0f}} 
+            1.0f, 0.0f,
+            0.0f, 1.0f 
+        };
+    }
+    
+    inline m2 M2Transpose(const m2& mat2)
+    {
+        return 
+        {
+            mat2.m00, mat2.m10,
+            mat2.m01, mat2.m11,
         };
     }
     
@@ -679,6 +694,16 @@ namespace Tool
             1, 0, 0,
             0, 1, 0,
             0, 0, 1
+        };
+    }
+    
+    inline m3 M3Transpose(const m3& mat3)
+    {
+        return 
+        {
+            mat3.m00, mat3.m10, mat3.m20,
+            mat3.m01, mat3.m11, mat3.m21,
+            mat3.m02, mat3.m12, mat3.m22
         };
     }
     
@@ -822,6 +847,17 @@ namespace Tool
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
+        };
+    }
+    
+    inline m4 M4Transpose(const m4& mat4)
+    {
+        return 
+        {
+            mat4.m00, mat4.m10, mat4.m20, mat4.m30,
+            mat4.m01, mat4.m11, mat4.m21, mat4.m31,
+            mat4.m02, mat4.m12, mat4.m22, mat4.m32,
+            mat4.m03, mat4.m13, mat4.m23, mat4.m33
         };
     }
     
@@ -983,9 +1019,8 @@ namespace Tool
     
     inline m4 M4ProjectionPerspective(f32 verticalFovDegrees, f32 aspectRatio, f32 near, f32 far, ClipType type)
     {
-        // f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
-        // f32 zFactor = 1.0f + (type == ClipTypeOpenGL) * 1.0f;
-        // f32 zOffset = (type == ClipTypeOpenGL) * 2.0f;
+        f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
+        f32 zFactor = 1.0f - (type == ClipTypeOpenGL) * 2.0f;
         
         f32 r = TOOL_D2R(verticalFovDegrees);
         
@@ -998,8 +1033,8 @@ namespace Tool
         return 
         {
             xx, 0, 0, 0,
-            0, yy, 0, 0,
-            0, 0, zz, zw,
+            0, yy * yFactor, 0, 0,
+            0, 0, zz * zFactor, zw,
             0, 0, 1, 0
         };
     }
