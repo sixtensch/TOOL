@@ -1017,7 +1017,7 @@ namespace Tool
         };
     }
     
-    inline m4 M4ProjectionPerspective(f32 verticalFovDegrees, f32 aspectRatio, f32 near, f32 far, ClipType type)
+    inline m4 M4ProjectionPerspective(f32 verticalFovDegrees, f32 aspectRatio, f32 nearClip, f32 farClip, ClipType type)
     {
         f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
         f32 zFactor = 1.0f - (type == ClipTypeOpenGL) * 2.0f;
@@ -1027,8 +1027,8 @@ namespace Tool
         f32 yy = 1.0f / FTan(r * 0.5f);
         f32 xx = yy / aspectRatio; 
         
-        f32 zz = far / (far - near);
-        f32 zw = -near * zz;
+        f32 zz = farClip / (farClip - nearClip);
+        f32 zw = -nearClip * zz;
         
         return 
         {
@@ -1039,7 +1039,7 @@ namespace Tool
         };
     }
     
-    inline m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type)
+    inline m4 M4ProjectionOrthographic(f32 width, f32 height, f32 nearClip, f32 farClip, ClipType type)
     {
         return {};
     }
