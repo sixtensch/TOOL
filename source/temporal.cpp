@@ -79,6 +79,85 @@ namespace Tool
         return TimepointNow() - then;
     }
     
+    SystemTimepoint SystemTimepointNow(b8 local)
+    {
+        SystemTimepoint timepoint = {};
+        FILETIME* fileTime = (FILETIME*)&timepoint;
+        
+        if (local)
+        {
+            SYSTEMTIME systemTime = {};
+            GetLocalTime(&systemTime);
+            SystemTimeToFileTime(&systemTime, fileTime);
+        }
+        else
+        {
+            GetSystemTimeAsFileTime(fileTime);
+        }
+        
+        return timepoint;
+    }
+    
+    static inline ClockTime ClockTimeConvert(SYSTEMTIME* systemTime)
+    {
+        return
+        {
+            .year = systemTime->wYear,
+            .month = systemTime->wMonth,
+            .weekday = (Weekday)((systemTime->wDayOfWeek - 1) % 7),
+            .day = systemTime->wDay,
+            
+            .hour = systemTime->wHour,
+            .minute = systemTime->wMinute,
+            .second = systemTime->wSecond,
+            .millisecond = systemTime->wMilliseconds
+        };
+    }
+    
+    ClockTime ClockTimeNow(b8 local)
+    {
+        SYSTEMTIME systemTime = {};
+        
+        if (local)
+        {
+            GetLocalTime(&systemTime);
+        }
+        else
+        {
+            GetSystemTime(&systemTime);
+        }
+        
+        return ClockTimeConvert(&systemTime);
+    }
+    
+    
+    ClockTime ClockTimeFromSystemTimepoint(SystemTimepoint timepoint)
+    {
+        SYSTEMTIME systemTime = {};
+        FileTimeToSystemTime((FILETIME*)&timepoint, &systemTime);
+        
+        return ClockTimeConvert(&systemTime);
+    }
+    
+    ClockDuration ClockDurationFromTo(SystemTimepoint from, SystemTimepoint to)
+    {
+        u64 difference = to - from;
+        
+        SYSTEMTIME systemTime = {};
+        FileTimeToSystemTime((FILETIME*)&difference, &systemTime);
+        
+        return 
+        {
+            .years = systemTime.wYear,
+            .months = systemTime.wMonth,
+            .days = systemTime.wDay,
+            .hours = systemTime.wHour,
+            .minutes = systemTime.wMinute,
+            .seconds = systemTime.wSecond,
+            .milliseconds = systemTime.wMilliseconds
+        };
+    }
+    
 #endif // TOOL_WINDOWS
     
     //~ Module Unix implementation

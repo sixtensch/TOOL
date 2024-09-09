@@ -23,7 +23,7 @@ namespace Tool
     //~ Wall/system clock
     // Only precise to seconds on Linux
     
-    enum Weekday
+    enum Weekday : u16
     {
         Monday = 0,
         Tuesday = 1,
@@ -34,32 +34,34 @@ namespace Tool
         Sunday = 6
     };
     
+    // This represents a large continuous number
+    // Can be operated on arithmetically
+    typedef u64 SystemTimepoint;
+    
     // TODO(crazy): Implement
-    struct SystemTimepoint
+    struct ClockTime
     {
-        i16 year;
-        i16 month;
+        u16 year;
+        u16 month;
         Weekday weekday;
-        i16 day;
+        u16 day;
         
-        i16 hour;
-        i16 minute;
-        i16 second;
-        i16 millisecond;
-        
-        u64 raw;
+        u16 hour;
+        u16 minute;
+        u16 second;
+        u16 millisecond;
     };
     
     // TODO(crazy): Implement
-    struct SystemDuration
+    struct ClockDuration
     {
-        i16 years;
-        i16 months;
-        i16 days;
-        i16 hours;
-        i16 minutes;
-        i16 seconds;
-        i16 milliseconds;
+        u16 years;
+        u16 months;
+        u16 days;
+        u16 hours;
+        u16 minutes;
+        u16 seconds;
+        u16 milliseconds;
     };
     
     
@@ -81,6 +83,18 @@ namespace Tool
     
     template<typename T>
         T SecondsSince(Timepoint then) { return NanosecondsSince(then) / ((T)1000000000); }
+    
+    //~ System time measurement
+    
+    // Local time respects timezones and daylight savings
+    // Keep this in mind when using system timepoints
+    SystemTimepoint SystemTimepointNow(b8 local);
+    
+    ClockTime ClockTimeNow(b8 local);
+    ClockTime ClockTimeFromSystemTimepoint(SystemTimepoint timepoint);
+    
+    // TODO(crazy): Fix it
+    // ClockDuration ClockDurationFromTo(SystemTimepoint from, SystemTimepoint to);
 };
 
 
