@@ -1,6 +1,7 @@
 
 #include "io.h"
 #include "text.h"
+#include "threading.h"
 
 #if defined(TOOL_WINDOWS)
 
@@ -62,19 +63,24 @@ namespace Tool
             case OpenModeOverwriteExisting: disposition = TRUNCATE_EXISTING; break;
         }
         
+        HANDLE mutex = CreateMutex(nullptr, false, TEXT("LocalTOOLFileOpen"));
+        WaitForSingleObject(mutex, INFINITE);
+        
         const c16* parsedFilename = WindowsConvertPath(filename);
         
         u32 access = GENERIC_READ | (GENERIC_WRITE * (mode != OpenModeRead));
         u32 shareMode = 
-            FILE_SHARE_READ * (flags & OpenFlagsShareRead != 0) & 
-            FILE_SHARE_WRITE * (flags & OpenFlagsShareWrite != 0);
+            FILE_SHARE_READ * ((flags & OpenFlagsShareRead) != 0) | 
+            FILE_SHARE_WRITE * ((flags & OpenFlagsShareWrite) != 0);
         u32 flagsAndAttributes = 
-            FILE_ATTRIBUTE_NORMAL &
-            FILE_FLAG_NO_BUFFERING * (flags & OpenFlagsUnbuffered != 0) &
-            FILE_FLAG_OVERLAPPED * (flags & 0/*OpenFlagsAsynchronous*/ != 0);
+            FILE_ATTRIBUTE_NORMAL |
+            FILE_FLAG_NO_BUFFERING * ((flags & OpenFlagsUnbuffered) != 0) |
+            FILE_FLAG_OVERLAPPED * ((flags & 0/*OpenFlagsAsynchronous*/) != 0);
         
         *handle = CreateFileW((wchar_t*)parsedFilename, access, shareMode, 
                               nullptr, disposition, flagsAndAttributes, nullptr);
+        
+        ReleaseMutex(mutex);
         
         if (*handle == INVALID_HANDLE_VALUE)
         {
@@ -105,7 +111,7 @@ namespace Tool
     
     void FileClose(File file)
     {
-        if (file != 0)
+        if (file == 0)
         {
             return;
         }
