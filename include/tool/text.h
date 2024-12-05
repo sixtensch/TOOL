@@ -87,12 +87,12 @@ namespace Tool
     
     //~ C-string
     
-    u64 CStr8Size(const c8* string, u64 capacity = 0x10000);           // Size in bytes 
-    u64 CStr8Copy(c8* destination, const c8* source, u64 capacity);    // Copies up to (capacity - 1) 8-bit characters. 
+    u64 CStr8Size(const c8* string, u64 capacity = 0x10000); // Size in bytes 
+    u64 CStr8Copy(c8* destination, const c8* source, u64 capacity, b8 terminate = false); // Copies up to (capacity - 1) 8-bit characters. 
     
-    u64 CStr16Size(const c16* string, u64 capacity = 0x10000);         // Size in bytes
-    u64 CStr16Count(const c16* string, u64 capacity = 0x10000);        // Number of 16-bit characters
-    u64 CStr16Copy(c16* destination, const c16* source, u64 capacity); // Copies up to (capacity - 1) 16-bit characters. 
+    u64 CStr16Size(const c16* string, u64 capacity = 0x10000); // Size in bytes
+    u64 CStr16Count(const c16* string, u64 capacity = 0x10000); // Number of 16-bit characters
+    u64 CStr16Copy(c16* destination, const c16* source, u64 capacity, b8 terminate = false); // Copies up to (capacity - 1) 16-bit characters. 
     
     //~ 8-bit string
     

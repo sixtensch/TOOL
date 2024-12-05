@@ -353,10 +353,10 @@ namespace Tool
         return size;
     }
     
-    u64 CStr8Copy(c8* destination, const c8* source, u64 capacity)
+    u64 CStr8Copy(c8* destination, const c8* source, u64 capacity, b8 terminate)
     {
         u64 size = CStr8Size(source);
-        Copy((void*)destination, (const void*)source, TOOL_MIN(size, capacity));
+        Copy((void*)destination, (const void*)source, TOOL_MIN(size + terminate * 1, capacity - terminate * 1));
         return size;
     }
     
@@ -380,11 +380,11 @@ namespace Tool
         return count;
     }
     
-    u64 CStr16Copy(c16* destination, const c16* source, u64 capacity)
+    u64 CStr16Copy(c16* destination, const c16* source, u64 capacity, b8 terminate)
     {
-        u64 size = CStr16Size(source);
-        Copy((void*)destination, (const void*)source, size);
-        return size;
+        u64 count = CStr16Count(source);
+        Copy((void*)destination, (const void*)source, TOOL_MIN(count + terminate * 1, capacity - terminate * 1) * sizeof(c16));
+        return count;
     }
     
     //~ UTF-8

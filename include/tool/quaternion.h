@@ -25,12 +25,21 @@ namespace Tool
             v4 vec;
         };
         
+        // Quaternion application. Apply this rotation to a spatial vector.
         v3 operator*(v3 vector);
         v4 operator*(v4 vector);
         
+        // Quaternion composition. Perform this rotation, then rotation b.
+        Quaternion operator*(Quaternion b); 
+        const Quaternion& operator*=(Quaternion b); 
+        
+        // Comparison
+        bool operator==(Quaternion b);
+        bool operator!=(Quaternion b);
+
+        // Advanced operations. Do not use if you do not know exactly what you are doing.
         Quaternion operator*(f32 scalar);
-        Quaternion operator*(Quaternion b);
-        Quaternion operator+(Quaternion b);
+        Quaternion operator+(Quaternion b); 
     };
     
     

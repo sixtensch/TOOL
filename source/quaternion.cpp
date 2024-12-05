@@ -42,11 +42,6 @@ namespace Tool
         return (*this * q * c).vec;
     }
     
-    q4 Quaternion::operator*(f32 scalar)
-    {
-        return { x * scalar, y * scalar, z * scalar, w * scalar };
-    }
-    
     q4 Quaternion::operator*(q4 b)
     {
         v3 imaginary = im % b.im + im * b.w + b.im * w;
@@ -58,6 +53,33 @@ namespace Tool
             imaginary.z,
             w * b.w - im * b.im
         };
+    }
+    
+    const q4& Quaternion::operator*=(q4 b)
+    {
+        v3 imaginary = im % b.im + im * b.w + b.im * w;
+        
+        x = imaginary.x;
+        y = imaginary.y;
+        z = imaginary.z;
+        w = w * b.w - im * b.im;
+
+        return *this;
+    }
+    
+    bool Quaternion::operator==(Quaternion b)
+    {
+        return x == b.x && y == b.y && z == b.z && w == b.w;
+    }
+    
+    bool Quaternion::operator!=(Quaternion b)
+    {
+        return x != b.x || y != b.y || z != b.z || w != b.w;
+    }
+
+    q4 Quaternion::operator*(f32 scalar)
+    {
+        return { x * scalar, y * scalar, z * scalar, w * scalar };
     }
     
     q4 Quaternion::operator+(q4 b)
