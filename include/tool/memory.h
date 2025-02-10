@@ -97,6 +97,10 @@ namespace Tool
     void* ArenaAlloc(Arena* arena, u64 size);
     void* ArenaAlloc(Arena* arena, u64 count, u64 size);
     template<typename T> inline T* ArenaAlloc(Arena* arena) { return (T*)ArenaAlloc(arena, sizeof(T)); }
+
+    // Places new object onto the current arena frame
+    // WARNING: objects created this way will NOT automatically destruct when popping the arena frame!
+    template<typename T, class... Args> inline T* ArenaPlace(Arena* arena, Args&&... args) { return new ((T*)Tool::ArenaAlloc(arena, sizeof(T))) T((Args&&...)args...); }
     
     // Pushes a new arena frame.
     void ArenaPush(Arena* arena);
