@@ -78,7 +78,7 @@ namespace Tool
             c16* str16;
         };
         
-        Region region;
+        MemoryRegion region;
     };
     
     
