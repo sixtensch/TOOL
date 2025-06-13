@@ -226,6 +226,18 @@ namespace Tool
         }
     }
     
+    b8 MutexTryLock(Mutex mutex, i32 timeout)
+    {
+        HANDLE handle = *((HANDLE*)&mutex);
+        DWORD result = WaitForSingleObject(handle, timeout);
+        switch (result)
+        {
+        case WAIT_TIMEOUT: return false;
+        case WAIT_OBJECT_0: return true;
+        default: ExceptWindowsLast(); return false;
+        }
+    }
+    
     void MutexUnlock(Mutex mutex)
     {
         HANDLE handle = *((HANDLE*)&mutex);

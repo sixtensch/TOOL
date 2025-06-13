@@ -76,6 +76,7 @@ namespace Tool
     void MutexDestroy(Mutex mutex);
     
     void MutexLock(Mutex mutex);
+    b8 MutexTryLock(Mutex mutex, i32 timeout = 0);
     void MutexUnlock(Mutex mutex);
 };
 
