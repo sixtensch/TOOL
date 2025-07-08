@@ -97,10 +97,12 @@ namespace Tool
     //~ Primitive conversions
 
     // Output the size in bytes
-    u64 Str8FromCStr16(c8* destination, const c16* cstr, u64 maxSize);
-    u64 Str16FromCStr8(c16* destination, const c8* cstr, u64 maxSize);
-    u64 Str8FromS16(c8* destination, s16 str, u64 maxSize);
-    u64 Str16FromS8(c16* destination, s8 str, u64 maxSize);
+    u64 Str8FromCStr16(c8* destination, const c16* cstr, u64 maxOutputSize);
+    u64 Str8FromCStr16(c8* destination, const c16* cstr, u64 size, u64 maxOutputSize);
+    u64 Str16FromCStr8(c16* destination, const c8* cstr, u64 maxOutputSize);
+    u64 Str16FromCStr8(c16* destination, const c8* cstr, u64 size, u64 maxOutputSize);
+    u64 Str8FromS16(c8* destination, s16 str, u64 maxOutputSize);
+    u64 Str16FromS8(c16* destination, s8 str, u64 maxOutputSize);
     
     //~ 8-bit string
     
