@@ -93,6 +93,14 @@ namespace Tool
     u64 CStr16Size(const c16* string, u64 capacity = 0x10000); // Size in bytes
     u64 CStr16Count(const c16* string, u64 capacity = 0x10000); // Number of 16-bit characters
     u64 CStr16Copy(c16* destination, const c16* source, u64 capacity, b8 terminate = false); // Copies up to (capacity - 1) 16-bit characters. 
+
+    //~ Primitive conversions
+
+    // Output the size in bytes
+    u64 Str8FromCStr16(c8* destination, const c16* cstr, u64 maxSize);
+    u64 Str16FromCStr8(c16* destination, const c8* cstr, u64 maxSize);
+    u64 Str8FromS16(c8* destination, s16 str, u64 maxSize);
+    u64 Str16FromS8(c16* destination, s8 str, u64 maxSize);
     
     //~ 8-bit string
     

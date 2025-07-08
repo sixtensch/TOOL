@@ -386,6 +386,31 @@ namespace Tool
         Copy((void*)destination, (const void*)source, TOOL_MIN(count + terminate * 1, capacity - terminate * 1) * sizeof(c16));
         return count;
     }
+
+    //~ Conversions
+
+    u64 Str8FromCStr16(c8* destination, const c16* cstr, u64 maxSize)
+    {
+        u64 size = CStr16Size(cstr);
+        return UTF16ToUTF8(cstr, size, destination, maxSize);
+    }
+
+    u64 Str16FromCStr8(c16* destination, const c8* cstr, u64 maxSize)
+    {
+        u64 size = CStr8Size(cstr);
+        return UTF8ToUTF16(cstr, size, destination, maxSize);
+    }
+
+    u64 Str8FromS16(c8* destination, s16 str, u64 maxSize)
+    {
+        return UTF16ToUTF8(str.str, str.size, destination, maxSize);
+    }
+
+    u64 Str16FromS8(c16* destination, s8 str, u64 maxSize)
+    {
+        return UTF8ToUTF16(str.str, str.size, destination, maxSize);
+    }
+
     
     //~ UTF-8
     
