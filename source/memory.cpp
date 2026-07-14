@@ -348,7 +348,7 @@ namespace Tool
     // Initializes/reserves uninitialized memory loop.
     void LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize)
     {
-        if (loop->start != nullptr)
+        if (LoopIsInitialized(loop))
         {
 		    Except("Cannot initialize a Memory Loop which is already initialized.");
         }
@@ -518,7 +518,7 @@ namespace Tool
     // Deallocates region, returning it to an uninitialized state.
     void LoopDealloc(MemoryLoop* loop)
     {
-        if (loop->start == nullptr)
+        if (!LoopIsInitialized(loop))
             return;
         
         char* start = (char*)loop->start;
@@ -689,7 +689,7 @@ namespace Tool
     // Allocates space in two steps, similarly to the same Arena feature.
     void* CircularAllocBegin(Circular* circular, u64 reservedSize)
     {
-        if (LoopIsInitialized(&circular->loop))
+        if (!LoopIsInitialized(&circular->loop))
         {
             Except("Cannot allocate onto a non-initialized Circular Allocator.");
         }
@@ -746,7 +746,7 @@ namespace Tool
     
     void CircularPopToBookmark(Circular* circular, u64 bookmark)
     {
-        if (LoopIsInitialized(&circular->loop))
+        if (!LoopIsInitialized(&circular->loop))
         {
             Except("Cannot pop a non-initialized Circular Allocator to bookmark.");
         }
