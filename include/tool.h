@@ -34,6 +34,7 @@
 #include "tool/threading.h"
 #include "tool/temporal.h"
 #include "tool/io.h"
+#include "tool/utility.h"
 
 // Mathematics and linear algebra
 #include "tool/mathematics.h"

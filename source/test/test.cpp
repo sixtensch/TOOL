@@ -41,6 +41,15 @@ int main()
     C* c = ArenaPlace<C>(&arena, *a);
     
     a->~A();
+
+    {
+        printf("Start of scope\n");
+        TOOL_DEFER(printf("End of scope 1\n"));
+        TOOL_DEFER(printf("End of scope 2\n"));
+        TOOL_DEFER(printf("End of scope 4\n"));
+        TOOL_DEFER(printf("End of scope 5\n"));
+        printf("Part of scope\n");
+    }
     
     MemoryLoop loop;
     Tool::LoopAlloc(&loop, 1, 1);
