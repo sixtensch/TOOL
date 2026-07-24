@@ -20,14 +20,15 @@ namespace Tool
         union
         {
             T m[4];
-            
-            struct 
+
+            // Column-major storage. mIJ = row I, column J.
+            struct
             {
-                T m00; T m01;
-                T m10; T m11; 
+                T m00; T m10;
+                T m01; T m11;
             };
         };
-        
+
         Vec2<T> operator*(const Vec2<T>& b); // Transform vector
         
         Mat2<T> operator+(const Mat2<T>& b); // Matrix addition
@@ -52,12 +53,13 @@ namespace Tool
         union
         {
             T m[9];
-            
-            struct 
+
+            // Column-major storage. mIJ = row I, column J.
+            struct
             {
-                T m00; T m01; T m02;
-                T m10; T m11; T m12;
-                T m20; T m21; T m22;
+                T m00; T m10; T m20;
+                T m01; T m11; T m21;
+                T m02; T m12; T m22;
             };
         };
         
@@ -85,13 +87,14 @@ namespace Tool
         union
         {
             T m[16];
-            
-            struct 
+
+            // Column-major storage. mIJ = row I, column J.
+            struct
             {
-                T m00; T m01; T m02; T m03;
-                T m10; T m11; T m12; T m13;
-                T m20; T m21; T m22; T m23;
-                T m30; T m31; T m32; T m33;
+                T m00; T m10; T m20; T m30;
+                T m01; T m11; T m21; T m31;
+                T m02; T m12; T m22; T m32;
+                T m03; T m13; T m23; T m33;
             };
         };
         
@@ -220,42 +223,45 @@ namespace Tool
     }
     
     template<typename T>
-        inline Mat2<T> Mat2<T>::operator+(const Mat2<T>& b) 
-    {
-        return 
-        { 
-            m00 + b.m00, m01 + b.m01,
-            m10 + b.m10, m11 + b.m11
-        };
-    }
-    
-    template<typename T>
-        inline Mat2<T> Mat2<T>::operator-(const Mat2<T>& b) 
-    {
-        return 
-        { 
-            m00 - b.m00, m01 - b.m01,
-            m10 - b.m10, m11 - b.m11
-        };
-    }
-    
-    template<typename T>
-        inline Mat2<T> Mat2<T>::operator*(const Mat2<T>& b) 
-    {
-        return 
-        { 
-            m00 * b.m00 + m01 * b.m10, m00 * b.m01 + m01 * b.m11,
-            m10 * b.m00 + m11 * b.m10, m10 * b.m01 + m11 * b.m11
-        };
-    }
-    
-    template<typename T>
-        inline Mat2<T> Mat2<T>::operator*(T b) 
+        inline Mat2<T> Mat2<T>::operator+(const Mat2<T>& b)
     {
         return
         {
-            m00 * b, m01 * b,
-            m10 * b, m11 * b
+            m00 + b.m00, m10 + b.m10,
+            m01 + b.m01, m11 + b.m11
+        };
+    }
+    
+    template<typename T>
+        inline Mat2<T> Mat2<T>::operator-(const Mat2<T>& b)
+    {
+        return
+        {
+            m00 - b.m00, m10 - b.m10,
+            m01 - b.m01, m11 - b.m11
+        };
+    }
+    
+    template<typename T>
+        inline Mat2<T> Mat2<T>::operator*(const Mat2<T>& b)
+    {
+        return
+        {
+            m00 * b.m00 + m01 * b.m10,
+            m10 * b.m00 + m11 * b.m10,
+
+            m00 * b.m01 + m01 * b.m11,
+            m10 * b.m01 + m11 * b.m11
+        };
+    }
+    
+    template<typename T>
+        inline Mat2<T> Mat2<T>::operator*(T b)
+    {
+        return
+        {
+            m00 * b, m10 * b,
+            m01 * b, m11 * b
         };
     }
     
@@ -328,54 +334,54 @@ namespace Tool
     }
     
     template<typename T>
-        inline Mat3<T> Mat3<T>::operator+(const Mat3<T>& b) 
+        inline Mat3<T> Mat3<T>::operator+(const Mat3<T>& b)
     {
-        return 
-        { 
-            m00 + b.m00, m01 + b.m01, m02 + b.m02,
-            m10 + b.m10, m11 + b.m11, m12 + b.m12,
-            m20 + b.m20, m21 + b.m21, m22 + b.m22
+        return
+        {
+            m00 + b.m00, m10 + b.m10, m20 + b.m20,
+            m01 + b.m01, m11 + b.m11, m21 + b.m21,
+            m02 + b.m02, m12 + b.m12, m22 + b.m22
         };
     }
     
     template<typename T>
-        inline Mat3<T> Mat3<T>::operator-(const Mat3<T>& b) 
+        inline Mat3<T> Mat3<T>::operator-(const Mat3<T>& b)
     {
-        return 
-        { 
-            m00 - b.m00, m01 - b.m01, m02 - b.m02,
-            m10 - b.m10, m11 - b.m11, m12 - b.m12,
-            m20 - b.m20, m21 - b.m21, m22 - b.m22
+        return
+        {
+            m00 - b.m00, m10 - b.m10, m20 - b.m20,
+            m01 - b.m01, m11 - b.m11, m21 - b.m21,
+            m02 - b.m02, m12 - b.m12, m22 - b.m22
         };
     }
     
     template<typename T>
-        inline Mat3<T> Mat3<T>::operator*(const Mat3<T>& b) 
+        inline Mat3<T> Mat3<T>::operator*(const Mat3<T>& b)
     {
-        return 
-        { 
+        return
+        {
             m00 * b.m00 + m01 * b.m10 + m02 * b.m20,
-            m00 * b.m01 + m01 * b.m11 + m02 * b.m21,
-            m00 * b.m02 + m01 * b.m12 + m02 * b.m22,
-            
             m10 * b.m00 + m11 * b.m10 + m12 * b.m20,
-            m10 * b.m01 + m11 * b.m11 + m12 * b.m21,
-            m10 * b.m02 + m11 * b.m12 + m12 * b.m22,
-            
             m20 * b.m00 + m21 * b.m10 + m22 * b.m20,
+
+            m00 * b.m01 + m01 * b.m11 + m02 * b.m21,
+            m10 * b.m01 + m11 * b.m11 + m12 * b.m21,
             m20 * b.m01 + m21 * b.m11 + m22 * b.m21,
+
+            m00 * b.m02 + m01 * b.m12 + m02 * b.m22,
+            m10 * b.m02 + m11 * b.m12 + m12 * b.m22,
             m20 * b.m02 + m21 * b.m12 + m22 * b.m22
         };
     }
     
     template<typename T>
-        inline Mat3<T> Mat3<T>::operator*(T b) 
+        inline Mat3<T> Mat3<T>::operator*(T b)
     {
         return
         {
-            m00 * b, m01 * b, m02 * b,
-            m10 * b, m11 * b, m12 * b,
-            m20 * b, m21 * b, m22 * b
+            m00 * b, m10 * b, m20 * b,
+            m01 * b, m11 * b, m21 * b,
+            m02 * b, m12 * b, m22 * b
         };
     }
     
@@ -473,65 +479,65 @@ namespace Tool
     }
     
     template<typename T>
-        inline Mat4<T> Mat4<T>::operator+(const Mat4<T>& b) 
+        inline Mat4<T> Mat4<T>::operator+(const Mat4<T>& b)
     {
-        return 
-        { 
-            m00 + b.m00, m01 + b.m01, m02 + b.m02, m03 + b.m03,
-            m10 + b.m10, m11 + b.m11, m12 + b.m12, m13 + b.m13,
-            m20 + b.m20, m21 + b.m21, m22 + b.m22, m23 + b.m23,
-            m30 + b.m30, m31 + b.m31, m32 + b.m32, m33 + b.m33
+        return
+        {
+            m00 + b.m00, m10 + b.m10, m20 + b.m20, m30 + b.m30,
+            m01 + b.m01, m11 + b.m11, m21 + b.m21, m31 + b.m31,
+            m02 + b.m02, m12 + b.m12, m22 + b.m22, m32 + b.m32,
+            m03 + b.m03, m13 + b.m13, m23 + b.m23, m33 + b.m33
         };
     }
     
     template<typename T>
-        inline Mat4<T> Mat4<T>::operator-(const Mat4<T>& b) 
+        inline Mat4<T> Mat4<T>::operator-(const Mat4<T>& b)
     {
-        return 
-        { 
-            m00 - b.m00, m01 - b.m01, m02 - b.m02, m03 - b.m03,
-            m10 - b.m10, m11 - b.m11, m12 - b.m12, m13 - b.m13,
-            m20 - b.m20, m21 - b.m21, m22 - b.m22, m23 - b.m23,
-            m30 - b.m30, m31 - b.m31, m32 - b.m32, m33 - b.m33
+        return
+        {
+            m00 - b.m00, m10 - b.m10, m20 - b.m20, m30 - b.m30,
+            m01 - b.m01, m11 - b.m11, m21 - b.m21, m31 - b.m31,
+            m02 - b.m02, m12 - b.m12, m22 - b.m22, m32 - b.m32,
+            m03 - b.m03, m13 - b.m13, m23 - b.m23, m33 - b.m33
         };
     }
     
     template<typename T>
-        inline Mat4<T> Mat4<T>::operator*(const Mat4<T>& b) 
+        inline Mat4<T> Mat4<T>::operator*(const Mat4<T>& b)
     {
-        return 
-        { 
+        return
+        {
             m00 * b.m00 + m01 * b.m10 + m02 * b.m20 + m03 * b.m30,
-            m00 * b.m01 + m01 * b.m11 + m02 * b.m21 + m03 * b.m31,
-            m00 * b.m02 + m01 * b.m12 + m02 * b.m22 + m03 * b.m32,
-            m00 * b.m03 + m01 * b.m13 + m02 * b.m23 + m03 * b.m33,
-            
             m10 * b.m00 + m11 * b.m10 + m12 * b.m20 + m13 * b.m30,
-            m10 * b.m01 + m11 * b.m11 + m12 * b.m21 + m13 * b.m31,
-            m10 * b.m02 + m11 * b.m12 + m12 * b.m22 + m13 * b.m32,
-            m10 * b.m03 + m11 * b.m13 + m12 * b.m23 + m13 * b.m33,
-            
             m20 * b.m00 + m21 * b.m10 + m22 * b.m20 + m23 * b.m30,
-            m20 * b.m01 + m21 * b.m11 + m22 * b.m21 + m23 * b.m31,
-            m20 * b.m02 + m21 * b.m12 + m22 * b.m22 + m23 * b.m32,
-            m20 * b.m03 + m21 * b.m13 + m22 * b.m23 + m23 * b.m33,
-            
             m30 * b.m00 + m31 * b.m10 + m32 * b.m20 + m33 * b.m30,
+
+            m00 * b.m01 + m01 * b.m11 + m02 * b.m21 + m03 * b.m31,
+            m10 * b.m01 + m11 * b.m11 + m12 * b.m21 + m13 * b.m31,
+            m20 * b.m01 + m21 * b.m11 + m22 * b.m21 + m23 * b.m31,
             m30 * b.m01 + m31 * b.m11 + m32 * b.m21 + m33 * b.m31,
+
+            m00 * b.m02 + m01 * b.m12 + m02 * b.m22 + m03 * b.m32,
+            m10 * b.m02 + m11 * b.m12 + m12 * b.m22 + m13 * b.m32,
+            m20 * b.m02 + m21 * b.m12 + m22 * b.m22 + m23 * b.m32,
             m30 * b.m02 + m31 * b.m12 + m32 * b.m22 + m33 * b.m32,
+
+            m00 * b.m03 + m01 * b.m13 + m02 * b.m23 + m03 * b.m33,
+            m10 * b.m03 + m11 * b.m13 + m12 * b.m23 + m13 * b.m33,
+            m20 * b.m03 + m21 * b.m13 + m22 * b.m23 + m23 * b.m33,
             m30 * b.m03 + m31 * b.m13 + m32 * b.m23 + m33 * b.m33
         };
     }
     
     template<typename T>
-        inline Mat4<T> Mat4<T>::operator*(T b) 
+        inline Mat4<T> Mat4<T>::operator*(T b)
     {
         return
         {
-            m00 * b, m01 * b, m02 * b, m03 * b,
-            m10 * b, m11 * b, m12 * b, m13 * b,
-            m20 * b, m21 * b, m22 * b, m23 * b,
-            m30 * b, m31 * b, m32 * b, m33 * b
+            m00 * b, m10 * b, m20 * b, m30 * b,
+            m01 * b, m11 * b, m21 * b, m31 * b,
+            m02 * b, m12 * b, m22 * b, m32 * b,
+            m03 * b, m13 * b, m23 * b, m33 * b
         };
     }
     
@@ -611,28 +617,29 @@ namespace Tool
     
     inline m2 M2Transpose(const m2& mat2)
     {
-        return 
+        // r.mIJ = mat2.mJI
+        return
         {
-            mat2.m00, mat2.m10,
-            mat2.m01, mat2.m11,
+            mat2.m00, mat2.m01,
+            mat2.m10, mat2.m11,
         };
     }
     
-    inline m2 M2Downscale(const m3& mat3) 
+    inline m2 M2Downscale(const m3& mat3)
     {
         return
         {
-            mat3.m00, mat3.m01,
-            mat3.m10, mat3.m11
+            mat3.m00, mat3.m10,
+            mat3.m01, mat3.m11
         };
     }
-    
-    inline m2 M2Downscale(const m4& mat4) 
+
+    inline m2 M2Downscale(const m4& mat4)
     {
         return
         {
-            mat4.m00, mat4.m01,
-            mat4.m10, mat4.m11
+            mat4.m00, mat4.m10,
+            mat4.m01, mat4.m11
         };
     }
     
@@ -640,11 +647,12 @@ namespace Tool
     {
         f32 c = FCos(radians);
         f32 s = FSin(radians);
-        
+
+        // [ c -s ; s c ]
         return
         {
-            c, -s,
-            s, c
+            c, s,
+            -s, c
         };
     }
     
@@ -699,31 +707,32 @@ namespace Tool
     
     inline m3 M3Transpose(const m3& mat3)
     {
-        return 
+        // r.mIJ = mat3.mJI
+        return
         {
-            mat3.m00, mat3.m10, mat3.m20,
-            mat3.m01, mat3.m11, mat3.m21,
-            mat3.m02, mat3.m12, mat3.m22
+            mat3.m00, mat3.m01, mat3.m02,
+            mat3.m10, mat3.m11, mat3.m12,
+            mat3.m20, mat3.m21, mat3.m22
         };
     }
-    
+
     inline m3 M3Upscale(const m2& mat2)
     {
         return
         {
-            mat2.m00, mat2.m01, 0,
-            mat2.m10, mat2.m11, 0,
+            mat2.m00, mat2.m10, 0,
+            mat2.m01, mat2.m11, 0,
             0, 0, 1
         };
     }
-    
+
     inline m3 M3Downscale(const m4& mat4)
     {
         return
         {
-            mat4.m00, mat4.m01, mat4.m02,
-            mat4.m10, mat4.m11, mat4.m12,
-            mat4.m20, mat4.m21, mat4.m22
+            mat4.m00, mat4.m10, mat4.m20,
+            mat4.m01, mat4.m11, mat4.m21,
+            mat4.m02, mat4.m12, mat4.m22
         };
     }
     
@@ -743,50 +752,53 @@ namespace Tool
         
         f32 sxsy = sx * sy;
         f32 sxcy = sx * cy;
-        
+
         return
         {
-            cy * cz + sxsy * sz,   sxsy * cz - cy * sz,   cx * sy,
-            cx * sz,               cx * cz,               -sx,
-            sxcy * sz - sy * cz,   sxcy * cz + sy * sz,   cx * cy
+            cy * cz + sxsy * sz,   cx * sz,               sxcy * sz - sy * cz,
+            sxsy * cz - cy * sz,   cx * cz,               sxcy * cz + sy * sz,
+            cx * sy,               -sx,                   cx * cy
         };
     }
-    
+
     inline m3 M3RotationX(f32 pitch)
     {
         f32 c = FCos(pitch);
         f32 s = FSin(pitch);
-        
-        return 
+
+        // [ 1 0 0 ; 0 c -s ; 0 s c ]
+        return
         {
             1, 0, 0,
-            0, c, -s,
-            0, s, c
+            0, c, s,
+            0, -s, c
         };
     }
-    
+
     inline m3 M3RotationY(f32 yaw)
     {
         f32 c = FCos(yaw);
         f32 s = FSin(yaw);
-        
+
+        // [ c 0 s ; 0 1 0 ; -s 0 c ]
         return
         {
-            c, 0, s,
+            c, 0, -s,
             0, 1, 0,
-            -s, 0, c
+            s, 0, c
         };
     }
-    
+
     inline m3 M3RotationZ(f32 roll)
     {
         f32 c = FCos(roll);
         f32 s = FSin(roll);
-        
+
+        // [ c -s 0 ; s c 0 ; 0 0 1 ]
         return
         {
-            c, -s, 0,
-            s, c, 0,
+            c, s, 0,
+            -s, c, 0,
             0, 0, 1
         };
     }
@@ -852,33 +864,34 @@ namespace Tool
     
     inline m4 M4Transpose(const m4& mat4)
     {
-        return 
+        // r.mIJ = mat4.mJI
+        return
         {
-            mat4.m00, mat4.m10, mat4.m20, mat4.m30,
-            mat4.m01, mat4.m11, mat4.m21, mat4.m31,
-            mat4.m02, mat4.m12, mat4.m22, mat4.m32,
-            mat4.m03, mat4.m13, mat4.m23, mat4.m33
+            mat4.m00, mat4.m01, mat4.m02, mat4.m03,
+            mat4.m10, mat4.m11, mat4.m12, mat4.m13,
+            mat4.m20, mat4.m21, mat4.m22, mat4.m23,
+            mat4.m30, mat4.m31, mat4.m32, mat4.m33
         };
     }
-    
+
     inline m4 M4Upscale(const m2& mat2)
     {
         return
         {
-            mat2.m00, mat2.m01, 0, 0,
-            mat2.m10, mat2.m11, 0, 0,
+            mat2.m00, mat2.m10, 0, 0,
+            mat2.m01, mat2.m11, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
         };
     }
-    
+
     inline m4 M4Upscale(const m3& mat3)
     {
         return
         {
-            mat3.m00, mat3.m01, mat3.m02, 0,
-            mat3.m10, mat3.m11, mat3.m12, 0,
-            mat3.m20, mat3.m21, mat3.m22, 0,
+            mat3.m00, mat3.m10, mat3.m20, 0,
+            mat3.m01, mat3.m11, mat3.m21, 0,
+            mat3.m02, mat3.m12, mat3.m22, 0,
             0, 0, 0, 1
         };
     }
@@ -899,53 +912,56 @@ namespace Tool
         
         f32 sxsy = sx * sy;
         f32 sxcy = sx * cy;
-        
+
         return
         {
-            cy * cz + sxsy * sz,   sxsy * cz - cy * sz,   cx * sy,   0,
-            cx * sz,               cx * cz,               -sx,       0,
-            sxcy * sz - sy * cz,   sxcy * cz + sy * sz,   cx * cy,   0,
-            0,                     0,                     0,         1
+            cy * cz + sxsy * sz,   cx * sz,               sxcy * sz - sy * cz,   0,
+            sxsy * cz - cy * sz,   cx * cz,               sxcy * cz + sy * sz,   0,
+            cx * sy,               -sx,                   cx * cy,               0,
+            0,                     0,                     0,                     1
         };
     }
-    
+
     inline m4 M4RotationX(f32 pitch)
     {
         f32 c = FCos(pitch);
         f32 s = FSin(pitch);
-        
-        return 
+
+        // [ 1 0 0 0 ; 0 c -s 0 ; 0 s c 0 ; 0 0 0 1 ]
+        return
         {
             1, 0, 0, 0,
-            0, c, -s, 0,
-            0, s, c, 0,
+            0, c, s, 0,
+            0, -s, c, 0,
             0, 0, 0, 1
         };
     }
-    
+
     inline m4 M4RotationY(f32 yaw)
     {
         f32 c = FCos(yaw);
         f32 s = FSin(yaw);
-        
+
+        // [ c 0 s 0 ; 0 1 0 0 ; -s 0 c 0 ; 0 0 0 1 ]
         return
         {
-            c, 0, s, 0,
+            c, 0, -s, 0,
             0, 1, 0, 0,
-            -s, 0, c, 0,
+            s, 0, c, 0,
             0, 0, 0, 1
         };
     }
-    
+
     inline m4 M4RotationZ(f32 roll)
     {
         f32 c = FCos(roll);
         f32 s = FSin(roll);
-        
+
+        // [ c -s 0 0 ; s c 0 0 ; 0 0 1 0 ; 0 0 0 1 ]
         return
         {
-            c, -s, 0, 0,
-            s, c, 0, 0,
+            c, s, 0, 0,
+            -s, c, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1
         };
@@ -999,21 +1015,21 @@ namespace Tool
     {
         return
         {
-            1, 0, 0, position.x,
-            0, 1, 0, position.y,
-            0, 0, 1, position.z,
-            0, 0, 0, 1
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            position.x, position.y, position.z, 1
         };
     }
-    
+
     inline m4 M4Translation(f32 x, f32 y, f32 z)
     {
         return
         {
-            1, 0, 0, x,
-            0, 1, 0, y,
-            0, 0, 1, z,
-            0, 0, 0, 1
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            x, y, z, 1
         };
     }
     
@@ -1029,13 +1045,14 @@ namespace Tool
         
         f32 zz = farClip / (farClip - nearClip);
         f32 zw = -nearClip * zz;
-        
-        return 
+
+        // rows: [xx 0 0 0] [0 yy*yFac 0 0] [0 0 zz*zFac zw] [0 0 1 0]
+        return
         {
             xx, 0, 0, 0,
             0, yy * yFactor, 0, 0,
-            0, 0, zz * zFactor, zw,
-            0, 0, 1, 0
+            0, 0, zz * zFactor, 1,
+            0, 0, zw, 0
         };
     }
     

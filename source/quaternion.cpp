@@ -15,11 +15,11 @@ static m4 GetMatrix(q4 q, f32 s)
 	f32 z2 = q.z * q.z;
 	f32 zw = q.z * q.w;
     
-	return 
+	return
     {
-        1.0f - s * (y2 + z2), s * (xy - zw),		s * (xz + yw),		0.0f,
-        s * (xy + zw),		1.0f - s * (x2 + z2), s * (yz - xw),		0.0f,
-        s * (xz - yw),		s * (yz + xw),		1.0f - s * (x2 + y2), 0.0f,
+        1.0f - s * (y2 + z2), s * (xy + zw),		s * (xz - yw),		0.0f,
+        s * (xy - zw),		1.0f - s * (x2 + z2), s * (yz + xw),		0.0f,
+        s * (xz + yw),		s * (yz - xw),		1.0f - s * (x2 + y2), 0.0f,
         0.0f,				 0.0f,				 0.0f,				 1.0f
     };
 }
