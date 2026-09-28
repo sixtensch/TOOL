@@ -1,5 +1,6 @@
 
 #include "io.h"
+#include "error.h"
 #include "text.h"
 #include "threading.h"
 
@@ -79,13 +80,14 @@ namespace Tool
         
         *handle = CreateFileW((wchar_t*)parsedFilename, access, shareMode, 
                               nullptr, disposition, flagsAndAttributes, nullptr);
+        DWORD error = GetLastError();
         
         ReleaseMutex(mutex);
         
         if (*handle == INVALID_HANDLE_VALUE)
         {
             *outFile = 0;
-            return false;
+            return TOOL_FAIL_WINDOWS_CODE(error);
         }
         else
         {

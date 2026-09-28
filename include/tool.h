@@ -30,7 +30,7 @@
 #include "tool/variadic.h"
 #include "tool/random.h"
 #include "tool/linking.h"
-#include "tool/exception.h"
+#include "tool/error.h"
 #include "tool/threading.h"
 #include "tool/temporal.h"
 #include "tool/io.h"

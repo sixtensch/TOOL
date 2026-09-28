@@ -1,7 +1,7 @@
 
 #include "basics.h"
 #include "linking.h"
-#include "exception.h"
+#include "error.h"
 #include "text.h"
 
 //#include <stdio.h>
@@ -31,7 +31,7 @@ namespace Tool
         StringBuilderAdd(&builder, filename);
         StringBuilderAdd(&builder, UTF16(".dll"));
         
-        //printf("Trying to open %ls\n", (wchar_t*)builder.str16); 
+        //printf("Trying to open %ls\n", (wchar_t*)builder.str16);
         Module module = LoadLibraryW((wchar_t*)builder.str16);
         
         if (module != nullptr)
@@ -40,13 +40,21 @@ namespace Tool
             return module;
         }
         
+        // A file that exists but fails to load (e.g. a bad image) is the error worth reporting
+        DWORD error = GetLastError();
+        
         StringBuilderReset(&builder);
         StringBuilderAdd(&builder, UTF16("lib"));
         StringBuilderAdd(&builder, filename);
         StringBuilderAdd(&builder, UTF16(".dll"));
         
-        //printf("Trying to open %ls\n", (wchar_t*)builder.str16); 
+        //printf("Trying to open %ls\n", (wchar_t*)builder.str16);
         module = LoadLibraryW((wchar_t*)builder.str16);
+        
+        if (module == nullptr && error == ERROR_MOD_NOT_FOUND)
+        {
+            error = GetLastError();
+        }
         
         StringBuilderDestroy(&builder);
         
@@ -55,16 +63,14 @@ namespace Tool
             return module;
         }
         
-        ExceptWindowsLast();
+        TOOL_FAIL_WINDOWS_CODE(error);
         return nullptr;
     }
     
     void ModuleUnload(Module module)
     {
-        if (!FreeLibrary((HMODULE)module))
-        {
-            ExceptWindowsLast();
-        }
+        b32 result = FreeLibrary((HMODULE)module);
+        TOOL_ASSERT(result, "Could not unload Module (Windows error %lu)", GetLastError());
     }
     
     void* ModuleGetSymbol(Module module, const c8* name)
@@ -73,7 +79,7 @@ namespace Tool
         
         if (symbol == nullptr)
         {
-            ExceptWindowsLast();
+            TOOL_FAIL_WINDOWS();
         }
         
         return symbol;
@@ -117,16 +123,14 @@ namespace Tool
             return module;
         }
         
-        Except(dlerror());
+        TOOL_FAIL("%s", dlerror());
         return nullptr;
     }
     
     void ModuleUnload(Module module)
     {
-        if (dlclose(module))
-        {
-            Except(dlerror());
-        }
+        i32 result = dlclose(module);
+        TOOL_ASSERT(result == 0, "Could not unload Module: %s", dlerror());
     }
     
     void* ModuleGetSymbol(Module module, const c8* name)
@@ -139,7 +143,8 @@ namespace Tool
         const c8* error = dlerror();
         if (error != nullptr)
         {
-            Except(error);
+            TOOL_FAIL("%s", error);
+            return nullptr;
         }
         
         return symbol;

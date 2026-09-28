@@ -84,7 +84,8 @@ namespace Tool
     
     //~ Heap functionality
     
-    void* ClassicAlloc(u64 size); 
+    // Returns null on failure.
+    void* ClassicAlloc(u64 size);
     void* ClassicAlloc(u64 count, u64 size);
     template<typename T> inline T* ClassicAlloc() { return (T*)ClassicAlloc(sizeof(T)); }
     
@@ -95,13 +96,13 @@ namespace Tool
     
     //~ Memory region
     
-    // Initializes/reserves uninitialized region.
-    void RegionReserve(MemoryRegion* region, u64 size);
-    void RegionReserve(MemoryRegion* region, u64 count, u64 size);
+    // Initializes/reserves uninitialized region. Returns false if the address space could not be reserved.
+    b8 RegionReserve(MemoryRegion* region, u64 size);
+    b8 RegionReserve(MemoryRegion* region, u64 count, u64 size);
     
-    // Commits reserved memory pages. Cannot commit beyond reserved range.
-    void RegionCommit(MemoryRegion* region, u64 newSize);    
-    void RegionCommit(MemoryRegion* region, u64 newCount, u64 size);    
+    // Commits reserved memory pages. Cannot commit beyond reserved range. Returns false if the pages could not be committed.
+    b8 RegionCommit(MemoryRegion* region, u64 newSize);
+    b8 RegionCommit(MemoryRegion* region, u64 newCount, u64 size);
     
     // De-commits committed memory pages, reverting them to "reserved".
     void RegionRevert(MemoryRegion* region, u64 newSize); 
@@ -112,8 +113,8 @@ namespace Tool
     
     //~ Memory loop
     
-    // Initializes/allocates uninitialized memory loop.
-    void LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize);
+    // Initializes/allocates uninitialized memory loop. Returns false on failure.
+    b8 LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize);
     
     // Deallocates region, returning it to an uninitialized state.
     void LoopDealloc(MemoryLoop* loop);
@@ -127,15 +128,17 @@ namespace Tool
     //~ Arena
     
     // Initializes and reserves memory arena. The allocated arena size may never exceed 'reservedSize'.
-    void ArenaInit(Arena* arena, u64 reservedSize);
+    // Returns false if the memory could not be reserved.
+    b8 ArenaInit(Arena* arena, u64 reservedSize);
     
-    // Allocates space within the current arena frame.
+    // Allocates space within the current arena frame. Returns null if the arena is exhausted or cannot commit.
     void* ArenaAlloc(Arena* arena, u64 size);
     void* ArenaAlloc(Arena* arena, u64 count, u64 size);
     template<typename T> inline T* ArenaAlloc(Arena* arena) { return (T*)ArenaAlloc(arena, sizeof(T)); }
     
     // Allocates space in two steps, retrieving the location first, then committing the space.
     // No safety features synchronize mulitple simultaneous allocations, which has to be external.
+    // Begin returns null if the arena is exhausted or cannot commit.
     void* ArenaAllocBegin(Arena* arena, u64 reservedSize);
     void* ArenaAllocEnd(Arena* arena, u64 actualSize); // Actual size should always be <= reserved size
     
@@ -146,7 +149,7 @@ namespace Tool
     // Pushes a new arena frame.
     void ArenaPush(Arena* arena);
     
-    // Pops the current arena frame. Throws an exception if currently in frame 0.
+    // Pops the current arena frame. Must not be called in frame 0.
     void ArenaPop(Arena* arena);
     
     // De-initializes and frees memory arena.
@@ -155,7 +158,8 @@ namespace Tool
     //~ Circular buffer
     
     // Initialize and allocate a new circular buffer. The actual size and overflow region might be larger than requested.
-    void CircularInit(Circular* circular, u64 requestedSize, u64 requestedOverflowSize);
+    // Returns false on failure.
+    b8 CircularInit(Circular* circular, u64 requestedSize, u64 requestedOverflowSize);
     
     // Allocate space within the circular buffer. Nullptr indicates insufficient space.
     void* CircularAlloc(Circular* circular, u64 size);

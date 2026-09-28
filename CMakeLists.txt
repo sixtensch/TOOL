@@ -36,7 +36,7 @@ set(TOOL_INCLUDE_DIR "include")
 add_library(TOOL
     "${TOOL_SOURCE_DIR}/basics.cpp"
     "${TOOL_SOURCE_DIR}/entry.cpp"
-    "${TOOL_SOURCE_DIR}/exception.cpp"
+    "${TOOL_SOURCE_DIR}/error.cpp"
     "${TOOL_SOURCE_DIR}/mathematics.cpp"
     "${TOOL_SOURCE_DIR}/memory.cpp"
     "${TOOL_SOURCE_DIR}/quaternion.cpp"
@@ -58,6 +58,10 @@ target_compile_features(TOOL PUBLIC
 
 target_compile_definitions(TOOL PRIVATE
     $<$<CONFIG:Debug>:DEBUG_BUILD>
+)
+
+target_compile_definitions(TOOL PUBLIC
+    $<$<CONFIG:Debug>:TOOL_DEBUG_ASSERTS>
 )
 
 set_target_properties(TOOL PROPERTIES

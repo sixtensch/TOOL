@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "exception.h"
+#include "error.h"
 #include "mathematics.h"
 
 #ifdef TOOL_WINDOWS
@@ -9,6 +9,7 @@
 #ifdef TOOL_UNIX
 #include <sys/mman.h>
 #include <unistd.h>
+#include <errno.h>
 #endif
 
 
@@ -47,7 +48,7 @@ namespace Tool
         
         if (result == nullptr)
         {
-            ExceptWindowsLast();
+            TOOL_FAIL_WINDOWS();
         }
         
         return result;
@@ -56,11 +57,7 @@ namespace Tool
     void ClassicDealloc(void* start)
     {
         b32 result = VirtualFree(start, 0, MEM_RELEASE);
-        
-        if (!result)
-        {
-            ExceptWindowsLast();
-        }
+        TOOL_ASSERT(result, "Could not free classic allocation (Windows error %lu)", GetLastError());
     }
     
 #endif // TOOL_WINDOWS
@@ -75,7 +72,8 @@ namespace Tool
         
         if (result == MAP_FAILED)
         {
-            ExceptErrno();
+            TOOL_FAIL_ERRNO();
+            return nullptr;
         }
         
         return result;
@@ -84,11 +82,7 @@ namespace Tool
     void ClassicDealloc(void* start, u64 size)
     {
         i32 result = munmap(start, size);
-        
-        if (result < 0)
-        {
-            ExceptErrno();
-        }
+        TOOL_ASSERT(result == 0, "Could not free classic allocation (errno %i)", errno);
     }
     
 #endif // TOOL_WINDOWS
@@ -121,39 +115,38 @@ namespace Tool
     
 #ifdef TOOL_WINDOWS
     
-    void RegionReserve(MemoryRegion* region, u64 size)
+    b8 RegionReserve(MemoryRegion* region, u64 size)
     {
-        if (region->start != nullptr)
-        {
-            Except("Cannot reserve a Region which is already initialized."); 
-        }
+        TOOL_ASSERT(region->start == nullptr, "Cannot reserve a Region which is already initialized.");
         
         region->start = (void*)VirtualAlloc(nullptr, size, MEM_RESERVE, PAGE_READWRITE);
         
         if (region->start == nullptr)
         {
-            ExceptWindowsLast();
+            return TOOL_FAIL_WINDOWS();
         }
         
         region->reserved = size;
         region->committed = 0;
+        
+        return true;
     }
     
-    void RegionCommit(MemoryRegion* region, u64 newSize)
+    b8 RegionCommit(MemoryRegion* region, u64 newSize)
     {
-        if (newSize >region->reserved)
-        {
-            Except("Cannot commit more memory to a Region than is reserved. (%ull > %ull)", newSize, region->reserved);
-        }
+        TOOL_ASSERT(newSize <= region->reserved,
+                    "Cannot commit more memory to a Region than is reserved. (%llu > %llu)", newSize, region->reserved);
         
-        VirtualAlloc(region->start, newSize, MEM_COMMIT, PAGE_READWRITE);
+        void* result = VirtualAlloc(region->start, newSize, MEM_COMMIT, PAGE_READWRITE);
         
-        if (region->start == nullptr)
+        if (result == nullptr)
         {
-            ExceptWindowsLast();
+            return TOOL_FAIL_WINDOWS();
         }
         
         region->committed = newSize;
+        
+        return true;
     }
     
     void RegionRevert(MemoryRegion* region, u64 newSize)
@@ -163,12 +156,8 @@ namespace Tool
             return;
         }
         
-        b32 result = VirtualFree((u8*)region->start + newSize, region->committed - newSize, MEM_DECOMMIT); 
-        
-        if (!result)
-        {
-            ExceptWindowsLast();
-        }
+        b32 result = VirtualFree((u8*)region->start + newSize, region->committed - newSize, MEM_DECOMMIT);
+        TOOL_ASSERT(result, "Could not decommit Region memory (Windows error %lu)", GetLastError());
         
         region->committed = newSize;
     }
@@ -180,12 +169,8 @@ namespace Tool
             return;
         }
         
-        b32 result = VirtualFree(region->start, 0, MEM_RELEASE); 
-        
-        if (!result)
-        {
-            ExceptWindowsLast();
-        }
+        b32 result = VirtualFree(region->start, 0, MEM_RELEASE);
+        TOOL_ASSERT(result, "Could not release Region memory (Windows error %lu)", GetLastError());
         
         region->start = nullptr;
         region->reserved = 0;
@@ -202,7 +187,7 @@ namespace Tool
     
     // Reservation will mmap the entire region, and *protect* virtual pages beyond the boundary from being interacted with.
     
-    static void UnixRegionProtect(void* memory, u64 accessible, u64 total)
+    static b8 UnixRegionProtect(void* memory, u64 accessible, u64 total)
     {
         static u64 pageSize = (u64)getpagesize();
         
@@ -221,16 +206,15 @@ namespace Tool
         
         if (result < 0)
         {
-            ExceptErrno();
+            return TOOL_FAIL_ERRNO();
         }
+        
+        return true;
     }
     
-    void RegionReserve(MemoryRegion* region, u64 size)
+    b8 RegionReserve(MemoryRegion* region, u64 size)
     {
-        if (region->start != nullptr)
-        {
-            Except("Cannot reserve a Region which is already initialized."); 
-        }
+        TOOL_ASSERT(region->start == nullptr, "Cannot reserve a Region which is already initialized.");
         
         // Initialize the memory with no access rights
         region->start = mmap(nullptr, size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -238,23 +222,28 @@ namespace Tool
         if (region->start == MAP_FAILED)
         {
             region->start = nullptr;
-            ExceptErrno();
+            return TOOL_FAIL_ERRNO();
         }
         
         region->reserved = size;
         region->committed = 0;
+        
+        return true;
     }
     
-    void RegionCommit(MemoryRegion* region, u64 newSize)
+    b8 RegionCommit(MemoryRegion* region, u64 newSize)
     {
-        if (newSize > region->reserved)
+        TOOL_ASSERT(newSize <= region->reserved,
+                    "Cannot commit more memory to a Region than is reserved. (%llu > %llu)", newSize, region->reserved);
+        
+        if (!UnixRegionProtect(region->start, newSize, region->reserved))
         {
-            Except("Cannot commit more memory to a Region than is reserved. (%ull > %ull)", newSize, region->reserved);
+            return false;
         }
         
-        UnixRegionProtect(region->start, newSize, region->reserved);
-        
         region->committed = newSize;
+        
+        return true;
     }
     
     void RegionRevert(MemoryRegion* region, u64 newSize)
@@ -264,7 +253,8 @@ namespace Tool
             return;
         }
         
-        UnixRegionProtect(region->start, newSize, region->reserved);
+        b8 reverted = UnixRegionProtect(region->start, newSize, region->reserved);
+        TOOL_ASSERT(reverted, "Could not protect reverted Region memory: %s", ErrorMessage());
         
         region->committed = newSize;
     }
@@ -277,11 +267,7 @@ namespace Tool
         }
         
         i32 result = munmap(region->start, region->reserved);
-        
-        if (result < 0)
-        {
-            ExceptErrno();
-        }
+        TOOL_ASSERT(result == 0, "Could not release Region memory (errno %i)", errno);
         
         region->start = nullptr;
         region->reserved = 0;
@@ -292,14 +278,14 @@ namespace Tool
     
     //~ Memory region general functions
     
-    void RegionReserve(MemoryRegion* region, u64 count, u64 size)
+    b8 RegionReserve(MemoryRegion* region, u64 count, u64 size)
     {
-        RegionReserve(region, count * size);
+        return RegionReserve(region, count * size);
     }
     
-    void RegionCommit(MemoryRegion* region, u64 newCount, u64 size)
+    b8 RegionCommit(MemoryRegion* region, u64 newCount, u64 size)
     {
-        RegionCommit(region, newCount * size);
+        return RegionCommit(region, newCount * size);
     }
     
     void RegionRevert(MemoryRegion* region, u64 newCount, u64 size)
@@ -346,12 +332,9 @@ namespace Tool
                                             ULONG ParameterCount);
     
     // Initializes/reserves uninitialized memory loop.
-    void LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize)
+    b8 LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize)
     {
-        if (LoopIsInitialized(loop))
-        {
-		    Except("Cannot initialize a Memory Loop which is already initialized.");
-        }
+        TOOL_ASSERT(!LoopIsInitialized(loop), "Cannot initialize a Memory Loop which is already initialized.");
         
         SYSTEM_INFO systemInfo;
         GetSystemInfo(&systemInfo);
@@ -370,7 +353,7 @@ namespace Tool
         
         if (fileMapping == NULL || fileMapping == INVALID_HANDLE_VALUE)
         {
-            ExceptWindowsLast();
+            return TOOL_FAIL_WINDOWS();
         }
         
         // Try to load the modern Windows runtime functions from the kernelbase system dll. Performance shouldn't be a big issue.
@@ -378,7 +361,7 @@ namespace Tool
         
         if (kernel == NULL)
         {
-            ExceptWindowsLast();
+            return TOOL_FAIL_WINDOWS();
         }
         
         VirtualAlloc2Function virtualAlloc2 = (VirtualAlloc2Function)(void*)GetProcAddress(kernel, "VirtualAlloc2");
@@ -396,7 +379,7 @@ namespace Tool
             
             if (start == NULL)
             {
-                ExceptWindowsLast();
+                return TOOL_FAIL_WINDOWS();
             }
             
             // Then, remap the reserved range to the memory allocation in chunks.
@@ -416,7 +399,7 @@ namespace Tool
                     
                     if (!freed)
                     {
-                        ExceptWindowsLast();
+                        return TOOL_FAIL_WINDOWS();
                     }
                 }
                 
@@ -431,7 +414,7 @@ namespace Tool
                 
                 if (remapping == NULL)
                 {
-                    ExceptWindowsLast();
+                    return TOOL_FAIL_WINDOWS();
                 }
                 
                 currentOffset += currentChunkSize;
@@ -451,7 +434,7 @@ namespace Tool
                 
                 if (start == NULL)
                 {
-                    ExceptWindowsLast();
+                    return TOOL_FAIL_WINDOWS();
                 }
                 
                 // Free the reservation. This will ensure that a continuous block of virtual address space is available, but it does not prevent the OS from mapping other allocations there.
@@ -502,9 +485,9 @@ namespace Tool
             
             if (!success)
             {
-                Except("Could not allocate Memory Loop using legacy method, maximum number of failed attempts reached. "
-                       "Consider upgrading to a newer Windows runtime. (%i attempts)",
-                       maxAttempts);
+                return TOOL_FAIL("Could not allocate Memory Loop using legacy method, maximum number of failed attempts reached. "
+                                 "Consider upgrading to a newer Windows runtime. (%i attempts)",
+                                 maxAttempts);
             }
         }
         
@@ -513,6 +496,8 @@ namespace Tool
         loop->start = (void*)start;
         loop->committed = committedSize;
         loop->mirrored = mirroredSize;
+        
+        return true;
     }
     
     // Deallocates region, returning it to an uninitialized state.
@@ -550,8 +535,9 @@ namespace Tool
 #ifdef TOOL_UNIX
     
     // Initializes/reserves uninitialized region.
-    void LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize)
+    b8 LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize)
     {
+        return TOOL_FAIL("Memory Loop is not implemented on Unix.");
     }
     
     // Deallocates region, returning it to an uninitialized state.
@@ -574,14 +560,25 @@ namespace Tool
     
     //~ Arena general implementation
     
-    void ArenaInit(Arena* arena, u64 reservedSize)
+    b8 ArenaInit(Arena* arena, u64 reservedSize)
     {
-        RegionReserve(&arena->region, reservedSize);
-        RegionCommit(&arena->region, TOOL_ARENA_COMMIT_SIZE);
+        if (!RegionReserve(&arena->region, reservedSize))
+        {
+            return false;
+        }
+        
+        if (!RegionCommit(&arena->region, TOOL_ARENA_COMMIT_SIZE))
+        {
+            RegionDealloc(&arena->region);
+            return false;
+        }
+        
         arena->size = 0;
         
         arena->startCurrent = arena->region.start;
         arena->sizeCurrent = 0;
+        
+        return true;
     }
     
     void* ArenaAllocBegin(Arena* arena, u64 reservedSize)
@@ -592,8 +589,9 @@ namespace Tool
         {
             if (newSize > arena->region.reserved)
             {
-                Except("Cannot allocate more memory than is reserved in the Arena. (%ull + %ull > %ull)",
-                       arena->size, reservedSize, arena->region.reserved);
+                TOOL_FAIL("Cannot allocate more memory than is reserved in the Arena. (%llu + %llu > %llu)",
+                          arena->size, reservedSize, arena->region.reserved);
+                return nullptr;
             }
             
             u64 newCommittedSize = arena->region.committed;
@@ -602,7 +600,10 @@ namespace Tool
                 newCommittedSize += TOOL_MIN(newCommittedSize, TOOL_ARENA_MAX_INCREMENT_SIZE);
             }
             
-            RegionCommit(&arena->region, newCommittedSize);
+            if (!RegionCommit(&arena->region, newCommittedSize))
+            {
+                return nullptr;
+            }
         }
         
         void* result = (u8*)arena->startCurrent + arena->sizeCurrent;
@@ -622,7 +623,11 @@ namespace Tool
     
     void* ArenaAlloc(Arena* arena, u64 size)
     {
-        ArenaAllocBegin(arena, size);
+        if (ArenaAllocBegin(arena, size) == nullptr)
+        {
+            return nullptr;
+        }
+        
         return ArenaAllocEnd(arena, size);
     }
     
@@ -634,6 +639,7 @@ namespace Tool
         arena->sizeCurrent = 0;
         
         ArenaFrame* destination = (ArenaFrame*)ArenaAlloc(arena, sizeof(ArenaFrame));
+        TOOL_ASSERT(destination != nullptr, "Could not push an Arena frame: %s", ErrorMessage());
         *destination = frame;
     }
     
@@ -667,17 +673,27 @@ namespace Tool
     //~ Circular buffer general implementation
     
     // Initialize and allocate a new circular buffer. The actual size and overflow region might be larger than requested.
-    void CircularInit(Circular* circular, u64 requestedSize, u64 requestedOverflowSize)
+    b8 CircularInit(Circular* circular, u64 requestedSize, u64 requestedOverflowSize)
     {
-        LoopAlloc(&circular->loop, requestedSize, requestedOverflowSize);
+        if (!LoopAlloc(&circular->loop, requestedSize, requestedOverflowSize))
+        {
+            return false;
+        }
+        
         circular->start = 0;
         circular->size = 0;
+        
+        return true;
     }
     
     // Allocate space within the circular buffer. Nullptr indicates insufficient space.
     void* CircularAlloc(Circular* circular, u64 size)
     {
-        CircularAllocBegin(circular, size);
+        if (CircularAllocBegin(circular, size) == nullptr)
+        {
+            return nullptr;
+        }
+        
         return CircularAllocEnd(circular, size);
     }
     
@@ -689,10 +705,7 @@ namespace Tool
     // Allocates space in two steps, similarly to the same Arena feature.
     void* CircularAllocBegin(Circular* circular, u64 reservedSize)
     {
-        if (!LoopIsInitialized(&circular->loop))
-        {
-            Except("Cannot allocate onto a non-initialized Circular Allocator.");
-        }
+        TOOL_ASSERT(LoopIsInitialized(&circular->loop), "Cannot allocate onto a non-initialized Circular Allocator.");
         
         u64 requestedSize = circular->size + reservedSize;
         u64 capacity = circular->loop.committed;
@@ -702,14 +715,12 @@ namespace Tool
             return nullptr;
         }
         
-        if (circular->start + reservedSize > circular->loop.committed + circular->loop.mirrored)
-        {
-            Except("Cannot allocate onto Circular Allocator, "
-                   "requested size does not fit into the circular buffer as a continuous region. "
-                   "Consider requesting higher maximum allocation size. "
-                   "(Maximum size: %llu, allocation size: %llu)",
-                   circular->loop.mirrored, reservedSize);
-        }
+        TOOL_ASSERT(circular->start + reservedSize <= circular->loop.committed + circular->loop.mirrored,
+                    "Cannot allocate onto Circular Allocator, "
+                    "requested size does not fit into the circular buffer as a continuous region. "
+                    "Consider requesting higher maximum allocation size. "
+                    "(Maximum size: %llu, allocation size: %llu)",
+                    circular->loop.mirrored, reservedSize);
         
         // Just acquire the current circular buffer end point. Due to the looped memory mapping, reads/writes will wrap.
         u64 head = (circular->start + circular->size) % capacity;
@@ -746,20 +757,14 @@ namespace Tool
     
     void CircularPopToBookmark(Circular* circular, u64 bookmark)
     {
-        if (!LoopIsInitialized(&circular->loop))
-        {
-            Except("Cannot pop a non-initialized Circular Allocator to bookmark.");
-        }
+        TOOL_ASSERT(LoopIsInitialized(&circular->loop), "Cannot pop a non-initialized Circular Allocator to bookmark.");
         
         u64 capacity = circular->loop.committed;
         
         // The offset of the bookmark from the start
         u64 offset = (bookmark + capacity * (bookmark < circular->start) - circular->start);
         
-        if (offset > circular->size)
-        {
-            Except("Bookmark is invalid (outside the allocated region).");
-        }
+        TOOL_ASSERT(offset <= circular->size, "Bookmark is invalid (outside the allocated region).");
         
         circular->size -= offset;
         circular->start = bookmark;

@@ -1,5 +1,5 @@
 #include "threading.h"
-#include "exception.h"
+#include "error.h"
 
 
 
@@ -83,7 +83,9 @@ namespace Tool
         HANDLE handle = CreateThread(nullptr, 0, ThreadIndirection, (LPVOID)params, 0, nullptr);
         if (handle == nullptr)
         {
-            ExceptWindowsLast();
+            TOOL_FAIL_WINDOWS();
+            params->block = false;
+            return 0;
         }
         
         return *((Thread*)&handle);
@@ -100,10 +102,7 @@ namespace Tool
         HANDLE handle = *((HANDLE*)&thread);
         
         DWORD result = WaitForSingleObject(handle, INFINITE);
-        if (result == WAIT_FAILED)
-        {
-            ExceptWindowsLast();
-        }
+        TOOL_ASSERT(result != WAIT_FAILED, "Could not join Thread (Windows error %lu)", GetLastError());
         
         CloseHandle(handle);
     }
@@ -120,7 +119,7 @@ namespace Tool
             return true;
             
             case WAIT_FAILED:
-            ExceptWindowsLast();
+            TOOL_ASSERT(false, "Could not join Thread (Windows error %lu)", GetLastError());
             return false;
             
             default:
@@ -141,7 +140,8 @@ namespace Tool
         HANDLE handle = CreateSemaphore(nullptr, (LONG)value, I32_MAX, nullptr);
         if (handle == nullptr)
         {
-            ExceptWindowsLast();
+            TOOL_FAIL_WINDOWS();
+            return 0;
         }
         
         return *((Semaphore*)&handle);
@@ -157,20 +157,14 @@ namespace Tool
     {
         HANDLE handle = *((HANDLE*)&semaphore);
         b32 result = ReleaseSemaphore(handle, 1, nullptr);
-        if (result == false)
-        {
-            ExceptWindowsLast();
-        }
+        TOOL_ASSERT(result, "Could not post Semaphore (Windows error %lu)", GetLastError());
     }
     
     void SemaphoreWait(Semaphore semaphore)
     {
         HANDLE handle = *((HANDLE*)&semaphore);
         DWORD result = WaitForSingleObject(handle, INFINITE);
-        if (result == WAIT_FAILED)
-        {
-            ExceptWindowsLast();
-        }
+        TOOL_ASSERT(result != WAIT_FAILED, "Could not wait on Semaphore (Windows error %lu)", GetLastError());
     }
     
     b8 SemaphoreTryWait(Semaphore semaphore) // Value of true indicates successful decrement
@@ -183,7 +177,7 @@ namespace Tool
             return true;
             
             case WAIT_FAILED:
-            ExceptWindowsLast();
+            TOOL_ASSERT(false, "Could not wait on Semaphore (Windows error %lu)", GetLastError());
             return false;
             
             default:
@@ -204,7 +198,8 @@ namespace Tool
         HANDLE handle = CreateMutex(nullptr, false, nullptr);
         if (handle == nullptr)
         {
-            ExceptWindowsLast();
+            TOOL_FAIL_WINDOWS();
+            return 0;
         }
         
         return *((Mutex*)&handle);
@@ -220,10 +215,7 @@ namespace Tool
     {
         HANDLE handle = *((HANDLE*)&mutex);
         DWORD result = WaitForSingleObject(handle, INFINITE);
-        if (result == WAIT_FAILED)
-        {
-            ExceptWindowsLast();
-        }
+        TOOL_ASSERT(result != WAIT_FAILED, "Could not lock Mutex (Windows error %lu)", GetLastError());
     }
     
     b8 MutexTryLock(Mutex mutex, i32 timeout)
@@ -234,7 +226,7 @@ namespace Tool
         {
         case WAIT_TIMEOUT: return false;
         case WAIT_OBJECT_0: return true;
-        default: ExceptWindowsLast(); return false;
+        default: TOOL_ASSERT(false, "Could not lock Mutex (wait result %lu, Windows error %lu)", result, GetLastError()); return false;
         }
     }
     
@@ -242,10 +234,7 @@ namespace Tool
     {
         HANDLE handle = *((HANDLE*)&mutex);
         b32 result = ReleaseMutex(handle);
-        if (result == false)
-        {
-            ExceptWindowsLast();
-        }
+        TOOL_ASSERT(result, "Could not unlock Mutex (Windows error %lu)", GetLastError());
     }
     
 #endif
