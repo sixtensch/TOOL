@@ -32,7 +32,7 @@ class C
 int main()
 {
     Arena arena = {};
-    ArenaInit(&arena, 1024);
+    ArenaInit(&arena, Allocator(), 1024, "Test");
     
     std::string* string = ArenaPlace<std::string>(&arena, "Hello there!");
     printf("Value: %s\n", string->c_str());
@@ -51,6 +51,7 @@ int main()
         printf("Part of scope\n");
     }
     
+#ifdef TOOL_MIRRORED_MEMORY
     MemoryLoop loop;
     Tool::LoopAlloc(&loop, 1, 1);
     
@@ -58,6 +59,7 @@ int main()
     contents[0] = 'A';
     
     char result = contents[1 << 16];
+#endif
     
     Module module = Tool::ModuleLoad("TOOLTestLib");
     

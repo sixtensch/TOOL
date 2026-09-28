@@ -5,6 +5,25 @@
 
 //- Definitions
 
+//~ Platform capabilities
+// The build defines the platform (TOOL_WINDOWS, TOOL_UNIX). Code for one OS keys off those; code that needs a
+// memory capability keys off the defines below, so a platform lacking it compiles that code out.
+
+// Emscripten. Also counts as TOOL_UNIX, whose POSIX layer it emulates.
+#if defined(__EMSCRIPTEN__) && !defined(TOOL_WEB)
+#define TOOL_WEB 1
+#endif
+
+// Address space can be reserved without backing it, and committed page by page later.
+#if defined(TOOL_WINDOWS) || (defined(TOOL_UNIX) && !defined(TOOL_WEB))
+#define TOOL_VIRTUAL_MEMORY 1
+#endif
+
+// The same physical pages can be mapped at two virtual addresses.
+#if defined(TOOL_WINDOWS)
+#define TOOL_MIRRORED_MEMORY 1
+#endif
+
 //~ Maximums and minimums
 
 #define I8_MAX 0x7F

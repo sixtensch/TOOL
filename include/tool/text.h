@@ -67,18 +67,18 @@ namespace Tool
     
     //~ String builder
     
+    // Fixed-capacity string assembly. The whole buffer is allocated at init and never grows.
     struct StringBuilder
     {
         StringType type;
-        u64 size; // Of string content, in bytes
+        u64 size;     // Of string content, in bytes
+        u64 capacity; // Of the buffer, in bytes, null terminator included
         
         union
         {
             c8* str8;
             c16* str16;
         };
-        
-        MemoryRegion region;
     };
     
     
@@ -126,13 +126,17 @@ namespace Tool
     
     //~ String builder
     
-    void StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type = StringTypeUTF8);
+    // Allocates 'capacity' bytes up front, null terminator included. Returns false on failure.
+    b8 StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type = StringTypeUTF8);
     void StringBuilderReset(StringBuilder* builder);
     void StringBuilderDestroy(StringBuilder* builder);
-    void StringBuilderAdd(StringBuilder* builder, const s8* string);
-    void StringBuilderAdd(StringBuilder* builder, const s16* string);
-    void StringBuilderAdd(StringBuilder* builder, const c8* cstr);
-    void StringBuilderAdd(StringBuilder* builder, const c16* cstr);
+    
+    // Appends, converting to the builder's type. Returns false, leaving the contents unchanged, if the result
+    // would not fit the capacity.
+    b8 StringBuilderAdd(StringBuilder* builder, const s8* string);
+    b8 StringBuilderAdd(StringBuilder* builder, const s16* string);
+    b8 StringBuilderAdd(StringBuilder* builder, const c8* cstr);
+    b8 StringBuilderAdd(StringBuilder* builder, const c16* cstr);
     
 }
 

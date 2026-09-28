@@ -2,11 +2,14 @@
 #include "error.h"
 #include "mathematics.h"
 
+#include <stdlib.h>
+#include <string.h>
+
 #ifdef TOOL_WINDOWS
 #include <Windows.h>
 #endif
 
-#ifdef TOOL_UNIX
+#if defined(TOOL_UNIX) && defined(TOOL_VIRTUAL_MEMORY)
 #include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
@@ -38,11 +41,60 @@ namespace Tool
 {
     //- Classic allocation
     
-    //~ Classic allocation Windows implementation
+    //~ Classic allocation general implementation
+    
+    void* ClassicAlloc(u64 size)
+    {
+        void* result = malloc(size);
+        
+        if (result == nullptr)
+        {
+            TOOL_FAIL("Out of memory allocating %llu bytes.", size);
+        }
+        
+        return result;
+    }
+    
+    void* ClassicAlloc(u64 count, u64 size)
+    {
+        return ClassicAlloc(count * size);
+    }
+    
+    void ClassicDealloc(void* start)
+    {
+        free(start);
+    }
+    
+    b8 ClassicRealloc(void** target, u64 currentSize, u64 newSize)
+    {
+        void* result = realloc(*target, newSize);
+        
+        if (result == nullptr && newSize > 0)
+        {
+            return TOOL_FAIL("Out of memory reallocating %llu bytes to %llu.", currentSize, newSize);
+        }
+        
+        *target = result;
+        
+        return true;
+    }
+    
+    b8 ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size)
+    {
+        return ClassicRealloc(target, currentCount * size, newCount * size);
+    }
+    
+    
+    
+#ifdef TOOL_VIRTUAL_MEMORY
+    
+    //- Page allocation
+    
+    //~ Page allocation Windows implementation
     
 #ifdef TOOL_WINDOWS
     
-    void* ClassicAlloc(u64 size)
+    void* PageAlloc(u64 size)
     {
         void* result = (void*)VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
         
@@ -54,19 +106,21 @@ namespace Tool
         return result;
     }
     
-    void ClassicDealloc(void* start)
+    void PageDealloc(void* start, u64 size)
     {
+        (void)size;
+        
         b32 result = VirtualFree(start, 0, MEM_RELEASE);
-        TOOL_ASSERT(result, "Could not free classic allocation (Windows error %lu)", GetLastError());
+        TOOL_ASSERT(result, "Could not free page allocation (Windows error %lu)", GetLastError());
     }
     
 #endif // TOOL_WINDOWS
     
-    //~ Classic allocation Unix implementation
+    //~ Page allocation Unix implementation
     
 #ifdef TOOL_UNIX
     
-    void* ClassicAlloc(u64 size)
+    void* PageAlloc(u64 size)
     {
         void* result = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
         
@@ -79,33 +133,13 @@ namespace Tool
         return result;
     }
     
-    void ClassicDealloc(void* start, u64 size)
+    void PageDealloc(void* start, u64 size)
     {
         i32 result = munmap(start, size);
-        TOOL_ASSERT(result == 0, "Could not free classic allocation (errno %i)", errno);
+        TOOL_ASSERT(result == 0, "Could not free page allocation (errno %i)", errno);
     }
     
-#endif // TOOL_WINDOWS
-    
-    //~ Classic allocation general functions
-    
-    void ClassicRealloc(void** target, u64 currentSize, u64 newSize)
-    {
-        void* p = ClassicAlloc(newSize);
-        Copy(p, *target, currentSize);
-        ClassicDealloc(*target);
-        *target = p;
-    }
-    
-    void* ClassicAlloc(u64 count, u64 size)
-    {
-        return ClassicAlloc(count * size);
-    }
-    
-    void ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size)
-    {
-        ClassicRealloc(target, currentCount * size, newCount * size);
-    }
+#endif // TOOL_UNIX
     
     
     
@@ -292,8 +326,12 @@ namespace Tool
     {
         RegionRevert(region, newCount * size);
     }
+
+#endif // TOOL_VIRTUAL_MEMORY
     
     
+    
+#ifdef TOOL_MIRRORED_MEMORY
     
     //- Memory loop
     
@@ -530,23 +568,6 @@ namespace Tool
     
 #endif
     
-    //~ Memory loop Unix implementation
-    
-#ifdef TOOL_UNIX
-    
-    // Initializes/reserves uninitialized region.
-    b8 LoopAlloc(MemoryLoop* loop, u64 minCommittedSize, u64 minMirroredSize)
-    {
-        return TOOL_FAIL("Memory Loop is not implemented on Unix.");
-    }
-    
-    // Deallocates region, returning it to an uninitialized state.
-    void LoopDealloc(MemoryLoop* loop)
-    {
-    }
-    
-#endif
-    
     //~ Memory loop general implementation
     
     bool LoopIsInitialized(const MemoryLoop* loop)
@@ -554,20 +575,449 @@ namespace Tool
         return loop->start != nullptr;
     }
     
+#endif // TOOL_MIRRORED_MEMORY
+    
     
     
     //- Arena
+    //
+    // Regular chunks form one list in allocation order: 'first' up to 'current' hold allocations, the rest
+    // are spares with nothing in them. An allocation too large for a regular chunk gets a dedicated chunk,
+    // kept on its own list so the regular chunk it interrupted keeps packing. Dedicated chunks are stamped
+    // from a counter that pushes also record, which is how a pop tells which ones came after its push.
+
+    //~ Arena static helpers
+
+    // Payload offset within a chunk. The header is padded so the payload starts on a pointer-aligned boundary;
+    // allocations align themselves by address, so the source's own alignment does not matter.
+    static const u64 arenaChunkHeaderSize = (sizeof(ArenaChunk) + 15ull) & ~15ull;
+
+    static u8* ArenaChunkPayload(ArenaChunk* chunk)
+    {
+        return (u8*)chunk + arenaChunkHeaderSize;
+    }
+
+    static u64 ArenaPadding(const u8* address, u64 alignment)
+    {
+        u64 misalignment = (u64)address & (alignment - 1);
+        return (misalignment == 0) ? 0 : alignment - misalignment;
+    }
+
+    static void ArenaPoison(u8* start, u64 size)
+    {
+#ifdef TOOL_DEBUG_ASSERTS
+        memset(start, TOOL_ARENA_POISON, size);
+#else
+        (void)start;
+        (void)size;
+#endif
+    }
+
+    static void ArenaCountUsed(Arena* arena, u64 size)
+    {
+        arena->used += size;
+
+        if (arena->used > arena->peak)
+        {
+            arena->peak = arena->used;
+        }
+    }
+
+    static ArenaChunk* ArenaChunkCreate(Arena* arena, u64 capacity)
+    {
+        ArenaChunk* chunk = (ArenaChunk*)AllocatorAlloc(arena->source, arenaChunkHeaderSize + capacity);
+
+        if (chunk == nullptr)
+        {
+            TOOL_FAIL("Arena '%s' could not get a %llu byte chunk from its source.", ArenaName(arena), capacity);
+            return nullptr;
+        }
+
+        *chunk = {};
+        chunk->capacity = capacity;
+
+        arena->chunkCount++;
+        arena->owned += arenaChunkHeaderSize + capacity;
+
+        return chunk;
+    }
+
+    static void ArenaChunkDestroy(Arena* arena, ArenaChunk* chunk)
+    {
+        arena->chunkCount--;
+        arena->owned -= arenaChunkHeaderSize + chunk->capacity;
+
+        AllocatorDealloc(arena->source, chunk);
+    }
+
+    static void ArenaChunkDestroyList(Arena* arena, ArenaChunk* chunk)
+    {
+        while (chunk != nullptr)
+        {
+            ArenaChunk* next = chunk->next;
+            ArenaChunkDestroy(arena, chunk);
+            chunk = next;
+        }
+    }
+
+    // True when 'size' at 'alignment' fits a fresh regular chunk whatever the payload's own alignment.
+    static b8 ArenaFitsRegular(const Arena* arena, u64 size, u64 alignment)
+    {
+        return size + alignment - 1 <= arena->chunkSize;
+    }
+
+    // Makes 'current' a regular chunk with room for 'size' at 'alignment', moving on to the next spare or a
+    // new chunk if it has none. Returns false if the source is exhausted.
+    static b8 ArenaMakeRoom(Arena* arena, u64 size, u64 alignment)
+    {
+        ArenaChunk* current = arena->current;
+
+        if (current != nullptr)
+        {
+            u8* head = ArenaChunkPayload(current) + current->used;
+            if (current->used + ArenaPadding(head, alignment) + size <= current->capacity)
+            {
+                return true;
+            }
+        }
+
+        ArenaChunk* next = (current == nullptr) ? arena->first : current->next;
+
+        if (next == nullptr)
+        {
+            next = ArenaChunkCreate(arena, arena->chunkSize);
+            if (next == nullptr)
+            {
+                return false;
+            }
+
+            if (current == nullptr)
+            {
+                arena->first = next;
+            }
+            else
+            {
+                current->next = next;
+            }
+        }
+
+        arena->current = next;
+
+        return true;
+    }
+
+    // A dedicated chunk with room for 'size' at 'alignment', reusing a spare if one is large enough. Not yet
+    // linked into the in-use list.
+    static ArenaChunk* ArenaTakeDedicated(Arena* arena, u64 size, u64 alignment)
+    {
+        u64 capacity = size + alignment - 1;
+
+        ArenaChunk** link = &arena->dedicatedSpare;
+        while (*link != nullptr)
+        {
+            ArenaChunk* spare = *link;
+
+            if (spare->capacity >= capacity)
+            {
+                *link = spare->next;
+                spare->next = nullptr;
+                spare->used = 0;
+                return spare;
+            }
+
+            link = &spare->next;
+        }
+
+        return ArenaChunkCreate(arena, capacity);
+    }
+
+    // Links a dedicated chunk into the in-use list, stamped with the next sequence number.
+    static void ArenaLinkDedicated(Arena* arena, ArenaChunk* chunk)
+    {
+        chunk->sequence = ++arena->sequence;
+
+        chunk->next = arena->dedicated;
+        arena->dedicated = chunk;
+
+        ArenaCountUsed(arena, chunk->used);
+    }
+
+    static void ArenaSpareDedicated(Arena* arena, ArenaChunk* chunk)
+    {
+        ArenaPoison(ArenaChunkPayload(chunk), chunk->used);
+        chunk->used = 0;
+
+        chunk->next = arena->dedicatedSpare;
+        arena->dedicatedSpare = chunk;
+    }
+
+    static void ArenaReleasePending(Arena* arena)
+    {
+        if (arena->pending != nullptr)
+        {
+            ArenaSpareDedicated(arena, arena->pending);
+            arena->pending = nullptr;
+        }
+    }
+
+    // Rewinds to a regular position: 'chunk' (null for the very start) with 'chunkUsed' bytes in it. Every
+    // regular chunk after it becomes a spare, and every dedicated chunk stamped after 'sequence' is released.
+    static void ArenaRewind(Arena* arena, ArenaChunk* chunk, u64 chunkUsed, u64 used, u64 sequence)
+    {
+        ArenaReleasePending(arena);
+
+        // Dedicated chunks are newest first, so the ones to release are a prefix of the list
+        while (arena->dedicated != nullptr && arena->dedicated->sequence > sequence)
+        {
+            ArenaChunk* dedicated = arena->dedicated;
+
+            arena->dedicated = dedicated->next;
+            ArenaSpareDedicated(arena, dedicated);
+        }
+
+        if (arena->current != nullptr)
+        {
+            ArenaChunk* restored = (chunk == nullptr) ? arena->first : chunk;
+
+            // Every chunk after the restored one, up to the old current, is emptied
+            if (restored != arena->current)
+            {
+                for (ArenaChunk* emptied = restored->next; emptied != nullptr; emptied = emptied->next)
+                {
+                    ArenaPoison(ArenaChunkPayload(emptied), emptied->used);
+                    emptied->used = 0;
+
+                    if (emptied == arena->current)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            TOOL_ASSERT(chunkUsed <= restored->used, "Arena '%s' cannot rewind forwards.", ArenaName(arena));
+
+            ArenaPoison(ArenaChunkPayload(restored) + chunkUsed, restored->used - chunkUsed);
+            restored->used = chunkUsed;
+
+            arena->current = restored;
+        }
+
+        arena->used = used;
+    }
+
+    //~ Arena implementation
+
+    void ArenaInit(Arena* arena, MemoryAllocator source, u64 chunkSize, const c8* name)
+    {
+        TOOL_ASSERT(source.allocate != nullptr, "An Arena needs a source that can allocate.");
+        TOOL_ASSERT(chunkSize > 0, "An Arena needs a chunk size above zero.");
+
+        *arena = {};
+        arena->source = source;
+        arena->chunkSize = chunkSize;
+        arena->name = name;
+    }
+
+    void ArenaInitChild(Arena* child, Arena* parent, u64 chunkSize, const c8* name)
+    {
+        TOOL_ASSERT(child != parent, "An Arena cannot be its own child.");
+
+        ArenaInit(child, Allocator(parent), chunkSize, name);
+    }
+
+    void* ArenaAllocAligned(Arena* arena, u64 size, u64 alignment)
+    {
+        TOOL_ASSERT(alignment > 0 && (alignment & (alignment - 1)) == 0,
+                    "Arena alignment must be a power of two. (%llu)", alignment);
+
+        if (!ArenaFitsRegular(arena, size, alignment))
+        {
+            ArenaReleasePending(arena);
+
+            ArenaChunk* chunk = ArenaTakeDedicated(arena, size, alignment);
+            if (chunk == nullptr)
+            {
+                return nullptr;
+            }
+
+            u8* payload = ArenaChunkPayload(chunk);
+            u64 padding = ArenaPadding(payload, alignment);
+
+            chunk->used = padding + size;
+            ArenaLinkDedicated(arena, chunk);
+
+            return payload + padding;
+        }
+
+        if (!ArenaMakeRoom(arena, size, alignment))
+        {
+            return nullptr;
+        }
+
+        ArenaChunk* current = arena->current;
+        u8* head = ArenaChunkPayload(current) + current->used;
+        u64 padding = ArenaPadding(head, alignment);
+
+        current->used += padding + size;
+        ArenaCountUsed(arena, padding + size);
+
+        return head + padding;
+    }
+
+    void* ArenaAlloc(Arena* arena, u64 size)
+    {
+        return ArenaAllocAligned(arena, size, TOOL_ARENA_ALIGNMENT);
+    }
+
+    void* ArenaAlloc(Arena* arena, u64 count, u64 size)
+    {
+        return ArenaAllocAligned(arena, count * size, TOOL_ARENA_ALIGNMENT);
+    }
+
+    void* ArenaAllocBegin(Arena* arena, u64 reservedSize)
+    {
+        ArenaReleasePending(arena);
+
+        if (!ArenaFitsRegular(arena, reservedSize, TOOL_ARENA_ALIGNMENT))
+        {
+            arena->pending = ArenaTakeDedicated(arena, reservedSize, TOOL_ARENA_ALIGNMENT);
+            if (arena->pending == nullptr)
+            {
+                return nullptr;
+            }
+
+            u8* payload = ArenaChunkPayload(arena->pending);
+            return payload + ArenaPadding(payload, TOOL_ARENA_ALIGNMENT);
+        }
+
+        if (!ArenaMakeRoom(arena, reservedSize, TOOL_ARENA_ALIGNMENT))
+        {
+            return nullptr;
+        }
+
+        u8* head = ArenaChunkPayload(arena->current) + arena->current->used;
+        return head + ArenaPadding(head, TOOL_ARENA_ALIGNMENT);
+    }
+
+    void* ArenaAllocEnd(Arena* arena, u64 actualSize)
+    {
+        if (arena->pending != nullptr)
+        {
+            ArenaChunk* chunk = arena->pending;
+            arena->pending = nullptr;
+
+            u8* payload = ArenaChunkPayload(chunk);
+            u64 padding = ArenaPadding(payload, TOOL_ARENA_ALIGNMENT);
+
+            TOOL_ASSERT(padding + actualSize <= chunk->capacity,
+                        "Arena '%s' allocation ended past its reservation. (%llu)", ArenaName(arena), actualSize);
+
+            chunk->used = padding + actualSize;
+            ArenaLinkDedicated(arena, chunk);
+
+            return payload + padding;
+        }
+
+        ArenaChunk* current = arena->current;
+        TOOL_ASSERT(current != nullptr, "Arena '%s' allocation ended without a matching begin.", ArenaName(arena));
+
+        u8* head = ArenaChunkPayload(current) + current->used;
+        u64 padding = ArenaPadding(head, TOOL_ARENA_ALIGNMENT);
+
+        TOOL_ASSERT(current->used + padding + actualSize <= current->capacity,
+                    "Arena '%s' allocation ended past its reservation. (%llu)", ArenaName(arena), actualSize);
+
+        current->used += padding + actualSize;
+        ArenaCountUsed(arena, padding + actualSize);
+
+        return head + padding;
+    }
+
+    void ArenaPush(Arena* arena)
+    {
+        ArenaFrame mark = {};
+        mark.previous = arena->frame;
+        mark.chunk = arena->current;
+        mark.chunkUsed = (arena->current == nullptr) ? 0 : arena->current->used;
+        mark.used = arena->used;
+        mark.sequence = arena->sequence;
+
+        ArenaFrame* frame = ArenaAlloc<ArenaFrame>(arena);
+        TOOL_ASSERT(frame != nullptr, "Could not push an Arena frame onto '%s': %s", ArenaName(arena), ErrorMessage());
+
+        *frame = mark;
+        arena->frame = frame;
+    }
+
+    void ArenaPop(Arena* arena)
+    {
+        TOOL_ASSERT(arena->frame != nullptr, "Arena '%s' popped without a matching push.", ArenaName(arena));
+
+        // Read out before the rewind poisons the frame record itself
+        ArenaFrame mark = *arena->frame;
+
+        ArenaRewind(arena, mark.chunk, mark.chunkUsed, mark.used, mark.sequence);
+        arena->frame = mark.previous;
+    }
+
+    void ArenaReset(Arena* arena)
+    {
+        ArenaRewind(arena, nullptr, 0, 0, 0);
+        arena->frame = nullptr;
+    }
+
+    void ArenaTrim(Arena* arena, u32 keepSpareCount)
+    {
+        if (arena->source.deallocate == nullptr)
+        {
+            return;
+        }
+
+        ArenaChunkDestroyList(arena, arena->dedicatedSpare);
+        arena->dedicatedSpare = nullptr;
+
+        // Regular spares follow 'current', or make up the whole list if nothing was ever allocated
+        ArenaChunk** link = (arena->current == nullptr) ? &arena->first : &arena->current->next;
+        for (u32 kept = 0; *link != nullptr && kept < keepSpareCount; kept++)
+        {
+            link = &(*link)->next;
+        }
+
+        ArenaChunkDestroyList(arena, *link);
+        *link = nullptr;
+    }
+
+    void ArenaDeInit(Arena* arena)
+    {
+        ArenaChunkDestroyList(arena, arena->first);
+        ArenaChunkDestroyList(arena, arena->dedicated);
+        ArenaChunkDestroyList(arena, arena->dedicatedSpare);
+        ArenaChunkDestroyList(arena, arena->pending);
+
+        *arena = {};
+    }
+
+    const c8* ArenaName(const Arena* arena)
+    {
+        return (arena->name == nullptr) ? "(unnamed)" : arena->name;
+    }
+
+
+
+#ifdef TOOL_VIRTUAL_MEMORY
     
-    //~ Arena general implementation
+    //- Contiguous arena
     
-    b8 ArenaInit(Arena* arena, u64 reservedSize)
+    //~ Contiguous arena general implementation
+    
+    b8 ContiguousArenaInit(ContiguousArena* arena, u64 reservedSize)
     {
         if (!RegionReserve(&arena->region, reservedSize))
         {
             return false;
         }
         
-        if (!RegionCommit(&arena->region, TOOL_ARENA_COMMIT_SIZE))
+        if (!RegionCommit(&arena->region, TOOL_CONTIGUOUS_ARENA_COMMIT_SIZE))
         {
             RegionDealloc(&arena->region);
             return false;
@@ -581,7 +1031,7 @@ namespace Tool
         return true;
     }
     
-    void* ArenaAllocBegin(Arena* arena, u64 reservedSize)
+    void* ContiguousArenaAllocBegin(ContiguousArena* arena, u64 reservedSize)
     {
         u64 newSize = arena->size + reservedSize;
         
@@ -589,7 +1039,7 @@ namespace Tool
         {
             if (newSize > arena->region.reserved)
             {
-                TOOL_FAIL("Cannot allocate more memory than is reserved in the Arena. (%llu + %llu > %llu)",
+                TOOL_FAIL("Cannot allocate more memory than is reserved in the Contiguous Arena. (%llu + %llu > %llu)",
                           arena->size, reservedSize, arena->region.reserved);
                 return nullptr;
             }
@@ -597,7 +1047,7 @@ namespace Tool
             u64 newCommittedSize = arena->region.committed;
             while (newSize > newCommittedSize)
             {
-                newCommittedSize += TOOL_MIN(newCommittedSize, TOOL_ARENA_MAX_INCREMENT_SIZE);
+                newCommittedSize += TOOL_MIN(newCommittedSize, TOOL_CONTIGUOUS_ARENA_MAX_INCREMENT_SIZE);
             }
             
             if (!RegionCommit(&arena->region, newCommittedSize))
@@ -611,7 +1061,7 @@ namespace Tool
         return result;
     }
     
-    void* ArenaAllocEnd(Arena* arena, u64 actualSize)
+    void* ContiguousArenaAllocEnd(ContiguousArena* arena, u64 actualSize)
     {
         void* head = (u8*)arena->startCurrent + arena->sizeCurrent;
         
@@ -621,38 +1071,38 @@ namespace Tool
         return head;
     }
     
-    void* ArenaAlloc(Arena* arena, u64 size)
+    void* ContiguousArenaAlloc(ContiguousArena* arena, u64 size)
     {
-        if (ArenaAllocBegin(arena, size) == nullptr)
+        if (ContiguousArenaAllocBegin(arena, size) == nullptr)
         {
             return nullptr;
         }
         
-        return ArenaAllocEnd(arena, size);
+        return ContiguousArenaAllocEnd(arena, size);
     }
     
-    void ArenaPush(Arena* arena)
+    void ContiguousArenaPush(ContiguousArena* arena)
     {
-        ArenaFrame frame = { arena->startCurrent, arena->sizeCurrent };
+        ContiguousArenaFrame frame = { arena->startCurrent, arena->sizeCurrent };
         
         arena->startCurrent = (u8*)arena->startCurrent + arena->sizeCurrent;
         arena->sizeCurrent = 0;
         
-        ArenaFrame* destination = (ArenaFrame*)ArenaAlloc(arena, sizeof(ArenaFrame));
-        TOOL_ASSERT(destination != nullptr, "Could not push an Arena frame: %s", ErrorMessage());
+        ContiguousArenaFrame* destination = (ContiguousArenaFrame*)ContiguousArenaAlloc(arena, sizeof(ContiguousArenaFrame));
+        TOOL_ASSERT(destination != nullptr, "Could not push a Contiguous Arena frame: %s", ErrorMessage());
         *destination = frame;
     }
     
-    void ArenaPop(Arena* arena)
+    void ContiguousArenaPop(ContiguousArena* arena)
     {
-        ArenaFrame* frame = (ArenaFrame*)arena->startCurrent;
+        ContiguousArenaFrame* frame = (ContiguousArenaFrame*)arena->startCurrent;
         
         arena->size -= arena->sizeCurrent;
         arena->startCurrent = frame->start;
         arena->sizeCurrent = frame->size;
     }
     
-    void ArenaDeInit(Arena* arena)
+    void ContiguousArenaDeInit(ContiguousArena* arena)
     {
         RegionDealloc(&arena->region);
         
@@ -661,19 +1111,23 @@ namespace Tool
         arena->sizeCurrent = 0;
     }
     
-    void* ArenaAlloc(Arena* arena, u64 count, u64 size)
+    void* ContiguousArenaAlloc(ContiguousArena* arena, u64 count, u64 size)
     {
-        return ArenaAlloc(arena, count * size);
+        return ContiguousArenaAlloc(arena, count * size);
     }
     
+#endif // TOOL_VIRTUAL_MEMORY
     
     
-    //- Circular buffer
     
-    //~ Circular buffer general implementation
+#ifdef TOOL_MIRRORED_MEMORY
+    
+    //- Magic circular buffer
+    
+    //~ Magic circular buffer general implementation
     
     // Initialize and allocate a new circular buffer. The actual size and overflow region might be larger than requested.
-    b8 CircularInit(Circular* circular, u64 requestedSize, u64 requestedOverflowSize)
+    b8 MagicCircularInit(MagicCircular* circular, u64 requestedSize, u64 requestedOverflowSize)
     {
         if (!LoopAlloc(&circular->loop, requestedSize, requestedOverflowSize))
         {
@@ -687,23 +1141,23 @@ namespace Tool
     }
     
     // Allocate space within the circular buffer. Nullptr indicates insufficient space.
-    void* CircularAlloc(Circular* circular, u64 size)
+    void* MagicCircularAlloc(MagicCircular* circular, u64 size)
     {
-        if (CircularAllocBegin(circular, size) == nullptr)
+        if (MagicCircularAllocBegin(circular, size) == nullptr)
         {
             return nullptr;
         }
         
-        return CircularAllocEnd(circular, size);
+        return MagicCircularAllocEnd(circular, size);
     }
     
-    void* CircularAlloc(Circular* circular, u64 count, u64 size)
+    void* MagicCircularAlloc(MagicCircular* circular, u64 count, u64 size)
     {
-        return CircularAlloc(circular, count * size);
+        return MagicCircularAlloc(circular, count * size);
     }
     
     // Allocates space in two steps, similarly to the same Arena feature.
-    void* CircularAllocBegin(Circular* circular, u64 reservedSize)
+    void* MagicCircularAllocBegin(MagicCircular* circular, u64 reservedSize)
     {
         TOOL_ASSERT(LoopIsInitialized(&circular->loop), "Cannot allocate onto a non-initialized Circular Allocator.");
         
@@ -729,7 +1183,7 @@ namespace Tool
         return allocationLocation;
     }
     
-    void* CircularAllocEnd(Circular* circular, u64 actualSize)
+    void* MagicCircularAllocEnd(MagicCircular* circular, u64 actualSize)
     {
         u64 capacity = circular->loop.committed;
         
@@ -744,18 +1198,18 @@ namespace Tool
     
     // Get a reference to the current writing location (bookmark).
     // Can be used to then get a data pointer, or deallocate everything prior to the bookmark.
-    u64 CircularGetBookmark(const Circular* circular)
+    u64 MagicCircularGetBookmark(const MagicCircular* circular)
     {
         u64 capacity = circular->loop.committed;
         return (circular->start + circular->size) % capacity;
     }
     
-    void* CircularGetDataAt(Circular* circular, u64 bookmark)
+    void* MagicCircularGetDataAt(MagicCircular* circular, u64 bookmark)
     {
         return (char*)circular->loop.start + bookmark;
     }
     
-    void CircularPopToBookmark(Circular* circular, u64 bookmark)
+    void MagicCircularPopToBookmark(MagicCircular* circular, u64 bookmark)
     {
         TOOL_ASSERT(LoopIsInitialized(&circular->loop), "Cannot pop a non-initialized Circular Allocator to bookmark.");
         
@@ -771,12 +1225,14 @@ namespace Tool
     }
     
     // Deinitialize the circular buffer.
-    void CircularDeInit(Circular* circular)
+    void MagicCircularDeInit(MagicCircular* circular)
     {
         LoopDealloc(&circular->loop);
         circular->start = 0;
         circular->size = 0;
     }
+    
+#endif // TOOL_MIRRORED_MEMORY
     
     
     
@@ -799,10 +1255,19 @@ namespace Tool
         return ArenaAlloc((Arena*)data, size);
     }
     
-    static void* AllocationTriggerCircular(u64 size, void* data)
+#ifdef TOOL_VIRTUAL_MEMORY
+    static void* AllocationTriggerContiguousArena(u64 size, void* data)
     {
-        return CircularAlloc((Circular*)data, size);
+        return ContiguousArenaAlloc((ContiguousArena*)data, size);
     }
+#endif
+    
+#ifdef TOOL_MIRRORED_MEMORY
+    static void* AllocationTriggerMagicCircular(u64 size, void* data)
+    {
+        return MagicCircularAlloc((MagicCircular*)data, size);
+    }
+#endif
     
     //~ Exposed allocator functions
     
@@ -816,10 +1281,19 @@ namespace Tool
         return { &AllocationTriggerArena, nullptr, (void*)arena };
     }
     
-    MemoryAllocator Allocator(Circular* circular) // Circular buffer
+#ifdef TOOL_VIRTUAL_MEMORY
+    MemoryAllocator Allocator(ContiguousArena* arena) // Contiguous arena
     {
-        return { &AllocationTriggerCircular, nullptr, (void*)circular };
+        return { &AllocationTriggerContiguousArena, nullptr, (void*)arena };
     }
+#endif
+    
+#ifdef TOOL_MIRRORED_MEMORY
+    MemoryAllocator Allocator(MagicCircular* circular) // Magic circular buffer
+    {
+        return { &AllocationTriggerMagicCircular, nullptr, (void*)circular };
+    }
+#endif
     
     void* AllocatorAlloc(MemoryAllocator allocator, u64 size)
     {

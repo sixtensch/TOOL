@@ -1,6 +1,7 @@
 
 #include "text.h"
 #include "mathematics.h"
+#include "error.h"
 
 
 
@@ -518,115 +519,144 @@ namespace Tool
     
     //~ String Builder helper functions
     
-    static void StringBuilderAddConst(StringBuilder* builder, const c8* string, u64 size)
+    // Whether 'addedBytes' more content, plus a terminator of 'terminatorBytes', fits the builder
+    static b8 StringBuilderFits(StringBuilder* builder, u64 addedBytes, u64 terminatorBytes)
+    {
+        if (builder->size + addedBytes + terminatorBytes > builder->capacity)
+        {
+            return TOOL_FAIL("String does not fit the String Builder. (%llu + %llu bytes, %llu available)",
+                             builder->size, addedBytes, builder->capacity - terminatorBytes);
+        }
+        
+        return true;
+    }
+    
+    static b8 StringBuilderAddConst(StringBuilder* builder, const c8* string, u64 size)
     {
         switch (builder->type)
         {
             case StringTypeUTF8:
             {
-                u64 offset = builder->size;
-                builder->size += size; 
-                RegionCommit(&builder->region, builder->size + 1);
-                Copy(builder->str8 + offset, string, size);
+                if (!StringBuilderFits(builder, size, 1))
+                {
+                    return false;
+                }
+                
+                Copy(builder->str8 + builder->size, string, size);
+                builder->size += size;
                 builder->str8[builder->size] = '\0';
+                return true;
             }
-            break;
             
             case StringTypeUTF16:
             {
-                u64 offset = builder->size / 2;
-                u64 needed = size * 2 + 1;
-                RegionCommit(&builder->region, builder->size + needed);
-                u64 realCount = UTF8ToUTF16(string, size, builder->str16 + offset, needed); // TODO(crazy): Maybe this is technical debt?
-                builder->size += realCount * 2; 
-                builder->str16[builder->size / 2] = L'\0';
+                u64 count = UTF8ToUTF16(string, size, nullptr, 0);
+                if (!StringBuilderFits(builder, count * 2, 2))
+                {
+                    return false;
+                }
+                
+                UTF8ToUTF16(string, size, builder->str16 + builder->size / 2, count);
+                builder->size += count * 2;
+                builder->str16[builder->size / 2] = u'\0';
+                return true;
             }
-            break;
             
             default:
-            break;
+            return false;
         }
     }
     
-    static void StringBuilderAddConst(StringBuilder* builder, const c16* string, u64 size)
+    static b8 StringBuilderAddConst(StringBuilder* builder, const c16* string, u64 count)
     {
         switch (builder->type)
         {
             case StringTypeUTF8:
             {
-                u64 offset = builder->size;
-                u64 needed = size * 2 + 1;
-                RegionCommit(&builder->region, builder->size + needed);
-                u64 realSize = UTF16ToUTF8(string, size, builder->str8 + offset, needed); // TODO(crazy): Maybe this is technical debt?
-                builder->size += realSize; 
+                u64 size = UTF16ToUTF8(string, count, nullptr, 0);
+                if (!StringBuilderFits(builder, size, 1))
+                {
+                    return false;
+                }
+                
+                UTF16ToUTF8(string, count, builder->str8 + builder->size, size);
+                builder->size += size;
                 builder->str8[builder->size] = '\0';
+                return true;
             }
-            break;
             
             case StringTypeUTF16:
             {
-                u64 offset = builder->size / 2;
-                u64 realSize = size * 2;
-                builder->size += realSize; 
-                RegionCommit(&builder->region, builder->size + 1);
-                Copy(builder->str16 + offset, string, realSize);
-                builder->str16[builder->size / 2] = L'\0';
+                if (!StringBuilderFits(builder, count * 2, 2))
+                {
+                    return false;
+                }
                 
+                Copy(builder->str16 + builder->size / 2, string, count * 2);
+                builder->size += count * 2;
+                builder->str16[builder->size / 2] = u'\0';
+                return true;
             }
-            break;
             
             default:
-            break;
+            return false;
         }
     }
     
     //~ String builder
     
-    void StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type)
+    b8 StringBuilderInit(StringBuilder* builder, u64 capacity, StringType type)
     {
-        RegionReserve(&builder->region, capacity);
-        RegionCommit(&builder->region, TOOL_MIN(capacity, 16));
+        // Room for the widest terminator, so an empty builder is always a valid string
+        TOOL_ASSERT(capacity >= 2, "A String Builder needs a capacity of at least 2 bytes. (%llu)", capacity);
+        
+        *builder = {};
+        
+        builder->str8 = (c8*)ClassicAlloc(capacity);
+        if (builder->str8 == nullptr)
+        {
+            return false;
+        }
         
         builder->type = type;
-        builder->size = 0;
-        builder->str8 = (c8*)builder->region.start;
-        builder->str16[0] = L'\0';
+        builder->capacity = capacity;
+        builder->str16[0] = u'\0';
+        
+        return true;
     }
     
     void StringBuilderDestroy(StringBuilder* builder)
     {
-        RegionDealloc(&builder->region);
+        ClassicDealloc(builder->str8);
         
-        builder->type = StringTypeNone;
-        builder->size = 0;
-        builder->str8 = nullptr;
+        *builder = {};
     }
     
     void StringBuilderReset(StringBuilder* builder)
     {
         builder->size = 0;
-        builder->str16[0] = (c16)L'\0';
+        builder->str16[0] = u'\0';
     }
     
-    void StringBuilderAdd(StringBuilder* builder, const s8* string)
+    b8 StringBuilderAdd(StringBuilder* builder, const s8* string)
     {
-        StringBuilderAddConst(builder, string->str, string->size);
+        return StringBuilderAddConst(builder, string->str, string->size);
     }
     
-    void StringBuilderAdd(StringBuilder* builder, const s16* string)
+    b8 StringBuilderAdd(StringBuilder* builder, const s16* string)
     {
-        StringBuilderAddConst(builder, string->str, string->size);
+        return StringBuilderAddConst(builder, string->str, string->size);
     }
     
-    void StringBuilderAdd(StringBuilder* builder, const c8* cstr)
+    b8 StringBuilderAdd(StringBuilder* builder, const c8* cstr)
     {
         u64 size = CStr8Size(cstr);
-        StringBuilderAddConst(builder, cstr, size);
+        return StringBuilderAddConst(builder, cstr, size);
     }
     
-    void StringBuilderAdd(StringBuilder* builder, const c16* cstr)
+    b8 StringBuilderAdd(StringBuilder* builder, const c16* cstr)
     {
         u64 count = CStr16Count(cstr);
-        StringBuilderAddConst(builder, cstr, count);
+        return StringBuilderAddConst(builder, cstr, count);
     }
 }
