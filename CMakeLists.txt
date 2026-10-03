@@ -18,8 +18,9 @@ if (UNIX)
     add_compile_definitions(TOOL_UNIX=1)
 endif()
 
+# TOOL initializes nested aggregates without inner braces.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces -march=native")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
 endif()
 
 set(TOOL_SOURCE_DIR "source")
@@ -63,6 +64,11 @@ target_include_directories(TOOL PRIVATE "${TOOL_INCLUDE_DIR}/tool")
 target_compile_features(TOOL PUBLIC 
     cxx_std_20
 )
+
+# The instruction set is the consuming project's choice, made once for every file (see intrinsics.h). With it
+# uniform, the GCC and Clang notes that 8-wide vectors pass differently with and without AVX have nothing to warn
+# about.
+target_compile_options(TOOL PUBLIC $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-psabi>)
 
 target_compile_definitions(TOOL PRIVATE
     $<$<CONFIG:Debug>:DEBUG_BUILD>
