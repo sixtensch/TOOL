@@ -11,6 +11,7 @@
 
 #ifdef TOOL_UNIX
 #define DLL_EXPORT extern "C"  __attribute__((visibility("default")))
+#define DLL_IMPORT extern "C"
 #endif
 
 #define SCRIPT(name) \
