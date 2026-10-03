@@ -32,6 +32,7 @@
 #include "tool/random.h"
 #include "tool/linking.h"
 #include "tool/error.h"
+#include "tool/atomic.h"
 #include "tool/threading.h"
 #include "tool/temporal.h"
 #include "tool/io.h"

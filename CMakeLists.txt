@@ -51,6 +51,14 @@ add_library(TOOL
 )
 
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")
+
+# Threads wait through WaitOnAddress on Windows and pthreads with futexes on Unix.
+if (WIN32)
+    target_link_libraries(TOOL PUBLIC Synchronization)
+elseif (UNIX)
+    find_package(Threads REQUIRED)
+    target_link_libraries(TOOL PUBLIC Threads::Threads)
+endif()
 target_include_directories(TOOL PRIVATE "${TOOL_INCLUDE_DIR}/tool")
 
 target_compile_features(TOOL PUBLIC 
@@ -125,6 +133,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testmatrix.cpp"
     "${TOOL_SOURCE_DIR}/test/testcolor.cpp"
     "${TOOL_SOURCE_DIR}/test/testrandom.cpp"
+    "${TOOL_SOURCE_DIR}/test/testthreading.cpp"
     )
 
     target_link_libraries(TOOLTest TOOL)
