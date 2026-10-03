@@ -4,8 +4,6 @@
 #include "basics.h"
 #include "text.h"
 
-#include <string.h>
-
 // The two multiply intrinsics, declared as <intrin.h> does, to spare every includer that header.
 #if defined(_MSC_VER) && !defined(__SIZEOF_INT128__)
 extern "C" unsigned __int64 _umul128(unsigned __int64 _Multiplier, unsigned __int64 _Multiplicand, unsigned __int64* _HighProduct);
@@ -158,9 +156,14 @@ namespace Tool
             return value;
         }
 
+#if defined(__clang__) || defined(__GNUC__)
         u64 value;
-        memcpy(&value, p, 8);
+        __builtin_memcpy(&value, p, 8);
         return value;
+#else
+        // MSVC does no type-based alias analysis, and its targets allow unaligned loads.
+        return *(const u64*)p;
+#endif
     }
 
     constexpr u64 HashRapidRead32(const c8* p)
@@ -173,9 +176,13 @@ namespace Tool
             return value;
         }
 
+#if defined(__clang__) || defined(__GNUC__)
         u32 value;
-        memcpy(&value, p, 4);
+        __builtin_memcpy(&value, p, 4);
         return value;
+#else
+        return *(const u32*)p;
+#endif
     }
 
     inline constexpr u64 hashRapidSecret[8] = {
