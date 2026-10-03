@@ -28,6 +28,7 @@ void TestMatrix();
 void TestColor();
 void TestRandom();
 void TestThreading();
+void TestIO();
 u32 TestIntrinsicsRun(const c8** outFirstFailure);
 
 #endif //TEST_H

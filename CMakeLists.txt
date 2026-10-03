@@ -133,6 +133,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testcolor.cpp"
     "${TOOL_SOURCE_DIR}/test/testrandom.cpp"
     "${TOOL_SOURCE_DIR}/test/testthreading.cpp"
+    "${TOOL_SOURCE_DIR}/test/testio.cpp"
     )
 
     target_link_libraries(TOOLTest TOOL)
