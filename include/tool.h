@@ -27,6 +27,8 @@
 #include "tool/color.h"
 #include "tool/text.h"
 #include "tool/memory.h"
+#include "tool/hash.h"
+#include "tool/hashmap.h"
 #include "tool/variadic.h"
 #include "tool/random.h"
 #include "tool/linking.h"

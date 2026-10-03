@@ -37,6 +37,7 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/basics.cpp"
     "${TOOL_SOURCE_DIR}/entry.cpp"
     "${TOOL_SOURCE_DIR}/error.cpp"
+    "${TOOL_SOURCE_DIR}/hashmap.cpp"
     "${TOOL_SOURCE_DIR}/mathematics.cpp"
     "${TOOL_SOURCE_DIR}/memory.cpp"
     "${TOOL_SOURCE_DIR}/quaternion.cpp"
@@ -116,6 +117,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 
     add_executable(TOOLTest
     "${TOOL_SOURCE_DIR}/test/test.cpp"
+    "${TOOL_SOURCE_DIR}/test/testhashmap.cpp"
     )
 
     target_link_libraries(TOOLTest TOOL)

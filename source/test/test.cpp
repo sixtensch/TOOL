@@ -31,6 +31,8 @@ class C
 
 int main()
 {
+    TestHashMap();
+
     Arena arena = {};
     ArenaInit(&arena, Allocator(), 1024, "Test");
     

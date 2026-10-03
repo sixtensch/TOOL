@@ -20,4 +20,6 @@ void name##_cpp(int a, int b)
 typedef void (*VoidFunc)();
 typedef int (*IntFunc)();
 
+void TestHashMap();
+
 #endif //TEST_H
