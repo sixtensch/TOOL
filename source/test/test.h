@@ -22,6 +22,7 @@ typedef void (*VoidFunc)();
 typedef int (*IntFunc)();
 
 void TestHashMap();
+void TestMathematics();
 void TestRandom();
 u32 TestIntrinsicsRun(const c8** outFirstFailure);
 

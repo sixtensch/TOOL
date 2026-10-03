@@ -31,10 +31,11 @@
 #define I32_MAX 0x7FFFFFFF
 #define I64_MAX 0x7FFFFFFFFFFFFFFF
 
-#define I8_MIN -0x80
-#define I16_MIN -0x8000
-#define I32_MIN -0x80000000
-#define I64_MIN -0x8000000000000000
+// Written as -MAX - 1, since the literal 0x80000000 is unsigned and negating it stays unsigned.
+#define I8_MIN (-0x7F - 1)
+#define I16_MIN (-0x7FFF - 1)
+#define I32_MIN (-0x7FFFFFFF - 1)
+#define I64_MIN (-0x7FFFFFFFFFFFFFFF - 1)
 
 #define U8_MAX 0xFFu
 #define U16_MAX 0xFFFFu
@@ -84,7 +85,6 @@ namespace Tool
     
     typedef float             f32;
     typedef double            f64;
-    typedef long double       f128;
     
     typedef bool              b8;
     typedef int               b32;
@@ -110,7 +110,6 @@ using Tool::u64;
 
 using Tool::f32;
 using Tool::f64;
-using Tool::f128;
 
 using Tool::b8;
 using Tool::b32;

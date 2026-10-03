@@ -118,7 +118,7 @@ namespace Tool
     q4 Q4Axis(v3 normalizedAxis, f32 radians)
     {
         f32 r = radians * 0.5f;
-        return Q4FromComponents(normalizedAxis * FSin(r), FCos(r));
+        return Q4FromComponents(normalizedAxis * F32Sin(r), F32Cos(r));
     }
     
     q4 Q4Euler(v3 euler)
@@ -128,12 +128,12 @@ namespace Tool
     
     q4 Q4Euler(f32 pitch, f32 yaw, f32 roll)
     {
-        f32 sx = FSin(pitch * 0.5f);
-        f32 sy = FSin(yaw * 0.5f);
-        f32 sz = FSin(roll * 0.5f);
-        f32 cx = FCos(pitch * 0.5f);
-        f32 cy = FCos(yaw * 0.5f);
-        f32 cz = FCos(roll * 0.5f);
+        f32 sx = F32Sin(pitch * 0.5f);
+        f32 sy = F32Sin(yaw * 0.5f);
+        f32 sz = F32Sin(roll * 0.5f);
+        f32 cx = F32Cos(pitch * 0.5f);
+        f32 cy = F32Cos(yaw * 0.5f);
+        f32 cz = F32Cos(roll * 0.5f);
         
         return
         {
@@ -146,7 +146,7 @@ namespace Tool
     
     q4 Q4FromTo(v3 from, v3 to)
     {
-        f32 comp = FSqrt(2.0f + from * to);
+        f32 comp = F32Sqrt(2.0f + from * to);
         return Q4FromComponents((from % to) * (1.0f / comp), comp * 0.5f);
     }
     
@@ -157,7 +157,7 @@ namespace Tool
         v3 right = up % direction;
         
         Quaternion q = { 0 };
-        q.w = 0.5f * FSqrt(1.0f + right.x + up.y + direction.z);
+        q.w = 0.5f * F32Sqrt(1.0f + right.x + up.y + direction.z);
         
         f32 rec = 0.25f / q.w;
         
@@ -170,7 +170,7 @@ namespace Tool
     
     q4 Q4Deconstruct(const m4& matrix)
     {
-        f32 w = 0.5f * FSqrt(M4Trace(matrix)); 
+        f32 w = 0.5f * F32Sqrt(M4Trace(matrix)); 
         f32 inv = 0.25f / w;
         
         return 
@@ -185,9 +185,9 @@ namespace Tool
     q4 Q4Slerp(q4 from, q4 to, f32 t)
     {
         f32 dot = from.vec * to.vec;
-        f32 theta = FAcos(dot);
-        f32 invSine = 1.0f / FSin(theta);
-        return from * (FSin(theta * (1 - t)) * invSine) + to * (FSin(theta * t) * invSine);
+        f32 theta = F32Acos(dot);
+        f32 invSine = 1.0f / F32Sin(theta);
+        return from * (F32Sin(theta * (1 - t)) * invSine) + to * (F32Sin(theta * t) * invSine);
     }
     
     //~ Conversions
