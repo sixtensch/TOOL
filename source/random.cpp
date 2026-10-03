@@ -6,16 +6,14 @@
 
 namespace Tool
 {
-    //- Generators
+    //~ Collections
 
-    //~ Stream
-
-    void RandomFill(Random* rng, void* dst, u64 size)
+    void RandomFillNext(RandomStream* stream, void* dst, u64 size)
     {
         u8* bytes = (u8*)dst;
         while (size > 0)
         {
-            u64 bits = RandomNext(rng);
+            u64 bits = RandomU64Next(stream);
             u64 count = size < 8 ? size : 8;
             for (u64 i = 0; i < count; i++)
                 bytes[i] = (u8)(bits >> (i * 8));
@@ -25,14 +23,11 @@ namespace Tool
     }
 
 
-
-    //- Distributions
-
     //~ Gaussian
 
     // Box-Muller: the radius term takes u in (0, 1], so its log is finite.
 
-    f32 RandomGaussianF32(u64 bits, f32 mean, f32 deviation)
+    f32 RandomBitsGaussianF32(u64 bits, f32 mean, f32 deviation)
     {
         f32 u = (f32)((bits >> 40) + 1) * 0x1p-24f;
         f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
@@ -41,10 +36,10 @@ namespace Tool
         return mean + scaled;
     }
 
-    f64 RandomGaussianF64(u64 bits, f64 mean, f64 deviation)
+    f64 RandomBitsGaussianF64(u64 bits, f64 mean, f64 deviation)
     {
         f64 u = (f64)((bits >> 11) + 1) * 0x1p-53;
-        f64 angle = RandomF64(RandomStretch(bits)) * 6.283185307179586;
+        f64 angle = RandomBitsF64(RandomStretch(bits)) * 6.283185307179586;
         f64 radius = std::sqrt(-2.0 * std::log(u));
         f64 scaled = deviation * radius * std::cos(angle);
         return mean + scaled;
@@ -54,32 +49,32 @@ namespace Tool
 
     // Each takes two independent 24-bit uniforms from the top and bottom of the word.
 
-    v2 RandomOnCircle(u64 bits)
+    v2 RandomBitsOnCircle(u64 bits)
     {
-        f32 angle = RandomF32(bits) * 6.28318530718f;
+        f32 angle = RandomBitsF32(bits) * 6.28318530718f;
         return v2 { std::cos(angle), std::sin(angle) };
     }
 
-    v2 RandomInCircle(u64 bits)
+    v2 RandomBitsInCircle(u64 bits)
     {
-        f32 radius = std::sqrt(RandomF32(bits));
+        f32 radius = std::sqrt(RandomBitsF32(bits));
         f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
         return v2 { radius * std::cos(angle), radius * std::sin(angle) };
     }
 
-    v3 RandomOnSphere(u64 bits)
+    v3 RandomBitsOnSphere(u64 bits)
     {
-        f32 z = 1.0f - 2.0f * RandomF32(bits);
+        f32 z = 1.0f - 2.0f * RandomBitsF32(bits);
         f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
         f32 squared = 1.0f - z * z;
         f32 radius = squared > 0.0f ? std::sqrt(squared) : 0.0f;
         return v3 { radius * std::cos(angle), radius * std::sin(angle), z };
     }
 
-    v3 RandomInSphere(u64 bits)
+    v3 RandomBitsInSphere(u64 bits)
     {
-        v3 direction = RandomOnSphere(bits);
-        f32 radius = std::cbrt(RandomF32(RandomStretch(bits)));
+        v3 direction = RandomBitsOnSphere(bits);
+        f32 radius = std::cbrt(RandomBitsF32(RandomStretch(bits)));
         return v3 { direction.x * radius, direction.y * radius, direction.z * radius };
     }
 
@@ -117,28 +112,31 @@ namespace Tool
             radical = radical * base + digit;
             scale *= base;
         }
-        return (f32)((radical << 24) / scale) * 0x1p-24f;
+        // Rounded up, so points on a 1/b^k boundary stay in their own interval, but kept below 1.
+        u64 rounded = ((radical << 24) + scale - 1) / scale;
+        return (f32)(rounded < 0xffffffull ? rounded : 0xffffffull) * 0x1p-24f;
     }
 
-    // Each axis draws its shifts from its own word. The constant keeps them apart from RandomKey outputs of the seed.
-
-    f32 RandomSpreadF32(u64 seed, u64 index)
+    // Each axis draws its shifts from its own word. The constant keeps them apart from keyed outputs of the seed.
+    void RandomSpreadInit(RandomSpread* spread, u64 seed)
     {
-        u64 shifts = RandomMix(seed ^ 0x5d588b656c078965ull);
-        return RandomSpreadBase2(index, shifts);
+        spread->shifts[0] = RandomMix(seed ^ 0x5d588b656c078965ull);
+        spread->shifts[1] = RandomStretch(spread->shifts[0]);
+        spread->shifts[2] = RandomStretch(spread->shifts[1]);
     }
 
-    v2 RandomSpreadV2(u64 seed, u64 index)
+    f32 RandomF32At(const RandomSpread* spread, u64 index)
     {
-        u64 shifts = RandomMix(seed ^ 0x5d588b656c078965ull);
-        return v2 { RandomSpreadBase2(index, shifts), RandomSpreadBase(index, RandomStretch(shifts), 3, 16) };
+        return RandomSpreadBase2(index, spread->shifts[0]);
     }
 
-    v3 RandomSpreadV3(u64 seed, u64 index)
+    v2 RandomV2At(const RandomSpread* spread, u64 index)
     {
-        u64 shifts0 = RandomMix(seed ^ 0x5d588b656c078965ull);
-        u64 shifts1 = RandomStretch(shifts0);
-        u64 shifts2 = RandomStretch(shifts1);
-        return v3 { RandomSpreadBase2(index, shifts0), RandomSpreadBase(index, shifts1, 3, 16), RandomSpreadBase(index, shifts2, 5, 11) };
+        return v2 { RandomSpreadBase2(index, spread->shifts[0]), RandomSpreadBase(index, spread->shifts[1], 3, 16) };
+    }
+
+    v3 RandomV3At(const RandomSpread* spread, u64 index)
+    {
+        return v3 { RandomSpreadBase2(index, spread->shifts[0]), RandomSpreadBase(index, spread->shifts[1], 3, 16), RandomSpreadBase(index, spread->shifts[2], 5, 11) };
     }
 }
