@@ -1,5 +1,5 @@
-#ifndef THREADING_H
-#define THREADING_H
+#ifndef _TOOL_THREADING_H
+#define _TOOL_THREADING_H
 
 #include "basics.h"
 #include "atomic.h"
@@ -132,4 +132,4 @@ namespace Tool
 	b8 BarrierWait(Barrier* barrier); // True on exactly one thread per round, for work done once between rounds
 } //namespace Tool
 
-#endif //THREADING_H
+#endif //_TOOL_THREADING_H

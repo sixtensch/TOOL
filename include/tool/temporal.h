@@ -1,5 +1,5 @@
-#ifndef TOOL_TEMPORAL_H
-#define TOOL_TEMPORAL_H
+#ifndef _TOOL_TEMPORAL_H
+#define _TOOL_TEMPORAL_H
 
 #include "basics.h"
 
@@ -122,4 +122,4 @@ namespace Tool
 
 
 
-#endif //TOOL_TEMPORAL_H
+#endif //_TOOL_TEMPORAL_H

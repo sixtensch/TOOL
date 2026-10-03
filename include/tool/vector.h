@@ -559,4 +559,4 @@ using Tool::p4u; // Point4 unsigned
 
 
 
-#endif //_VECTOR_H
+#endif //_TOOL_VECTOR_H

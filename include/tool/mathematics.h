@@ -585,4 +585,4 @@ using Tool::U32Wrap;
 
 
 
-#endif
+#endif //_TOOL_MATHEMATICS_H

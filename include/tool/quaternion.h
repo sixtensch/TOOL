@@ -96,4 +96,4 @@ using Tool::q4;
 
 
 
-#endif //_QUATERNION_H
+#endif //_TOOL_QUATERNION_H
