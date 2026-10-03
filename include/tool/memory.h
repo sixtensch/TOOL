@@ -241,7 +241,7 @@ namespace Tool
 
     // Places new object onto the arena.
     // WARNING: objects created this way will NOT automatically destruct when popping or resetting the arena!
-    template<typename T, class... Args> inline T* ArenaPlace(Arena* arena, Args&&... args) { return new ((T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T((Args&&...)args...); }
+    template<typename T, class... Args> inline T* ArenaPlace(Arena* arena, Args&&... args) { return new ((T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T(static_cast<Args&&>(args)...); }
 
     // Saves the current position. The matching ArenaPop releases everything allocated since, child arenas
     // included, and keeps the chunks for reuse.
@@ -285,7 +285,7 @@ namespace Tool
 
     // Places new object onto the current arena frame
     // WARNING: objects created this way will NOT automatically destruct when popping the arena frame!
-    template<typename T, class... Args> inline T* ContiguousArenaPlace(ContiguousArena* arena, Args&&... args) { return new ((T*)Tool::ContiguousArenaAlloc(arena, sizeof(T))) T((Args&&...)args...); }
+    template<typename T, class... Args> inline T* ContiguousArenaPlace(ContiguousArena* arena, Args&&... args) { return new ((T*)Tool::ContiguousArenaAlloc(arena, sizeof(T))) T(static_cast<Args&&>(args)...); }
 
     // Pushes a new arena frame.
     void ContiguousArenaPush(ContiguousArena* arena);
@@ -317,7 +317,7 @@ namespace Tool
 
     // Places new object onto the circular buffer.
     // WARNING: objects created this way will NOT automatically destruct when popping the arena frame!
-    template<typename T, class... Args> inline T* MagicCircularPlace(MagicCircular* circular, Args&&... args) { return new ((T*)Tool::MagicCircularAlloc(circular, sizeof(T))) T((Args&&...)args...); }
+    template<typename T, class... Args> inline T* MagicCircularPlace(MagicCircular* circular, Args&&... args) { return new ((T*)Tool::MagicCircularAlloc(circular, sizeof(T))) T(static_cast<Args&&>(args)...); }
 
     // Get a reference to the current writing location (bookmark).
     // Can be used to then get a data pointer, or deallocate everything prior to the bookmark.
