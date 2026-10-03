@@ -1,6 +1,5 @@
 #include "random.h"
-
-#include <cmath>
+#include "mathematics.h"
 
 
 
@@ -30,18 +29,18 @@ namespace Tool
     f64 RandomBitsGaussianF64(u64 bits, f64 mean, f64 deviation)
     {
         f64 u = (f64)((bits >> 11) + 1) * 0x1p-53;
-        f64 angle = RandomBitsF64(RandomStretch(bits)) * 6.283185307179586;
-        f64 radius = std::sqrt(-2.0 * std::log(u));
-        f64 scaled = deviation * radius * std::cos(angle);
+        f64 angle = RandomBitsF64(RandomStretch(bits)) * F64_TAU;
+        f64 radius = F64Sqrt(-2.0 * F64Log(u));
+        f64 scaled = deviation * radius * F64Cos(angle);
         return mean + scaled;
     }
 
     f32 RandomBitsGaussianF32(u64 bits, f32 mean, f32 deviation)
     {
         f32 u = (f32)((bits >> 40) + 1) * 0x1p-24f;
-        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
-        f32 radius = std::sqrt(-2.0f * std::log(u));
-        f32 scaled = deviation * radius * std::cos(angle);
+        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * F32_TAU;
+        f32 radius = F32Sqrt(-2.0f * F32Log(u));
+        f32 scaled = deviation * radius * F32Cos(angle);
         return mean + scaled;
     }
 
@@ -51,30 +50,30 @@ namespace Tool
 
     v2 RandomBitsOnCircle(u64 bits)
     {
-        f32 angle = RandomBitsF32(bits) * 6.28318530718f;
-        return v2 { std::cos(angle), std::sin(angle) };
+        f32 angle = RandomBitsF32(bits) * F32_TAU;
+        return v2 { F32Cos(angle), F32Sin(angle) };
     }
 
     v2 RandomBitsInCircle(u64 bits)
     {
-        f32 radius = std::sqrt(RandomBitsF32(bits));
-        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
-        return v2 { radius * std::cos(angle), radius * std::sin(angle) };
+        f32 radius = F32Sqrt(RandomBitsF32(bits));
+        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * F32_TAU;
+        return v2 { radius * F32Cos(angle), radius * F32Sin(angle) };
     }
 
     v3 RandomBitsOnSphere(u64 bits)
     {
         f32 z = 1.0f - 2.0f * RandomBitsF32(bits);
-        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
+        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * F32_TAU;
         f32 squared = 1.0f - z * z;
-        f32 radius = squared > 0.0f ? std::sqrt(squared) : 0.0f;
-        return v3 { radius * std::cos(angle), radius * std::sin(angle), z };
+        f32 radius = squared > 0.0f ? F32Sqrt(squared) : 0.0f;
+        return v3 { radius * F32Cos(angle), radius * F32Sin(angle), z };
     }
 
     v3 RandomBitsInSphere(u64 bits)
     {
         v3 direction = RandomBitsOnSphere(bits);
-        f32 radius = std::cbrt(RandomBitsF32(RandomStretch(bits)));
+        f32 radius = F32Cbrt(RandomBitsF32(RandomStretch(bits)));
         return v3 { direction.x * radius, direction.y * radius, direction.z * radius };
     }
 

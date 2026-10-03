@@ -645,8 +645,8 @@ namespace Tool
     
     inline m2 M2Rotation(f32 radians)
     {
-        f32 c = FCos(radians);
-        f32 s = FSin(radians);
+        f32 c = F32Cos(radians);
+        f32 s = F32Sin(radians);
 
         // [ c -s ; s c ]
         return
@@ -743,12 +743,12 @@ namespace Tool
     
     inline m3 M3Rotation(f32 pitch, f32 yaw, f32 roll)
     {
-        f32 cx = FCos(pitch);
-        f32 sx = FSin(pitch);
-        f32 cy = FCos(yaw);
-        f32 sy = FSin(yaw);
-        f32 cz = FCos(roll);
-        f32 sz = FSin(roll);
+        f32 cx = F32Cos(pitch);
+        f32 sx = F32Sin(pitch);
+        f32 cy = F32Cos(yaw);
+        f32 sy = F32Sin(yaw);
+        f32 cz = F32Cos(roll);
+        f32 sz = F32Sin(roll);
         
         f32 sxsy = sx * sy;
         f32 sxcy = sx * cy;
@@ -763,8 +763,8 @@ namespace Tool
 
     inline m3 M3RotationX(f32 pitch)
     {
-        f32 c = FCos(pitch);
-        f32 s = FSin(pitch);
+        f32 c = F32Cos(pitch);
+        f32 s = F32Sin(pitch);
 
         // [ 1 0 0 ; 0 c -s ; 0 s c ]
         return
@@ -777,8 +777,8 @@ namespace Tool
 
     inline m3 M3RotationY(f32 yaw)
     {
-        f32 c = FCos(yaw);
-        f32 s = FSin(yaw);
+        f32 c = F32Cos(yaw);
+        f32 s = F32Sin(yaw);
 
         // [ c 0 s ; 0 1 0 ; -s 0 c ]
         return
@@ -791,8 +791,8 @@ namespace Tool
 
     inline m3 M3RotationZ(f32 roll)
     {
-        f32 c = FCos(roll);
-        f32 s = FSin(roll);
+        f32 c = F32Cos(roll);
+        f32 s = F32Sin(roll);
 
         // [ c -s 0 ; s c 0 ; 0 0 1 ]
         return
@@ -903,12 +903,12 @@ namespace Tool
     
     inline m4 M4Rotation(f32 pitch, f32 yaw, f32 roll)
     {
-        f32 cx = FCos(pitch);
-        f32 sx = FSin(pitch);
-        f32 cy = FCos(yaw);
-        f32 sy = FSin(yaw);
-        f32 cz = FCos(roll);
-        f32 sz = FSin(roll);
+        f32 cx = F32Cos(pitch);
+        f32 sx = F32Sin(pitch);
+        f32 cy = F32Cos(yaw);
+        f32 sy = F32Sin(yaw);
+        f32 cz = F32Cos(roll);
+        f32 sz = F32Sin(roll);
         
         f32 sxsy = sx * sy;
         f32 sxcy = sx * cy;
@@ -924,8 +924,8 @@ namespace Tool
 
     inline m4 M4RotationX(f32 pitch)
     {
-        f32 c = FCos(pitch);
-        f32 s = FSin(pitch);
+        f32 c = F32Cos(pitch);
+        f32 s = F32Sin(pitch);
 
         // [ 1 0 0 0 ; 0 c -s 0 ; 0 s c 0 ; 0 0 0 1 ]
         return
@@ -939,8 +939,8 @@ namespace Tool
 
     inline m4 M4RotationY(f32 yaw)
     {
-        f32 c = FCos(yaw);
-        f32 s = FSin(yaw);
+        f32 c = F32Cos(yaw);
+        f32 s = F32Sin(yaw);
 
         // [ c 0 s 0 ; 0 1 0 0 ; -s 0 c 0 ; 0 0 0 1 ]
         return
@@ -954,8 +954,8 @@ namespace Tool
 
     inline m4 M4RotationZ(f32 roll)
     {
-        f32 c = FCos(roll);
-        f32 s = FSin(roll);
+        f32 c = F32Cos(roll);
+        f32 s = F32Sin(roll);
 
         // [ c -s 0 0 ; s c 0 0 ; 0 0 1 0 ; 0 0 0 1 ]
         return
@@ -1038,9 +1038,9 @@ namespace Tool
         f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
         f32 zFactor = 1.0f - (type == ClipTypeOpenGL) * 2.0f;
         
-        f32 r = TOOL_D2R(verticalFovDegrees);
+        f32 r = F32Radians(verticalFovDegrees);
         
-        f32 yy = 1.0f / FTan(r * 0.5f);
+        f32 yy = 1.0f / F32Tan(r * 0.5f);
         f32 xx = yy / aspectRatio; 
         
         f32 zz = farClip / (farClip - nearClip);

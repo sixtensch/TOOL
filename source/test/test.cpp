@@ -32,6 +32,7 @@ class C
 int main()
 {
     TestHashMap();
+    TestMathematics();
     TestRandom();
 
     const c8* intrinsicsFailure = nullptr;

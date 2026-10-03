@@ -467,7 +467,7 @@ namespace Tool
     
     inline f32 V2Length(v2 vector)
     {
-        return FSqrt(vector.x * vector.x + vector.y * vector.y);
+        return F32Sqrt(vector.x * vector.x + vector.y * vector.y);
     }
     
     inline f32 V2LengthSquared(v2 vector)
@@ -489,7 +489,7 @@ namespace Tool
     
     inline f32 V3Length(v3 vector)
     {
-        return FSqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
+        return F32Sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z);
     }
     
     inline f32 V3LengthSquared(v3 vector)
@@ -511,7 +511,7 @@ namespace Tool
     
     inline f32 V4Length(v4 vector)
     {
-        return FSqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z + vector.w * vector.w);
+        return F32Sqrt(vector.x * vector.x + vector.y * vector.y + vector.z * vector.z + vector.w * vector.w);
     }
     
     inline f32 V4LengthSquared(v4 vector)
