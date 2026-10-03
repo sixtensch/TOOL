@@ -264,7 +264,7 @@ static void TestPoints()
         TOOL_ASSERT(r3 <= 1.0001f);
         ball += r3;
 
-        v3 c = RandomV3Next(&stream);
+        v3 c = RandomInCubeNext(&stream);
         TOOL_ASSERT(c.x >= 0.0f && c.x < 1.0f && c.y >= 0.0f && c.y < 1.0f && c.z >= 0.0f && c.z < 1.0f);
         cube.x += c.x;
         cube.y += c.y;
@@ -291,7 +291,7 @@ static b8 TestSpreadStratified(const RandomSpread* spread, u64 first, u32 count,
         strata[i] = 0;
     for (u32 i = 0; i < count; i++)
     {
-        v3 p = RandomV3At(spread, first + i);
+        v3 p = RandomInCubeAt(spread, first + i);
         f32 value = axis == 0 ? p.x : axis == 1 ? p.y : p.z;
         TOOL_ASSERT(value >= 0.0f && value < 1.0f);
         strata[(u32)((f64)value * count)]++;
@@ -319,7 +319,7 @@ static void TestSpread()
 
     // A zeroed spread gives plain Halton points.
     RandomSpread plain = {};
-    TOOL_ASSERT(RandomV3At(&plain, 1).x == 0.5f && RandomV3At(&plain, 1).y == RandomBitsF32(0x5555560000000000ull));
+    TOOL_ASSERT(RandomInCubeAt(&plain, 1).x == 0.5f && RandomInCubeAt(&plain, 1).y == RandomBitsF32(0x5555560000000000ull));
     TOOL_ASSERT(TestSpreadStratified(&plain, 0, 729, 1));
 
     // Lower dimensions are the leading axes of higher ones, and seeds differ.
@@ -330,10 +330,10 @@ static void TestSpread()
     u32 differ = 0;
     for (u64 i = 0; i < 1000; i++)
     {
-        v3 p = RandomV3At(&spread, i);
-        v2 q = RandomV2At(&spread, i);
+        v3 p = RandomInCubeAt(&spread, i);
+        v2 q = RandomInSquareAt(&spread, i);
         TOOL_ASSERT(RandomF32At(&spread, i) == p.x && q.x == p.x && q.y == p.y);
-        differ += RandomV3At(&other, i).x != p.x;
+        differ += RandomInCubeAt(&other, i).x != p.x;
     }
     TOOL_ASSERT(differ > 990);
 
@@ -342,8 +342,8 @@ static void TestSpread()
     RandomSpreadInit(&zeroSeed, 0);
     RandomSpread otherSeed = {};
     RandomSpreadInit(&otherSeed, 12345);
-    v3 a = RandomV3At(&zeroSeed, 0);
-    v3 b = RandomV3At(&otherSeed, 678);
+    v3 a = RandomInCubeAt(&zeroSeed, 0);
+    v3 b = RandomInCubeAt(&otherSeed, 678);
     TOOL_ASSERT(a.x == 0.784486234f && a.y == 0.600558579f && a.z == 0.326837957f);
     TOOL_ASSERT(b.x == 0.681574941f && b.y == 0.779518008f && b.z == 0.27943939f);
 }
