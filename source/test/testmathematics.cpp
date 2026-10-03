@@ -102,6 +102,30 @@ static void TestIntegers()
 	TOOL_ASSERT(I32Min(-1, 1) == -1 && I64Max(-1, 1) == 1 && U32Min(1, 2) == 1 && U64Max(1, 2) == 2);
 }
 
+// The wide multiply agrees at compile time and at runtime.
+constexpr u64 MulWideHigh(u64 a, u64 b)
+{
+	u64 high = 0;
+	U64MulWide(a, b, &high);
+	return high;
+}
+
+static_assert(MulWideHigh(U64_MAX, U64_MAX) == U64_MAX - 1);
+static_assert(MulWideHigh(1ull << 63, 4) == 2);
+static_assert(MulWideHigh(0x0123456789abcdefull, 0xfedcba9876543210ull) == 0x0121fa00ad77d742ull);
+
+static void TestMulWide()
+{
+	volatile u64 x = 0x0123456789abcdefull;
+	volatile u64 y = 0xfedcba9876543210ull;
+	u64 high = 0;
+	TOOL_ASSERT(U64MulWide(x, y, &high) == 0x2236d88fe5618cf0ull && high == 0x0121fa00ad77d742ull);
+
+	volatile u64 m = U64_MAX;
+	TOOL_ASSERT(U64MulWide(m, m, &high) == 1 && high == U64_MAX - 1);
+	TOOL_ASSERT(U64MulWide(m, 0, &high) == 0 && high == 0);
+}
+
 static void TestMacros()
 {
 	// Arguments are parenthesized.
@@ -116,6 +140,7 @@ void TestMathematics()
 {
 	TestFloats();
 	TestIntegers();
+	TestMulWide();
 	TestMacros();
 	printf("Mathematics: passed\n");
 }

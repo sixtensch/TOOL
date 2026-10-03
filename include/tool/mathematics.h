@@ -36,8 +36,6 @@
 
 namespace Tool
 {
-	//- Declarations
-
 	//~ f64
 
 	// Trigonometry
@@ -151,6 +149,9 @@ namespace Tool
 	inline u64 U64Clamp(u64 x, u64 min, u64 max);
 	inline u64 U64Wrap(u64 x, u64 min, u64 max);
 
+	// The full 128-bit product: returns the low 64 bits and writes the high 64 bits to 'high'.
+	constexpr u64 U64MulWide(u64 a, u64 b, u64* high);
+
 	inline i32 I32Abs(i32 x);
 	inline i32 I32Sign(i32 x); // -1, 0 or 1
 	inline i32 I32Min(i32 a, i32 b);
@@ -162,11 +163,25 @@ namespace Tool
 	inline u32 U32Max(u32 a, u32 b);
 	inline u32 U32Clamp(u32 x, u32 min, u32 max);
 	inline u32 U32Wrap(u32 x, u32 min, u32 max);
+} //namespace Tool
 
 
 
-	//- Definitions
+//- Implementation
 
+// The two multiply intrinsics, declared as <intrin.h> does, to spare every includer that header.
+#if defined(_MSC_VER) && !defined(__SIZEOF_INT128__)
+extern "C" unsigned __int64 _umul128(unsigned __int64 _Multiplier, unsigned __int64 _Multiplicand, unsigned __int64* _HighProduct);
+extern "C" unsigned __int64 __umulh(unsigned __int64 _Multiplier, unsigned __int64 _Multiplicand);
+#if defined(_M_X64)
+#pragma intrinsic(_umul128)
+#elif defined(_M_ARM64)
+#pragma intrinsic(__umulh)
+#endif
+#endif
+
+namespace Tool
+{
 	//~ f64
 
 	inline f64 F64Abs(f64 x)
@@ -364,6 +379,42 @@ namespace Tool
 		return min + offset;
 	}
 
+	// At compile time, and where there is no 128-bit type or intrinsic, the product is built from 32-bit halves.
+	constexpr u64 U64MulWide(u64 a, u64 b, u64* high)
+	{
+#if defined(__SIZEOF_INT128__)
+		unsigned __int128 product = (unsigned __int128)a * b;
+		*high = (u64)(product >> 64);
+		return (u64)product;
+#else
+#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+		if (!__builtin_is_constant_evaluated())
+		{
+#if defined(_M_X64)
+			return _umul128(a, b, high);
+#else
+			*high = __umulh(a, b);
+			return a * b;
+#endif
+		}
+#endif
+		u64 ha = a >> 32;
+		u64 hb = b >> 32;
+		u64 la = a & 0xffffffffull;
+		u64 lb = b & 0xffffffffull;
+		u64 rh = ha * hb;
+		u64 rm0 = ha * lb;
+		u64 rm1 = hb * la;
+		u64 rl = la * lb;
+		u64 t = rl + (rm0 << 32);
+		u64 carry = (t < rl) ? 1 : 0;
+		u64 low = t + (rm1 << 32);
+		carry += (low < t) ? 1 : 0;
+		*high = rh + (rm0 >> 32) + (rm1 >> 32) + carry;
+		return low;
+#endif
+	}
+
 	inline i32 I32Abs(i32 x)
 	{
 		return x < 0 ? -x : x;
@@ -423,7 +474,7 @@ namespace Tool
 		u32 offset = x >= min ? (x - min) % period : period - 1 - (min - x - 1) % period;
 		return min + offset;
 	}
-}
+} //namespace Tool
 
 
 
@@ -518,6 +569,7 @@ using Tool::U64Min;
 using Tool::U64Max;
 using Tool::U64Clamp;
 using Tool::U64Wrap;
+using Tool::U64MulWide;
 using Tool::I32Abs;
 using Tool::I32Sign;
 using Tool::I32Min;
