@@ -141,7 +141,7 @@ static void TestPaths()
 	TOOL_ASSERT(DirectoryDelete("tooltest_io/a/b/renamed") && !DirectoryExists("tooltest_io/a/b/renamed"));
 
 	// UTF-8 names go in and come back out the same.
-	const c8* unicode = "tooltest_io/\xC3\xBCn\xC3\xAF" "c\xC3\xB8" "d\xC3\xA9 \xE2\x9C\x93.txt"; // ünïcødé ✓.txt
+	const c8* unicode = "tooltest_io/\xC3\xBCn\xC3\xAF" "c\xC3\xB8" "d\xC3\xA9 \xE2\x9C\x93.txt"; // "unicode" with accents, and a check mark
 	TOOL_ASSERT(FileWriteAll(unicode, "u", 1) && FileExists(unicode));
 
 	// The executable's directory is a real directory, with '/' separators and no trailing one.
@@ -186,10 +186,11 @@ static void TestListing()
 // Past Windows' classic limit of 260 characters, relative and with '..' in it.
 static void TestLongPaths()
 {
-	c8 path[1024] = "tooltest_io/long";
+	c8 path[1024];
+	u64 length = CStr8Copy(path, "tooltest_io/long", sizeof(path));
 	for (u32 i = 0; i < 6; i++)
-		strcat(path, "/directory_with_a_name_long_enough_to_add_up_quickly_0123456789");
-	TOOL_ASSERT(strlen(path) > 300);
+		length += CStr8Copy(path + length, "/directory_with_a_name_long_enough_to_add_up_quickly_0123456789", sizeof(path) - length);
+	TOOL_ASSERT(length > 300 && CStr8Size(path) == length);
 
 	TOOL_ASSERT(DirectoryCreate(path) && DirectoryExists(path), "%s", ErrorMessage());
 	c8 file[1100];

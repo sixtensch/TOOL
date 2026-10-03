@@ -37,6 +37,7 @@ int main()
     TestRandom();
     TestThreading();
     TestIO();
+    TestText();
 
     const c8* intrinsicsFailure = nullptr;
     u32 intrinsicsFailures = TestIntrinsicsRun(&intrinsicsFailure);

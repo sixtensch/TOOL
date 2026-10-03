@@ -18,11 +18,6 @@ static_assert(ConstHashRapid("abc") == 0xcb475beafa9c0da2ull);
 static_assert(ConstHashRapid("hello world") == 0x2f27cb27d5240940ull);
 static_assert(ConstHashRapid("forty bytes of text to hit mid branches.") == 0xbeb35d5906591711ull);
 
-static s8 S8(const c8* cstr)
-{
-    return { (c8*)cstr, CStr8Size(cstr) };
-}
-
 static void TestHashes()
 {
     // Compile-time and runtime paths agree, bulk loop included.
