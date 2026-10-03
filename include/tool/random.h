@@ -484,4 +484,4 @@ namespace Tool
 	}
 } //namespace Tool
 
-#endif
+#endif //_TOOL_RANDOM_H

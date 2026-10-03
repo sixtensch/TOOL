@@ -1143,4 +1143,4 @@ using Tool::m4d; // Matrix4x4 double precision
 
 
 
-#endif //_MATRIX_H
+#endif //_TOOL_MATRIX_H

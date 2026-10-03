@@ -37,4 +37,4 @@ namespace Tool
 
 }
 
-#endif
+#endif //_TOOL_UTILITY_H

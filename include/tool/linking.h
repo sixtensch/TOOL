@@ -41,4 +41,4 @@ namespace Tool
     
 }
 
-#endif //_LINKING_H
+#endif //_TOOL_LINKING_H

@@ -145,4 +145,4 @@ namespace Tool
 
 
 
-#endif
+#endif //_TOOL_BASICS_H

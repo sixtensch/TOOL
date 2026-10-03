@@ -1,6 +1,5 @@
-
-#ifndef _TOOL_EXT_H
-#define _TOOL_EXT_H
+#ifndef _TOOL_H
+#define _TOOL_H
 
 
 
@@ -47,4 +46,4 @@
 
 
 
-#endif
+#endif //_TOOL_H

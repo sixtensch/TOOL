@@ -378,4 +378,4 @@ using Tool::c4f;
 
 
 
-#endif //_COLOR_H
+#endif //_TOOL_COLOR_H
