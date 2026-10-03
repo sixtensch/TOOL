@@ -221,6 +221,56 @@ static void TestGaussianAndGeometry()
     TOOL_ASSERT(mean.z / draws > -0.005f && mean.z / draws < 0.005f);
 }
 
+// Counts how many of 'count' points from index 'first' land in each of 'count' equal intervals of one axis.
+static b8 RandomSpreadStratified(u64 seed, u64 first, u32 count, u32 axis)
+{
+    static u32 strata[3125];
+    for (u32 i = 0; i < count; i++)
+        strata[i] = 0;
+    for (u32 i = 0; i < count; i++)
+    {
+        v3 p = RandomSpreadV3(seed, first + i);
+        f32 value = axis == 0 ? p.x : axis == 1 ? p.y : p.z;
+        TOOL_ASSERT(value >= 0.0f && value < 1.0f);
+        strata[(u32)((f64)value * count)]++;
+    }
+    for (u32 i = 0; i < count; i++)
+        if (strata[i] != 1)
+            return false;
+    return true;
+}
+
+static void TestSpread()
+{
+    // Each aligned run of b^k indices has one point per 1/b^k interval on the base-b axis, for any seed.
+    for (u64 seed = 0; seed < 20; seed++)
+    {
+        TOOL_ASSERT(RandomSpreadStratified(seed, 0, 1024, 0));
+        TOOL_ASSERT(RandomSpreadStratified(seed, 1024 * 37, 1024, 0));
+        TOOL_ASSERT(RandomSpreadStratified(seed, 0, 729, 1));
+        TOOL_ASSERT(RandomSpreadStratified(seed, 729 * 11, 729, 1));
+        TOOL_ASSERT(RandomSpreadStratified(seed, 0, 3125, 2));
+        TOOL_ASSERT(RandomSpreadStratified(seed, 3125 * 5, 3125, 2));
+    }
+
+    // Lower dimensions are the leading axes of higher ones, and seeds differ.
+    u32 differ = 0;
+    for (u64 i = 0; i < 1000; i++)
+    {
+        v3 p = RandomSpreadV3(42, i);
+        v2 q = RandomSpreadV2(42, i);
+        TOOL_ASSERT(RandomSpreadF32(42, i) == p.x && q.x == p.x && q.y == p.y);
+        differ += RandomSpreadV3(43, i).x != p.x;
+    }
+    TOOL_ASSERT(differ > 990);
+
+    // Reference points, so the integer pipeline can't drift silently.
+    v3 a = RandomSpreadV3(0, 0);
+    v3 b = RandomSpreadV3(12345, 678);
+    TOOL_ASSERT(a.x == 0.784486234f && a.y == 0.600558519f && a.z == 0.326837897f);
+    TOOL_ASSERT(b.x == 0.681574941f && b.y == 0.779517949f && b.z == 0.27943933f);
+}
+
 static void TestShuffleAndFill()
 {
     // Shuffles are permutations, and the same bits give the same order.
@@ -272,6 +322,7 @@ void TestRandom()
     TestRanges();
     TestFloats();
     TestGaussianAndGeometry();
+    TestSpread();
     TestShuffleAndFill();
     printf("Random: passed\n");
 }
