@@ -13,6 +13,10 @@ static_assert(RandomMix(0) == 0);
 static_assert(RandomMix(1) == 0x9c1a051e07b9e10dull);
 static_assert(RandomMix(0x0123456789abcdefull) == 0x770f13a0ab5b163dull);
 
+// Keys pack coordinates as 32-bit patterns, in order.
+static_assert(Key(3, -4).low == 0xfffffffc00000003ull && Key(3, -4).high == 0);
+static_assert(Key(1, 2, -1, 5).high == 0x00000005ffffffffull);
+
 static void TestReference()
 {
     // xoshiro256** from state {1, 2, 3, 4}, as published.
@@ -25,24 +29,24 @@ static void TestReference()
     // Key shapes: coordinates fill 32-bit slots, missing ones are 0, and IDs fill the first two.
     RandomKeyed keyed = {};
     RandomKeyedInit(&keyed, 7);
-    TOOL_ASSERT(RandomU64At(&keyed, {-1, 2}) == RandomU64At(&keyed, 0x00000002ffffffffull));
-    TOOL_ASSERT(RandomU64At(&keyed, {3, -4}) == RandomU64At(&keyed, {3, -4, 0}));
-    TOOL_ASSERT(RandomU64At(&keyed, {3, -4}) == RandomU64At(&keyed, {3, -4, 0, 0}));
-    TOOL_ASSERT(RandomU64At(&keyed, -5) == RandomU64At(&keyed, {-5, 0}));
-    TOOL_ASSERT(RandomU64At(&keyed, 5u) == RandomU64At(&keyed, {5, 0}));
-    TOOL_ASSERT(RandomU64At(&keyed, (i64)-5) == RandomU64At(&keyed, {-5, -1}));
-    TOOL_ASSERT(RandomU64At(&keyed, p2 { 3, -4 }) == RandomU64At(&keyed, {3, -4}));
-    TOOL_ASSERT(RandomU64At(&keyed, {p2 { 3, -4 }, 9}) == RandomU64At(&keyed, {3, -4, 9}));
-    TOOL_ASSERT(RandomU64At(&keyed, p3 { 3, -4, 5 }) == RandomU64At(&keyed, {3, -4, 5}));
-    TOOL_ASSERT(RandomU64At(&keyed, {p3 { 3, -4, 5 }, 9}) == RandomU64At(&keyed, {3, -4, 5, 9}));
-    TOOL_ASSERT(RandomU64At(&keyed, p4 { 3, -4, 5, -6 }) == RandomU64At(&keyed, {3, -4, 5, -6}));
-    TOOL_ASSERT(RandomU64At(&keyed, {0x00000002ffffffffull, 9}) == RandomU64At(&keyed, {-1, 2, 9}));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(-1, 2)) == RandomU64At(&keyed, Key(0x00000002ffffffffull)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(3, -4)) == RandomU64At(&keyed, Key(3, -4, 0)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(3, -4)) == RandomU64At(&keyed, Key(3, -4, 0, 0)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(-5)) == RandomU64At(&keyed, Key(-5, 0)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(5u)) == RandomU64At(&keyed, Key(5, 0)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key((i64)-5)) == RandomU64At(&keyed, Key(-5, -1)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(p2 { 3, -4 })) == RandomU64At(&keyed, Key(3, -4)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(p2 { 3, -4 }, 9)) == RandomU64At(&keyed, Key(3, -4, 9)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(p3 { 3, -4, 5 })) == RandomU64At(&keyed, Key(3, -4, 5)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(p3 { 3, -4, 5 }, 9)) == RandomU64At(&keyed, Key(3, -4, 5, 9)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(p4 { 3, -4, 5, -6 })) == RandomU64At(&keyed, Key(3, -4, 5, -6)));
+    TOOL_ASSERT(RandomU64At(&keyed, Key(0x00000002ffffffffull, 9)) == RandomU64At(&keyed, Key(-1, 2, 9)));
 
     // A zeroed keyed generator is seed 0.
     RandomKeyed zero = {};
     RandomKeyed seeded = {};
     RandomKeyedInit(&seeded, 0);
-    TOOL_ASSERT(RandomU64At(&zero, {1, 2}) == RandomU64At(&seeded, {1, 2}));
+    TOOL_ASSERT(RandomU64At(&zero, Key(1, 2)) == RandomU64At(&seeded, Key(1, 2)));
 }
 
 
@@ -59,7 +63,7 @@ static void TestKeyed()
     u64 count = 0;
     for (i32 y = -128; y < 128; y++)
         for (i32 x = -128; x < 128; x++)
-            values[count++] = RandomU64At(&keyed, {x, y});
+            values[count++] = RandomU64At(&keyed, Key(x, y));
 
     for (u64 i = 0; i < count; i++)
         for (u64 j = i + 1; j < i + 300 && j < count; j++)
@@ -121,7 +125,7 @@ static void TestKeyed()
     RandomKeyedInit(&other, 12346);
     u32 equal = 0;
     for (i32 x = 0; x < 1000; x++)
-        equal += RandomU64At(&keyed, {x, 0}) == RandomU64At(&other, {x, 0});
+        equal += RandomU64At(&keyed, Key(x, 0)) == RandomU64At(&other, Key(x, 0));
     TOOL_ASSERT(equal == 0);
 }
 
@@ -180,10 +184,10 @@ static void TestIntegers()
     RandomKeyedInit(&keyed, 4);
     for (i32 x = 0; x < 1000; x++)
     {
-        u64 bits = RandomU64At(&keyed, {x, 3});
-        TOOL_ASSERT(RandomI32At(&keyed, {x, 3}, -10, 10) == RandomBitsI32(bits, -10, 10));
-        TOOL_ASSERT(RandomU8At(&keyed, {x, 3}) == (u8)(bits >> 56));
-        TOOL_ASSERT(RandomI32At(&keyed, {x, 3}) == RandomI32At(&keyed, {x, 3}));
+        u64 bits = RandomU64At(&keyed, Key(x, 3));
+        TOOL_ASSERT(RandomI32At(&keyed, Key(x, 3), -10, 10) == RandomBitsI32(bits, -10, 10));
+        TOOL_ASSERT(RandomU8At(&keyed, Key(x, 3)) == (u8)(bits >> 56));
+        TOOL_ASSERT(RandomI32At(&keyed, Key(x, 3)) == RandomI32At(&keyed, Key(x, 3)));
     }
 }
 
@@ -212,8 +216,8 @@ static void TestFloats()
     // Index 0 at a key is the plain key; other indices are independent values.
     RandomKeyed keyed = {};
     RandomKeyedInit(&keyed, 5);
-    TOOL_ASSERT(RandomF32At(&keyed, {8, 9, 0}) == RandomF32At(&keyed, {8, 9}));
-    TOOL_ASSERT(RandomF32At(&keyed, {8, 9, 1}) != RandomF32At(&keyed, {8, 9}));
+    TOOL_ASSERT(RandomF32At(&keyed, Key(8, 9, 0)) == RandomF32At(&keyed, Key(8, 9)));
+    TOOL_ASSERT(RandomF32At(&keyed, Key(8, 9, 1)) != RandomF32At(&keyed, Key(8, 9)));
 }
 
 static void TestPoints()
@@ -361,8 +365,8 @@ static void TestCollections()
     u32 b[100];
     for (u32 i = 0; i < 100; i++)
         a[i] = b[i] = i;
-    RandomShuffleAt(&keyed, 0ull, a, 100);
-    RandomShuffleAt(&keyed, 0ull, b, 100);
+    RandomShuffleAt(&keyed, Key(0ull), a, 100);
+    RandomShuffleAt(&keyed, Key(0ull), b, 100);
     u32 seen[100] = {};
     u32 moved = 0;
     for (u32 i = 0; i < 100; i++)
