@@ -43,7 +43,6 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/memory.cpp"
     "${TOOL_SOURCE_DIR}/quaternion.cpp"
     "${TOOL_SOURCE_DIR}/random.cpp"
-    "${TOOL_SOURCE_DIR}/variadic.cpp"
     "${TOOL_SOURCE_DIR}/text.cpp"
     "${TOOL_SOURCE_DIR}/linking.cpp"
     "${TOOL_SOURCE_DIR}/threading.cpp"

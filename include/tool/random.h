@@ -3,7 +3,7 @@
 
 #include "basics.h"
 #include "error.h"
-#include "hash.h"
+#include "mathematics.h"
 #include "vector.h"
 
 
@@ -315,18 +315,15 @@ namespace Tool
 	{
 		TOOL_DEBUG_ASSERT(min < max);
 		u64 range = max - min;
-		u64 low = bits;
-		u64 high = range;
-		HashRapidMultiply(&low, &high);
+		u64 high;
+		u64 low = U64MulWide(bits, range, &high);
 		if (low < range)
 		{
 			u64 threshold = (0 - range) % range;
 			while (low < threshold)
 			{
 				bits = RandomStretch(bits);
-				low = bits;
-				high = range;
-				HashRapidMultiply(&low, &high);
+				low = U64MulWide(bits, range, &high);
 			}
 		}
 		return min + high;
