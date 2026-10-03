@@ -35,7 +35,6 @@ set(TOOL_INCLUDE_DIR "include")
 
 add_library(TOOL
     "${TOOL_SOURCE_DIR}/basics.cpp"
-    "${TOOL_SOURCE_DIR}/entry.cpp"
     "${TOOL_SOURCE_DIR}/error.cpp"
     "${TOOL_SOURCE_DIR}/hashmap.cpp"
     "${TOOL_SOURCE_DIR}/intrinsics.cpp"
