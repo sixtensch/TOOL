@@ -351,7 +351,7 @@ namespace Tool
     
     // Function type definitions mirroring those in memoryapi.h (on newer SDKs)
     
-    typedef PVOID (*VirtualAlloc2Function)(HANDLE Process,
+    typedef PVOID (WINAPI* VirtualAlloc2Function)(HANDLE Process,
                                            PVOID BaseAddress,
                                            SIZE_T Size,
                                            ULONG AllocationType,
@@ -359,7 +359,7 @@ namespace Tool
                                            MEM_EXTENDED_PARAMETER* ExtendedParameters,
                                            ULONG ParameterCount);
     
-    typedef PVOID (*MapViewOfFile3Function)(HANDLE FileMapping,
+    typedef PVOID (WINAPI* MapViewOfFile3Function)(HANDLE FileMapping,
                                             HANDLE Process,
                                             PVOID BaseAddress,
                                             ULONG64 Offset,
