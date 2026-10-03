@@ -76,8 +76,14 @@ namespace Tool
 	// Keys from an ID, 1 to 4 signed coordinates, a point, or an ID or point plus an index. Coordinates fill the
 	// slots in order and missing ones are 0, so Key(x, y) equals Key(x, y, 0). A 64-bit ID fills the first two slots.
 	// There is no float overload, so a float argument is ambiguous and doesn't compile.
+	//
+	// unsigned long, which size_t is on 64-bit Linux and Mac, keys as the u64 of the same value, which matches the u32
+	// key wherever the value fits both. Signed long is deleted: it is 32 bits on Windows and 64 elsewhere, and a
+	// negative value keys differently at the two widths. Cast it to i32 or i64.
 	constexpr RandomKey Key(i64 id);
 	constexpr RandomKey Key(u64 id);
+	constexpr RandomKey Key(unsigned long id);
+	RandomKey Key(long id) = delete;
 	constexpr RandomKey Key(u64 id, i32 index);
 	constexpr RandomKey Key(i32 x);
 	constexpr RandomKey Key(u32 x);
@@ -254,6 +260,7 @@ namespace Tool
 
 	constexpr RandomKey Key(i64 id) { return { (u64)id, 0 }; }
 	constexpr RandomKey Key(u64 id) { return { id, 0 }; }
+	constexpr RandomKey Key(unsigned long id) { return Key((u64)id); }
 	constexpr RandomKey Key(u64 id, i32 index) { return { id, (u32)index }; }
 	constexpr RandomKey Key(i32 x) { return { (u32)x, 0 }; }
 	constexpr RandomKey Key(u32 x) { return { x, 0 }; }

@@ -17,6 +17,10 @@ static_assert(RandomMix(0x0123456789abcdefull) == 0x770f13a0ab5b163dull);
 static_assert(Key(3, -4).low == 0xfffffffc00000003ull && Key(3, -4).high == 0);
 static_assert(Key(1, 2, -1, 5).high == 0x00000005ffffffffull);
 
+// unsigned long (size_t on some targets) keys as the u64, and so as the u32, of the same value.
+static_assert(Key(7ul).low == Key(7u).low && Key(7ul).low == Key(7ull).low && Key(7ul).high == 0);
+static_assert(Key((unsigned long)-1).low == (u64)(unsigned long)-1);
+
 static void TestReference()
 {
     // xoshiro256** from state {1, 2, 3, 4}, as published.

@@ -33,6 +33,8 @@ int main()
 {
     TestHashMap();
     TestMathematics();
+    TestMatrix();
+    TestColor();
     TestRandom();
 
     const c8* intrinsicsFailure = nullptr;
