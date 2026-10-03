@@ -11,7 +11,7 @@ namespace Tool
 
 	//~ Monotonic performance clock
 
-	// Represents performance counter clocks on Windows, nanoseconds on Linux. Access through utility functions.
+	// Performance counter clocks on Windows, nanoseconds on Unix. Access through utility functions.
 	typedef i64 Timepoint;
 
 	struct Duration
@@ -21,7 +21,7 @@ namespace Tool
 	};
 
 	//~ Wall/system clock
-	// Only precise to seconds on Linux
+	// Local time is only precise to milliseconds on Windows.
 
 	enum Weekday : u16
 	{
