@@ -40,7 +40,6 @@
 
 // Mathematics and linear algebra
 #include "tool/mathematics.h"
-#include "tool/intrinsics.h"
 #include "tool/vector.h"
 #include "tool/matrix.h"
 #include "tool/quaternion.h"
