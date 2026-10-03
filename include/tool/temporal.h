@@ -7,95 +7,109 @@
 
 namespace Tool
 {
-    //- Type definitions
-    
-    //~ Monotonic performance clock
-    
-    // Represents performance counter clocks on Windows, nanoseconds on Linux. Access through utility functions.
-    typedef i64 Timepoint;
-    
-    struct Duration
-    {
-        i32 seconds;
-        i32 nanoseconds;
-    };
-    
-    //~ Wall/system clock
-    // Only precise to seconds on Linux
-    
-    enum Weekday : u16
-    {
-        Monday = 0,
-        Tuesday = 1,
-        Wednesday = 2,
-        Thursday = 3,
-        Friday = 4,
-        Saturday = 5,
-        Sunday = 6
-    };
-    
-    // This represents a large continuous number
-    // Can be operated on arithmetically
-    typedef u64 SystemTimepoint;
-    
-    // TODO(crazy): Implement
-    struct ClockTime
-    {
-        u16 year;
-        u16 month;
-        Weekday weekday;
-        u16 day;
-        
-        u16 hour;
-        u16 minute;
-        u16 second;
-        u16 millisecond;
-    };
-    
-    // TODO(crazy): Implement
-    struct ClockDuration
-    {
-        u16 years;
-        u16 months;
-        u16 days;
-        u16 hours;
-        u16 minutes;
-        u16 seconds;
-        u16 milliseconds;
-    };
-    
-    
-    
-    //- Function definitions
-    
-    //~ Monotonic measurement
-    
-    Timepoint TimepointNow();
-    
-    i64 NanosecondsFromTo(Timepoint from, Timepoint to);
-    i64 NanosecondsSince(Timepoint then);
-    
-    i64 ClocksFromTo(Timepoint from, Timepoint to);
-    i64 ClocksSince(Timepoint then);
-    
-    template<typename T>
-        T SecondsFromTo(Timepoint from, Timepoint to) { return NanosecondsFromTo(from, to) / ((T)1000000000); }
-    
-    template<typename T>
-        T SecondsSince(Timepoint then) { return NanosecondsSince(then) / ((T)1000000000); }
-    
-    //~ System time measurement
-    
-    // Local time respects timezones and daylight savings
-    // Keep this in mind when using system timepoints
-    SystemTimepoint SystemTimepointNow(b8 local);
-    
-    ClockTime ClockTimeNow(b8 local);
-    ClockTime ClockTimeFromSystemTimepoint(SystemTimepoint timepoint);
-    
-    // TODO(crazy): Fix it
-    // ClockDuration ClockDurationFromTo(SystemTimepoint from, SystemTimepoint to);
-};
+	//- Type definitions
+
+	//~ Monotonic performance clock
+
+	// Represents performance counter clocks on Windows, nanoseconds on Linux. Access through utility functions.
+	typedef i64 Timepoint;
+
+	struct Duration
+	{
+		i32 seconds;
+		i32 nanoseconds;
+	};
+
+	//~ Wall/system clock
+	// Only precise to seconds on Linux
+
+	enum Weekday : u16
+	{
+		Monday = 0,
+		Tuesday = 1,
+		Wednesday = 2,
+		Thursday = 3,
+		Friday = 4,
+		Saturday = 5,
+		Sunday = 6
+	};
+
+	// 100-nanosecond ticks since 1601-01-01 (the Windows FILETIME epoch), in UTC or local time as it was taken.
+	// Subtracting two gives the ticks between them.
+	typedef u64 SystemTimepoint;
+
+	struct ClockTime
+	{
+		u16 year;
+		u16 month;
+		Weekday weekday;
+		u16 day;
+
+		u16 hour;
+		u16 minute;
+		u16 second;
+		u16 millisecond;
+	};
+
+	// A span in fixed units. Years and months are left out, since their length varies.
+	struct ClockDuration
+	{
+		u32 days;
+		u16 hours;
+		u16 minutes;
+		u16 seconds;
+		u16 milliseconds;
+	};
+
+
+
+	//- Function declarations
+
+	//~ Monotonic measurement
+
+	Timepoint TimepointNow();
+
+	i64 NanosecondsFromTo(Timepoint from, Timepoint to);
+	i64 NanosecondsSince(Timepoint then);
+
+	i64 ClocksFromTo(Timepoint from, Timepoint to);
+	i64 ClocksSince(Timepoint then);
+
+	template<typename T> T SecondsFromTo(Timepoint from, Timepoint to);
+	template<typename T> T SecondsSince(Timepoint then);
+
+	//~ System time measurement
+
+	// Local time respects timezones and daylight savings
+	// Keep this in mind when using system timepoints
+	SystemTimepoint SystemTimepointNow(b8 local);
+
+	ClockTime ClockTimeNow(b8 local);
+	ClockTime ClockTimeFromSystemTimepoint(SystemTimepoint timepoint);
+
+	// The span from 'from' to 'to', which must not come before it. Both should be UTC, or both local.
+	ClockDuration ClockDurationFromTo(SystemTimepoint from, SystemTimepoint to);
+} //namespace Tool
+
+
+
+//- Implementation
+
+namespace Tool
+{
+	template<typename T>
+	T SecondsFromTo(Timepoint from, Timepoint to)
+	{
+		return NanosecondsFromTo(from, to) / ((T)1000000000);
+	}
+
+	template<typename T>
+	T SecondsSince(Timepoint then)
+	{
+		return NanosecondsSince(then) / ((T)1000000000);
+	}
+} //namespace Tool
+
 
 
 #endif //TOOL_TEMPORAL_H

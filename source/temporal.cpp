@@ -1,4 +1,5 @@
 #include "temporal.h"
+#include "error.h"
 
 
 
@@ -28,6 +29,22 @@ i64 GetPerformanceFrequency()
 
 namespace Tool
 {
+    //- Platform-agnostic
+    
+    ClockDuration ClockDurationFromTo(SystemTimepoint from, SystemTimepoint to)
+    {
+        TOOL_DEBUG_ASSERT(from <= to, "The span ends before it starts.");
+        
+        u64 milliseconds = (to - from) / 10000;
+        
+        ClockDuration duration = {};
+        duration.milliseconds = (u16)(milliseconds % 1000);
+        duration.seconds = (u16)(milliseconds / 1000 % 60);
+        duration.minutes = (u16)(milliseconds / 60000 % 60);
+        duration.hours = (u16)(milliseconds / 3600000 % 24);
+        duration.days = (u32)(milliseconds / 86400000);
+        return duration;
+    }
     
     //- Module
     
@@ -104,7 +121,7 @@ namespace Tool
         {
             .year = systemTime->wYear,
             .month = systemTime->wMonth,
-            .weekday = (Weekday)((systemTime->wDayOfWeek - 1) % 7),
+            .weekday = (Weekday)((systemTime->wDayOfWeek + 6) % 7), // SYSTEMTIME counts from Sunday
             .day = systemTime->wDay,
             
             .hour = systemTime->wHour,
@@ -137,25 +154,6 @@ namespace Tool
         FileTimeToSystemTime((FILETIME*)&timepoint, &systemTime);
         
         return ClockTimeConvert(&systemTime);
-    }
-    
-    ClockDuration ClockDurationFromTo(SystemTimepoint from, SystemTimepoint to)
-    {
-        u64 difference = to - from;
-        
-        SYSTEMTIME systemTime = {};
-        FileTimeToSystemTime((FILETIME*)&difference, &systemTime);
-        
-        return 
-        {
-            .years = systemTime.wYear,
-            .months = systemTime.wMonth,
-            .days = systemTime.wDay,
-            .hours = systemTime.wHour,
-            .minutes = systemTime.wMinute,
-            .seconds = systemTime.wSecond,
-            .milliseconds = systemTime.wMilliseconds
-        };
     }
     
 #endif // TOOL_WINDOWS

@@ -23,6 +23,8 @@ typedef int (*IntFunc)();
 
 void TestHashMap();
 void TestMathematics();
+void TestMatrix();
+void TestColor();
 void TestRandom();
 u32 TestIntrinsicsRun(const c8** outFirstFailure);
 

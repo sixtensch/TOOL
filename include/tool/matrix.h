@@ -166,8 +166,8 @@ namespace Tool
 	m3 M3Scale(f32 uniform);
 	m3 M3Scale(f32 x, f32 y, f32 z);
 
-	f32 M3Trace(const m4& mat3);
-	f32 M3Determinant(const m4& mat3);
+	f32 M3Trace(const m3& mat3);
+	f32 M3Determinant(const m3& mat3);
 
 	//~ 4x4 Matrix
 
@@ -192,18 +192,21 @@ namespace Tool
 	m4 M4Translation(v3 position);
 	m4 M4Translation(f32 x, f32 y, f32 z);
 
+	// The clip space a projection targets.
 	enum ClipType
 	{
-		ClipTypeDX,
-		ClipTypeVulkan,
-		ClipTypeOpenGL
+		ClipTypeDX,     // Y up, depth 0 to 1. Direct3D, Metal and WebGPU.
+		ClipTypeVulkan, // Y down, depth 0 to 1
+		ClipTypeOpenGL  // Y up, depth -1 to 1
 	};
 
+	// Left-handed: the view looks along +z, and depth runs from 'near' to 'far'. Perspective divides by the view
+	// depth, orthographic maps a 'width' by 'height' box centered on the z axis.
 	m4 M4ProjectionPerspective(f32 verticalFovDegrees, f32 aspectRatio, f32 near, f32 far, ClipType type);
 	m4 M4ProjectionOrthographic(f32 width, f32 height, f32 near, f32 far, ClipType type);
 
 	f32 M4Trace(const m4& mat4);
-	//f32 M4Determinant(const m4& mat4);
+	f32 M4Determinant(const m4& mat4);
 } //namespace Tool
 
 
@@ -837,12 +840,12 @@ namespace Tool
 		};
 	}
 
-	inline f32 M3Trace(const m4& mat3)
+	inline f32 M3Trace(const m3& mat3)
 	{
 		return mat3.m00 + mat3.m11 + mat3.m22;
 	}
 
-	inline f32 M3Determinant(const m4& mat3)
+	inline f32 M3Determinant(const m3& mat3)
 	{
 		return
 			mat3.m00 * mat3.m11 * mat3.m22 +
@@ -1039,30 +1042,43 @@ namespace Tool
 
 	inline m4 M4ProjectionPerspective(f32 verticalFovDegrees, f32 aspectRatio, f32 nearClip, f32 farClip, ClipType type)
 	{
-		f32 yFactor = 1.0f - (type == ClipTypeVulkan) * 2.0f;
-		f32 zFactor = 1.0f - (type == ClipTypeOpenGL) * 2.0f;
-
-		f32 r = F32Radians(verticalFovDegrees);
-
-		f32 yy = 1.0f / F32Tan(r * 0.5f);
+		f32 yy = 1.0f / F32Tan(F32Radians(verticalFovDegrees) * 0.5f);
 		f32 xx = yy / aspectRatio;
+		yy = type == ClipTypeVulkan ? -yy : yy;
 
-		f32 zz = farClip / (farClip - nearClip);
-		f32 zw = -nearClip * zz;
+		// Clip z is zz * z + zw, divided by w = z.
+		f32 depth = farClip - nearClip;
+		f32 zz = type == ClipTypeOpenGL ? (farClip + nearClip) / depth : farClip / depth;
+		f32 zw = type == ClipTypeOpenGL ? -2.0f * farClip * nearClip / depth : -nearClip * farClip / depth;
 
-		// rows: [xx 0 0 0] [0 yy*yFac 0 0] [0 0 zz*zFac zw] [0 0 1 0]
+		// Rows: [xx 0 0 0] [0 yy 0 0] [0 0 zz zw] [0 0 1 0]
 		return
 		{
 			xx, 0, 0, 0,
-			0, yy * yFactor, 0, 0,
-			0, 0, zz * zFactor, 1,
+			0, yy, 0, 0,
+			0, 0, zz, 1,
 			0, 0, zw, 0
 		};
 	}
 
 	inline m4 M4ProjectionOrthographic(f32 width, f32 height, f32 nearClip, f32 farClip, ClipType type)
 	{
-		return {};
+		f32 xx = 2.0f / width;
+		f32 yy = type == ClipTypeVulkan ? -2.0f / height : 2.0f / height;
+
+		// Clip z is zz * z + zw, with w = 1.
+		f32 depth = farClip - nearClip;
+		f32 zz = type == ClipTypeOpenGL ? 2.0f / depth : 1.0f / depth;
+		f32 zw = type == ClipTypeOpenGL ? -(farClip + nearClip) / depth : -nearClip / depth;
+
+		// Rows: [xx 0 0 0] [0 yy 0 0] [0 0 zz zw] [0 0 0 1]
+		return
+		{
+			xx, 0, 0, 0,
+			0, yy, 0, 0,
+			0, 0, zz, 0,
+			0, 0, zw, 1
+		};
 	}
 
 	inline f32 M4Trace(const m4& mat4)
@@ -1070,10 +1086,25 @@ namespace Tool
 		return mat4.m00 + mat4.m11 + mat4.m22 + mat4.m33;
 	}
 
-	/*inline f32 M4Determinant(const m4& mat4)
+	// Laplace expansion along the top two rows: each 2x2 minor of rows 0-1 times the complementary minor of rows 2-3.
+	inline f32 M4Determinant(const m4& mat4)
 	{
+		f32 top01 = mat4.m00 * mat4.m11 - mat4.m01 * mat4.m10;
+		f32 top02 = mat4.m00 * mat4.m12 - mat4.m02 * mat4.m10;
+		f32 top03 = mat4.m00 * mat4.m13 - mat4.m03 * mat4.m10;
+		f32 top12 = mat4.m01 * mat4.m12 - mat4.m02 * mat4.m11;
+		f32 top13 = mat4.m01 * mat4.m13 - mat4.m03 * mat4.m11;
+		f32 top23 = mat4.m02 * mat4.m13 - mat4.m03 * mat4.m12;
 
-	}*/
+		f32 bottom01 = mat4.m20 * mat4.m31 - mat4.m21 * mat4.m30;
+		f32 bottom02 = mat4.m20 * mat4.m32 - mat4.m22 * mat4.m30;
+		f32 bottom03 = mat4.m20 * mat4.m33 - mat4.m23 * mat4.m30;
+		f32 bottom12 = mat4.m21 * mat4.m32 - mat4.m22 * mat4.m31;
+		f32 bottom13 = mat4.m21 * mat4.m33 - mat4.m23 * mat4.m31;
+		f32 bottom23 = mat4.m22 * mat4.m33 - mat4.m23 * mat4.m32;
+
+		return top01 * bottom23 - top02 * bottom13 + top03 * bottom12 + top12 * bottom03 - top13 * bottom02 + top23 * bottom01;
+	}
 } //namespace Tool
 
 
