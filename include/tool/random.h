@@ -259,6 +259,18 @@ namespace Tool
     inline v3 RandomOnSphere(Random* rng) { return RandomOnSphere(RandomNext(rng)); }
     inline v3 RandomInSphere(Random* rng) { return RandomInSphere(RandomNext(rng)); }
 
+    //~ Spread
+
+    // Low-discrepancy points in [0, 1): Halton in bases 2, 3 and 5, so any run of indices covers the space far more
+    // evenly than random points, without clumps or gaps. Each seed shifts every digit by its own random amount
+    // (mod the base), which keeps the stratification: indices [m * b^k, (m + 1) * b^k) put exactly one point in
+    // each 1/b^k interval of a base-b axis, up to the 24-bit rounding of the output. Integer arithmetic
+    // throughout, so results are identical everywhere.
+    // Each axis has 24 bits of precision and repeats after roughly 2^24 indices.
+    f32 RandomSpreadF32(u64 seed, u64 index);
+    v2 RandomSpreadV2(u64 seed, u64 index);
+    v3 RandomSpreadV3(u64 seed, u64 index);
+
     //~ Shuffle
 
     // Fisher-Yates. The Random* form draws once per swap, the bits form stretches once per swap.
