@@ -27,21 +27,21 @@ namespace Tool
 
     // Box-Muller: the radius term takes u in (0, 1], so its log is finite.
 
-    f32 RandomBitsGaussianF32(u64 bits, f32 mean, f32 deviation)
-    {
-        f32 u = (f32)((bits >> 40) + 1) * 0x1p-24f;
-        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
-        f32 radius = std::sqrt(-2.0f * std::log(u));
-        f32 scaled = deviation * radius * std::cos(angle);
-        return mean + scaled;
-    }
-
     f64 RandomBitsGaussianF64(u64 bits, f64 mean, f64 deviation)
     {
         f64 u = (f64)((bits >> 11) + 1) * 0x1p-53;
         f64 angle = RandomBitsF64(RandomStretch(bits)) * 6.283185307179586;
         f64 radius = std::sqrt(-2.0 * std::log(u));
         f64 scaled = deviation * radius * std::cos(angle);
+        return mean + scaled;
+    }
+
+    f32 RandomBitsGaussianF32(u64 bits, f32 mean, f32 deviation)
+    {
+        f32 u = (f32)((bits >> 40) + 1) * 0x1p-24f;
+        f32 angle = (f32)(bits & 0xffffffull) * 0x1p-24f * 6.28318530718f;
+        f32 radius = std::sqrt(-2.0f * std::log(u));
+        f32 scaled = deviation * radius * std::cos(angle);
         return mean + scaled;
     }
 

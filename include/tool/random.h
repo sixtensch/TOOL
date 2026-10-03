@@ -149,30 +149,20 @@ namespace Tool
 	//~ Floats
 
 	// [0, 1), or [min, max).
+	inline f64 RandomF64Next(RandomStream* stream);
+	inline f64 RandomF64Next(RandomStream* stream, f64 min, f64 max);
+	inline f64 RandomF64At(const RandomKeyed* keyed, RandomKey key);
+	inline f64 RandomF64At(const RandomKeyed* keyed, RandomKey key, f64 min, f64 max);
+
 	inline f32 RandomF32Next(RandomStream* stream);
 	inline f32 RandomF32Next(RandomStream* stream, f32 min, f32 max);
 	inline f32 RandomF32At(const RandomKeyed* keyed, RandomKey key);
 	inline f32 RandomF32At(const RandomKeyed* keyed, RandomKey key, f32 min, f32 max);
 	f32 RandomF32At(const RandomSpread* spread, u64 index);
 
-	inline f64 RandomF64Next(RandomStream* stream);
-	inline f64 RandomF64Next(RandomStream* stream, f64 min, f64 max);
-	inline f64 RandomF64At(const RandomKeyed* keyed, RandomKey key);
-	inline f64 RandomF64At(const RandomKeyed* keyed, RandomKey key, f64 min, f64 max);
-
 	//~ Integers
 
 	// Any value of the type, or [min, max).
-	inline i32 RandomI32Next(RandomStream* stream);
-	inline i32 RandomI32Next(RandomStream* stream, i32 min, i32 max);
-	inline i32 RandomI32At(const RandomKeyed* keyed, RandomKey key);
-	inline i32 RandomI32At(const RandomKeyed* keyed, RandomKey key, i32 min, i32 max);
-
-	inline u32 RandomU32Next(RandomStream* stream);
-	inline u32 RandomU32Next(RandomStream* stream, u32 min, u32 max);
-	inline u32 RandomU32At(const RandomKeyed* keyed, RandomKey key);
-	inline u32 RandomU32At(const RandomKeyed* keyed, RandomKey key, u32 min, u32 max);
-
 	inline i64 RandomI64Next(RandomStream* stream);
 	inline i64 RandomI64Next(RandomStream* stream, i64 min, i64 max);
 	inline i64 RandomI64At(const RandomKeyed* keyed, RandomKey key);
@@ -183,6 +173,16 @@ namespace Tool
 	inline u64 RandomU64Next(RandomStream* stream, u64 min, u64 max);
 	inline u64 RandomU64At(const RandomKeyed* keyed, RandomKey key);
 	inline u64 RandomU64At(const RandomKeyed* keyed, RandomKey key, u64 min, u64 max);
+
+	inline i32 RandomI32Next(RandomStream* stream);
+	inline i32 RandomI32Next(RandomStream* stream, i32 min, i32 max);
+	inline i32 RandomI32At(const RandomKeyed* keyed, RandomKey key);
+	inline i32 RandomI32At(const RandomKeyed* keyed, RandomKey key, i32 min, i32 max);
+
+	inline u32 RandomU32Next(RandomStream* stream);
+	inline u32 RandomU32Next(RandomStream* stream, u32 min, u32 max);
+	inline u32 RandomU32At(const RandomKeyed* keyed, RandomKey key);
+	inline u32 RandomU32At(const RandomKeyed* keyed, RandomKey key, u32 min, u32 max);
 
 	inline i16 RandomI16Next(RandomStream* stream);
 	inline i16 RandomI16Next(RandomStream* stream, i16 min, i16 max);
@@ -206,10 +206,10 @@ namespace Tool
 
 	//~ Booleans
 
-	inline b8 RandomB8Next(RandomStream* stream);
-	inline b8 RandomB8At(const RandomKeyed* keyed, RandomKey key);
 	inline b32 RandomB32Next(RandomStream* stream);
 	inline b32 RandomB32At(const RandomKeyed* keyed, RandomKey key);
+	inline b8 RandomB8Next(RandomStream* stream);
+	inline b8 RandomB8At(const RandomKeyed* keyed, RandomKey key);
 
 	//~ Points
 
@@ -234,11 +234,11 @@ namespace Tool
 
 	//~ Gaussian
 
-	// Normal distribution. Tails end near 5.8 deviations for f32 and 8.5 for f64.
-	inline f32 RandomGaussianF32Next(RandomStream* stream, f32 mean, f32 deviation);
-	inline f32 RandomGaussianF32At(const RandomKeyed* keyed, RandomKey key, f32 mean, f32 deviation);
+	// Normal distribution. Tails end near 8.5 deviations for f64 and 5.8 for f32.
 	inline f64 RandomGaussianF64Next(RandomStream* stream, f64 mean, f64 deviation);
 	inline f64 RandomGaussianF64At(const RandomKeyed* keyed, RandomKey key, f64 mean, f64 deviation);
+	inline f32 RandomGaussianF32Next(RandomStream* stream, f32 mean, f32 deviation);
+	inline f32 RandomGaussianF32At(const RandomKeyed* keyed, RandomKey key, f32 mean, f32 deviation);
 
 	//~ Collections
 
@@ -332,17 +332,8 @@ namespace Tool
 
 	//~ Bits to values
 
-	// Ranges up to 32 bits scale all 64 bits by the range (Lemire's multiply, without the rejection step), so the
-	// bias is at most 2^-32. 64-bit ranges reject and stretch, which makes them exact.
-	inline u32 RandomBitsU32(u64 bits, u32 min, u32 max)
-	{
-		TOOL_DEBUG_ASSERT(min < max);
-		u64 range = (u32)(max - min);
-		u64 high = (bits >> 32) * range;
-		u64 low = (bits & 0xffffffffull) * range;
-		return min + (u32)((high + (low >> 32)) >> 32);
-	}
-
+	// 64-bit ranges use Lemire's multiply with rejection, stretching on a reject, which makes them exact. Ranges up
+	// to 32 bits scale all 64 bits by the range without the rejection step, so their bias is at most 2^-32.
 	inline u64 RandomBitsU64(u64 bits, u64 min, u64 max)
 	{
 		TOOL_DEBUG_ASSERT(min < max);
@@ -364,33 +355,42 @@ namespace Tool
 		return min + high;
 	}
 
-	// Signed ranges offset an unsigned range of the same width, so any min < max works without overflow.
-	inline i32 RandomBitsI32(u64 bits, i32 min, i32 max)
+	inline u32 RandomBitsU32(u64 bits, u32 min, u32 max)
 	{
 		TOOL_DEBUG_ASSERT(min < max);
-		return (i32)((u32)min + RandomBitsU32(bits, 0, (u32)max - (u32)min));
+		u64 range = (u32)(max - min);
+		u64 high = (bits >> 32) * range;
+		u64 low = (bits & 0xffffffffull) * range;
+		return min + (u32)((high + (low >> 32)) >> 32);
 	}
 
+	// Signed ranges offset an unsigned range of the same width, so any min < max works without overflow.
 	inline i64 RandomBitsI64(u64 bits, i64 min, i64 max)
 	{
 		TOOL_DEBUG_ASSERT(min < max);
 		return (i64)((u64)min + RandomBitsU64(bits, 0, (u64)max - (u64)min));
 	}
 
-	// From the top 24 or 53 bits, so every value is exact and equally spaced.
-	inline f32 RandomBitsF32(u64 bits) { return (f32)(bits >> 40) * 0x1p-24f; }
-	inline f64 RandomBitsF64(u64 bits) { return (f64)(bits >> 11) * 0x1p-53; }
-
-	// Scale and offset are separate statements, which Clang and MSVC never fuse into an FMA.
-	inline f32 RandomBitsF32(u64 bits, f32 min, f32 max)
+	inline i32 RandomBitsI32(u64 bits, i32 min, i32 max)
 	{
-		f32 scaled = (max - min) * RandomBitsF32(bits);
-		return min + scaled;
+		TOOL_DEBUG_ASSERT(min < max);
+		return (i32)((u32)min + RandomBitsU32(bits, 0, (u32)max - (u32)min));
 	}
 
+	// From the top 53 or 24 bits, so every value is exact and equally spaced.
+	inline f64 RandomBitsF64(u64 bits) { return (f64)(bits >> 11) * 0x1p-53; }
+	inline f32 RandomBitsF32(u64 bits) { return (f32)(bits >> 40) * 0x1p-24f; }
+
+	// Scale and offset are separate statements, which Clang and MSVC never fuse into an FMA.
 	inline f64 RandomBitsF64(u64 bits, f64 min, f64 max)
 	{
 		f64 scaled = (max - min) * RandomBitsF64(bits);
+		return min + scaled;
+	}
+
+	inline f32 RandomBitsF32(u64 bits, f32 min, f32 max)
+	{
+		f32 scaled = (max - min) * RandomBitsF32(bits);
 		return min + scaled;
 	}
 
@@ -406,21 +406,27 @@ namespace Tool
 	v2 RandomBitsInCircle(u64 bits);
 	v3 RandomBitsOnSphere(u64 bits);
 	v3 RandomBitsInSphere(u64 bits);
-	f32 RandomBitsGaussianF32(u64 bits, f32 mean, f32 deviation);
 	f64 RandomBitsGaussianF64(u64 bits, f64 mean, f64 deviation);
+	f32 RandomBitsGaussianF32(u64 bits, f32 mean, f32 deviation);
 
 	//~ Getters
 
-	inline f32 RandomF32Next(RandomStream* stream) { return RandomBitsF32(RandomU64Next(stream)); }
-	inline f32 RandomF32Next(RandomStream* stream, f32 min, f32 max) { return RandomBitsF32(RandomU64Next(stream), min, max); }
-	inline f32 RandomF32At(const RandomKeyed* keyed, RandomKey key) { return RandomBitsF32(RandomU64At(keyed, key)); }
-	inline f32 RandomF32At(const RandomKeyed* keyed, RandomKey key, f32 min, f32 max) { return RandomBitsF32(RandomU64At(keyed, key), min, max); }
 	inline f64 RandomF64Next(RandomStream* stream) { return RandomBitsF64(RandomU64Next(stream)); }
 	inline f64 RandomF64Next(RandomStream* stream, f64 min, f64 max) { return RandomBitsF64(RandomU64Next(stream), min, max); }
 	inline f64 RandomF64At(const RandomKeyed* keyed, RandomKey key) { return RandomBitsF64(RandomU64At(keyed, key)); }
 	inline f64 RandomF64At(const RandomKeyed* keyed, RandomKey key, f64 min, f64 max) { return RandomBitsF64(RandomU64At(keyed, key), min, max); }
+	inline f32 RandomF32Next(RandomStream* stream) { return RandomBitsF32(RandomU64Next(stream)); }
+	inline f32 RandomF32Next(RandomStream* stream, f32 min, f32 max) { return RandomBitsF32(RandomU64Next(stream), min, max); }
+	inline f32 RandomF32At(const RandomKeyed* keyed, RandomKey key) { return RandomBitsF32(RandomU64At(keyed, key)); }
+	inline f32 RandomF32At(const RandomKeyed* keyed, RandomKey key, f32 min, f32 max) { return RandomBitsF32(RandomU64At(keyed, key), min, max); }
 
 	// Full-width values take the top bits.
+	inline i64 RandomI64Next(RandomStream* stream) { return (i64)RandomU64Next(stream); }
+	inline i64 RandomI64Next(RandomStream* stream, i64 min, i64 max) { return RandomBitsI64(RandomU64Next(stream), min, max); }
+	inline i64 RandomI64At(const RandomKeyed* keyed, RandomKey key) { return (i64)RandomU64At(keyed, key); }
+	inline i64 RandomI64At(const RandomKeyed* keyed, RandomKey key, i64 min, i64 max) { return RandomBitsI64(RandomU64At(keyed, key), min, max); }
+	inline u64 RandomU64Next(RandomStream* stream, u64 min, u64 max) { return RandomBitsU64(RandomU64Next(stream), min, max); }
+	inline u64 RandomU64At(const RandomKeyed* keyed, RandomKey key, u64 min, u64 max) { return RandomBitsU64(RandomU64At(keyed, key), min, max); }
 	inline i32 RandomI32Next(RandomStream* stream) { return (i32)(RandomU64Next(stream) >> 32); }
 	inline i32 RandomI32Next(RandomStream* stream, i32 min, i32 max) { return RandomBitsI32(RandomU64Next(stream), min, max); }
 	inline i32 RandomI32At(const RandomKeyed* keyed, RandomKey key) { return (i32)(RandomU64At(keyed, key) >> 32); }
@@ -429,12 +435,6 @@ namespace Tool
 	inline u32 RandomU32Next(RandomStream* stream, u32 min, u32 max) { return RandomBitsU32(RandomU64Next(stream), min, max); }
 	inline u32 RandomU32At(const RandomKeyed* keyed, RandomKey key) { return (u32)(RandomU64At(keyed, key) >> 32); }
 	inline u32 RandomU32At(const RandomKeyed* keyed, RandomKey key, u32 min, u32 max) { return RandomBitsU32(RandomU64At(keyed, key), min, max); }
-	inline i64 RandomI64Next(RandomStream* stream) { return (i64)RandomU64Next(stream); }
-	inline i64 RandomI64Next(RandomStream* stream, i64 min, i64 max) { return RandomBitsI64(RandomU64Next(stream), min, max); }
-	inline i64 RandomI64At(const RandomKeyed* keyed, RandomKey key) { return (i64)RandomU64At(keyed, key); }
-	inline i64 RandomI64At(const RandomKeyed* keyed, RandomKey key, i64 min, i64 max) { return RandomBitsI64(RandomU64At(keyed, key), min, max); }
-	inline u64 RandomU64Next(RandomStream* stream, u64 min, u64 max) { return RandomBitsU64(RandomU64Next(stream), min, max); }
-	inline u64 RandomU64At(const RandomKeyed* keyed, RandomKey key, u64 min, u64 max) { return RandomBitsU64(RandomU64At(keyed, key), min, max); }
 	inline i16 RandomI16Next(RandomStream* stream) { return (i16)(RandomU64Next(stream) >> 48); }
 	inline i16 RandomI16Next(RandomStream* stream, i16 min, i16 max) { return (i16)RandomBitsI32(RandomU64Next(stream), min, max); }
 	inline i16 RandomI16At(const RandomKeyed* keyed, RandomKey key) { return (i16)(RandomU64At(keyed, key) >> 48); }
@@ -452,10 +452,10 @@ namespace Tool
 	inline u8 RandomU8At(const RandomKeyed* keyed, RandomKey key) { return (u8)(RandomU64At(keyed, key) >> 56); }
 	inline u8 RandomU8At(const RandomKeyed* keyed, RandomKey key, u8 min, u8 max) { return (u8)RandomBitsU32(RandomU64At(keyed, key), min, max); }
 
-	inline b8 RandomB8Next(RandomStream* stream) { return (b8)(RandomU64Next(stream) >> 63); }
-	inline b8 RandomB8At(const RandomKeyed* keyed, RandomKey key) { return (b8)(RandomU64At(keyed, key) >> 63); }
 	inline b32 RandomB32Next(RandomStream* stream) { return (b32)(RandomU64Next(stream) >> 63); }
 	inline b32 RandomB32At(const RandomKeyed* keyed, RandomKey key) { return (b32)(RandomU64At(keyed, key) >> 63); }
+	inline b8 RandomB8Next(RandomStream* stream) { return (b8)(RandomU64Next(stream) >> 63); }
+	inline b8 RandomB8At(const RandomKeyed* keyed, RandomKey key) { return (b8)(RandomU64At(keyed, key) >> 63); }
 
 	inline v2 RandomInSquareNext(RandomStream* stream) { return RandomBitsInSquare(RandomU64Next(stream)); }
 	inline v2 RandomInSquareAt(const RandomKeyed* keyed, RandomKey key) { return RandomBitsInSquare(RandomU64At(keyed, key)); }
@@ -470,10 +470,10 @@ namespace Tool
 	inline v3 RandomInSphereNext(RandomStream* stream) { return RandomBitsInSphere(RandomU64Next(stream)); }
 	inline v3 RandomInSphereAt(const RandomKeyed* keyed, RandomKey key) { return RandomBitsInSphere(RandomU64At(keyed, key)); }
 
-	inline f32 RandomGaussianF32Next(RandomStream* stream, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64Next(stream), mean, deviation); }
-	inline f32 RandomGaussianF32At(const RandomKeyed* keyed, RandomKey key, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64At(keyed, key), mean, deviation); }
 	inline f64 RandomGaussianF64Next(RandomStream* stream, f64 mean, f64 deviation) { return RandomBitsGaussianF64(RandomU64Next(stream), mean, deviation); }
 	inline f64 RandomGaussianF64At(const RandomKeyed* keyed, RandomKey key, f64 mean, f64 deviation) { return RandomBitsGaussianF64(RandomU64At(keyed, key), mean, deviation); }
+	inline f32 RandomGaussianF32Next(RandomStream* stream, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64Next(stream), mean, deviation); }
+	inline f32 RandomGaussianF32At(const RandomKeyed* keyed, RandomKey key, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64At(keyed, key), mean, deviation); }
 
 	// The stream form draws once per swap; the keyed form stretches its word once per swap.
 	template<typename T>
