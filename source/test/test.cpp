@@ -36,6 +36,7 @@ int main()
     TestColor();
     TestRandom();
     TestThreading();
+    TestIO();
 
     const c8* intrinsicsFailure = nullptr;
     u32 intrinsicsFailures = TestIntrinsicsRun(&intrinsicsFailure);
