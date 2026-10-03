@@ -5,6 +5,14 @@
 #include "vector.h"
 #include "matrix.h"
 
+//~ Quaternions
+//
+// Rotations as unit quaternions (q4): x, y and z are the imaginary part, w the real part. q * v rotates a vector, and
+// a * b rotates by a, then by b. Angles are in radians. Functions expect unit quaternions unless their name says
+// otherwise, like Q4GetMatrixNonNormal.
+
+
+
 namespace Tool
 {
     //~ Quaternion

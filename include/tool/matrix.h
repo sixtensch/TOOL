@@ -7,6 +7,17 @@
 
 
 
+//~ Matrices
+//
+// 2x2, 3x3 and 4x4 matrices of f32 (m2, m3, m4) or f64. Storage is column-major, so a matrix uploads to a GPU as is,
+// and initializer lists give the elements column by column. Element mIJ is row I, column J. Vectors are columns:
+// matrix * vector transforms, and a * b applies b first, then a.
+//
+// Angles are in radians, except the perspective field of view, in degrees. Projections are left-handed, looking
+// down +z, and target a ClipType: the y direction and depth range of a graphics API's clip space.
+
+
+
 namespace Tool
 {
 	//- Struct Declarations

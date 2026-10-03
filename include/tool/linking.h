@@ -4,6 +4,14 @@
 #include "basics.h"
 #include "text.h"
 
+//~ Dynamic libraries
+//
+// Loads shared libraries (modules) while running and looks up their symbols by name. Names go without prefix or
+// extension: ModuleLoad("Engine") tries Engine.dll, then libEngine.dll, through Windows' library search, and
+// ./libEngine.so, then ./Engine.so, from the working directory on Unix.
+
+
+
 namespace Tool
 {
     
