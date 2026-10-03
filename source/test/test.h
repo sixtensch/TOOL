@@ -2,6 +2,7 @@
 #define TEST_H
 
 #include <cstdio>
+#include "tool/basics.h"
 
 #ifdef TOOL_WINDOWS
 #define DLL_EXPORT extern "C"  __declspec(dllexport)
@@ -21,5 +22,6 @@ typedef void (*VoidFunc)();
 typedef int (*IntFunc)();
 
 void TestHashMap();
+u32 TestIntrinsicsRun(const c8** outFirstFailure);
 
 #endif //TEST_H

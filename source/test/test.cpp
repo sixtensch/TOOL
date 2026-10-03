@@ -33,6 +33,10 @@ int main()
 {
     TestHashMap();
 
+    const c8* intrinsicsFailure = nullptr;
+    u32 intrinsicsFailures = TestIntrinsicsRun(&intrinsicsFailure);
+    printf("Intrinsics: %u failures%s%s\n", intrinsicsFailures, intrinsicsFailures ? ", first in " : "", intrinsicsFailures ? intrinsicsFailure : "");
+
     Arena arena = {};
     ArenaInit(&arena, Allocator(), 1024, "Test");
     
