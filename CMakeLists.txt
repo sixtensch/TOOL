@@ -65,10 +65,12 @@ target_compile_definitions(TOOL PUBLIC
     $<$<CONFIG:Debug>:TOOL_DEBUG_ASSERTS>
 )
 
+# Position-independent, since it links statically into shared libraries.
 set_target_properties(TOOL PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED ON
     CXX_EXTENSIONS OFF
+    POSITION_INDEPENDENT_CODE ON
 )
 
 
