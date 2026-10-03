@@ -130,12 +130,12 @@ namespace Tool
         return RandomSpreadBase2(index, spread->shifts[0]);
     }
 
-    v2 RandomV2At(const RandomSpread* spread, u64 index)
+    v2 RandomInSquareAt(const RandomSpread* spread, u64 index)
     {
         return v2 { RandomSpreadBase2(index, spread->shifts[0]), RandomSpreadBase(index, spread->shifts[1], 3, 16) };
     }
 
-    v3 RandomV3At(const RandomSpread* spread, u64 index)
+    v3 RandomInCubeAt(const RandomSpread* spread, u64 index)
     {
         return v3 { RandomSpreadBase2(index, spread->shifts[0]), RandomSpreadBase(index, spread->shifts[1], 3, 16), RandomSpreadBase(index, spread->shifts[2], 5, 11) };
     }
