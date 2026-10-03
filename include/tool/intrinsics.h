@@ -17,6 +17,9 @@
 //     are taken from /arch:AVX and FMA from /arch:AVX2. Missing instructions are emulated with SSE2.
 //   Anything else, or TOOL_SIMD_SCALAR defined before including: per-lane loops.
 // There is no runtime CPU dispatch. The build flags decide, so a build must only enable what its target CPUs have.
+// Every file in a program must be built with the same flags: these functions are inline, and the linker keeps one
+// copy of each, so code built for two instruction sets mixes. On GCC and Clang, 8-wide values are also passed
+// differently with and without AVX.
 //
 // Lane 0 is the lowest address, and the first argument of every Set. Loads and stores are unaligned.
 // Integer arithmetic wraps. A mask lane is all ones or all zeros, as Compare returns them.
