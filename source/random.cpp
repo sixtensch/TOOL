@@ -8,12 +8,12 @@ namespace Tool
 {
     //~ Collections
 
-    void RandomFillNext(RandomStream* stream, void* dst, u64 size)
+    void RandomFillNext(RandomStream* random, void* dst, u64 size)
     {
         u8* bytes = (u8*)dst;
         while (size > 0)
         {
-            u64 bits = RandomU64Next(stream);
+            u64 bits = RandomU64Next(random);
             u64 count = size < 8 ? size : 8;
             for (u64 i = 0; i < count; i++)
                 bytes[i] = (u8)(bits >> (i * 8));
@@ -118,25 +118,25 @@ namespace Tool
     }
 
     // Each axis draws its shifts from its own word. The constant keeps them apart from keyed outputs of the seed.
-    void RandomSpreadInit(RandomSpread* spread, u64 seed)
+    void RandomSpreadInit(RandomSpread* random, u64 seed)
     {
-        spread->shifts[0] = RandomMix(seed ^ 0x5d588b656c078965ull);
-        spread->shifts[1] = RandomStretch(spread->shifts[0]);
-        spread->shifts[2] = RandomStretch(spread->shifts[1]);
+        random->shifts[0] = RandomMix(seed ^ 0x5d588b656c078965ull);
+        random->shifts[1] = RandomStretch(random->shifts[0]);
+        random->shifts[2] = RandomStretch(random->shifts[1]);
     }
 
-    f32 RandomF32At(const RandomSpread* spread, u64 index)
+    f32 RandomF32At(const RandomSpread* random, u64 index)
     {
-        return RandomSpreadBase2(index, spread->shifts[0]);
+        return RandomSpreadBase2(index, random->shifts[0]);
     }
 
-    v2 RandomInSquareAt(const RandomSpread* spread, u64 index)
+    v2 RandomInSquareAt(const RandomSpread* random, u64 index)
     {
-        return v2 { RandomSpreadBase2(index, spread->shifts[0]), RandomSpreadBase(index, spread->shifts[1], 3, 16) };
+        return v2 { RandomSpreadBase2(index, random->shifts[0]), RandomSpreadBase(index, random->shifts[1], 3, 16) };
     }
 
-    v3 RandomInCubeAt(const RandomSpread* spread, u64 index)
+    v3 RandomInCubeAt(const RandomSpread* random, u64 index)
     {
-        return v3 { RandomSpreadBase2(index, spread->shifts[0]), RandomSpreadBase(index, spread->shifts[1], 3, 16), RandomSpreadBase(index, spread->shifts[2], 5, 11) };
+        return v3 { RandomSpreadBase2(index, random->shifts[0]), RandomSpreadBase(index, random->shifts[1], 3, 16), RandomSpreadBase(index, random->shifts[2], 5, 11) };
     }
 }
