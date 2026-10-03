@@ -2,6 +2,10 @@
 #include "test.h"
 #include <stdio.h>
 
+#ifdef TOOL_WINDOWS
+#include <Windows.h>
+#endif
+
 using namespace Tool;
 
 
@@ -108,6 +112,43 @@ static void TestHue()
 			}
 }
 
+static b8 SameTime(ClockTime time, u16 year, u16 month, u16 day, Weekday weekday, u16 hour, u16 minute, u16 second, u16 millisecond)
+{
+	return time.year == year && time.month == month && time.day == day && time.weekday == weekday &&
+		time.hour == hour && time.minute == minute && time.second == second && time.millisecond == millisecond;
+}
+
+static void TestClockTime()
+{
+	// The epoch, leap days, century years that skip them, and the last representable millisecond of 9999.
+	u64 day = 864000000000ull;
+	TOOL_ASSERT(SameTime(ClockTimeFromSystemTimepoint(0), 1601, 1, 1, Monday, 0, 0, 0, 0));
+	TOOL_ASSERT(SameTime(ClockTimeFromSystemTimepoint(125963423999990000ull), 2000, 2, 29, Tuesday, 23, 59, 59, 999));
+	TOOL_ASSERT(SameTime(ClockTimeFromSystemTimepoint(94404960000000000ull + day), 1900, 3, 1, Thursday, 0, 0, 0, 0));
+	TOOL_ASSERT(SameTime(ClockTimeFromSystemTimepoint(157519296000000000ull + day), 2100, 3, 1, Monday, 0, 0, 0, 0));
+	TOOL_ASSERT(SameTime(ClockTimeFromSystemTimepoint(133801220967890000ull), 2024, 12, 31, Tuesday, 12, 34, 56, 789));
+	TOOL_ASSERT(SameTime(ClockTimeFromSystemTimepoint(2650467743999990000ull), 9999, 12, 31, Friday, 23, 59, 59, 999));
+
+	// The current time agrees with itself whichever way it's read, unless the hour turns over in between.
+	ClockTime before = ClockTimeFromSystemTimepoint(SystemTimepointNow(false));
+	ClockTime now = ClockTimeNow(false);
+	ClockTime after = ClockTimeFromSystemTimepoint(SystemTimepointNow(false));
+	TOOL_ASSERT(before.hour != after.hour || (now.year == before.year && now.month == before.month && now.day == before.day && now.hour == before.hour));
+
+#ifdef TOOL_WINDOWS
+	// Every day from 1601 to 9999 at a varying time of day, against the operating system's calendar.
+	for (u64 days = 0; days < 3067671; days++)
+	{
+		u64 timepoint = days * day + (days * 7919 % 86400000) * 10000;
+		SYSTEMTIME system = {};
+		FileTimeToSystemTime((FILETIME*)&timepoint, &system);
+		ClockTime time = ClockTimeFromSystemTimepoint(timepoint);
+		TOOL_ASSERT(SameTime(time, system.wYear, system.wMonth, system.wDay, (Weekday)((system.wDayOfWeek + 6) % 7),
+			system.wHour, system.wMinute, system.wSecond, system.wMilliseconds));
+	}
+#endif
+}
+
 static void TestClockDuration()
 {
 	// SystemTimepoints are 100 ns ticks.
@@ -133,6 +174,7 @@ void TestColor()
 	TestTransfer();
 	TestBlending();
 	TestHue();
+	TestClockTime();
 	TestClockDuration();
 	printf("Color and clock: passed\n");
 }
