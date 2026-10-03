@@ -192,12 +192,19 @@ namespace Tool
 	m4 M4Translation(v3 position);
 	m4 M4Translation(f32 x, f32 y, f32 z);
 
-	// The clip space a projection targets.
+	// The clip space a projection targets: the direction of +y and the depth range. Each API has an alias.
 	enum ClipType
 	{
-		ClipTypeDX,     // Y up, depth 0 to 1. Direct3D, Metal and WebGPU.
-		ClipTypeVulkan, // Y down, depth 0 to 1
-		ClipTypeOpenGL  // Y up, depth -1 to 1
+		ClipTypeUpUnit,   // Y up, depth 0 to 1
+		ClipTypeDownUnit, // Y down, depth 0 to 1
+		ClipTypeUpSigned, // Y up, depth -1 to 1
+
+		ClipTypeDirect3D = ClipTypeUpUnit, // Direct3D 10 and later
+		ClipTypeMetal = ClipTypeUpUnit,    // Metal
+		ClipTypeWebGPU = ClipTypeUpUnit,   // WebGPU, Dawn included
+		ClipTypeVulkan = ClipTypeDownUnit, // Vulkan
+		ClipTypeOpenGL = ClipTypeUpSigned, // OpenGL and OpenGL ES
+		ClipTypeWebGL = ClipTypeUpSigned,  // WebGL
 	};
 
 	// Left-handed: the view looks along +z, and depth runs from 'near' to 'far'. Perspective divides by the view
@@ -1044,12 +1051,12 @@ namespace Tool
 	{
 		f32 yy = 1.0f / F32Tan(F32Radians(verticalFovDegrees) * 0.5f);
 		f32 xx = yy / aspectRatio;
-		yy = type == ClipTypeVulkan ? -yy : yy;
+		yy = type == ClipTypeDownUnit ? -yy : yy;
 
 		// Clip z is zz * z + zw, divided by w = z.
 		f32 depth = farClip - nearClip;
-		f32 zz = type == ClipTypeOpenGL ? (farClip + nearClip) / depth : farClip / depth;
-		f32 zw = type == ClipTypeOpenGL ? -2.0f * farClip * nearClip / depth : -nearClip * farClip / depth;
+		f32 zz = type == ClipTypeUpSigned ? (farClip + nearClip) / depth : farClip / depth;
+		f32 zw = type == ClipTypeUpSigned ? -2.0f * farClip * nearClip / depth : -nearClip * farClip / depth;
 
 		// Rows: [xx 0 0 0] [0 yy 0 0] [0 0 zz zw] [0 0 1 0]
 		return
@@ -1064,12 +1071,12 @@ namespace Tool
 	inline m4 M4ProjectionOrthographic(f32 width, f32 height, f32 nearClip, f32 farClip, ClipType type)
 	{
 		f32 xx = 2.0f / width;
-		f32 yy = type == ClipTypeVulkan ? -2.0f / height : 2.0f / height;
+		f32 yy = type == ClipTypeDownUnit ? -2.0f / height : 2.0f / height;
 
 		// Clip z is zz * z + zw, with w = 1.
 		f32 depth = farClip - nearClip;
-		f32 zz = type == ClipTypeOpenGL ? 2.0f / depth : 1.0f / depth;
-		f32 zw = type == ClipTypeOpenGL ? -(farClip + nearClip) / depth : -nearClip / depth;
+		f32 zz = type == ClipTypeUpSigned ? 2.0f / depth : 1.0f / depth;
+		f32 zw = type == ClipTypeUpSigned ? -(farClip + nearClip) / depth : -nearClip / depth;
 
 		// Rows: [xx 0 0 0] [0 yy 0 0] [0 0 zz zw] [0 0 0 1]
 		return

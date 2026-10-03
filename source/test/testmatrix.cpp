@@ -45,32 +45,32 @@ static void TestProjections()
 	f32 edge = F32Tan(F32Radians(60.0f) * 0.5f);
 
 	// Perspective: near and far land on the depth range ends, and the frustum's top edge on the top of clip space.
-	m4 dx = M4ProjectionPerspective(60.0f, 2.0f, nearClip, farClip, ClipTypeDX);
-	m4 vulkan = M4ProjectionPerspective(60.0f, 2.0f, nearClip, farClip, ClipTypeVulkan);
-	m4 gl = M4ProjectionPerspective(60.0f, 2.0f, nearClip, farClip, ClipTypeOpenGL);
+	m4 upUnit = M4ProjectionPerspective(60.0f, 2.0f, nearClip, farClip, ClipTypeUpUnit);
+	m4 downUnit = M4ProjectionPerspective(60.0f, 2.0f, nearClip, farClip, ClipTypeDownUnit);
+	m4 upSigned = M4ProjectionPerspective(60.0f, 2.0f, nearClip, farClip, ClipTypeUpSigned);
 
-	TOOL_ASSERT(Near(Project(dx, v3 { 0.0f, 0.0f, nearClip }).z, 0.0f));
-	TOOL_ASSERT(Near(Project(dx, v3 { 0.0f, 0.0f, farClip }).z, 1.0f));
-	TOOL_ASSERT(Near(Project(gl, v3 { 0.0f, 0.0f, nearClip }).z, -1.0f));
-	TOOL_ASSERT(Near(Project(gl, v3 { 0.0f, 0.0f, farClip }).z, 1.0f));
+	TOOL_ASSERT(Near(Project(upUnit, v3 { 0.0f, 0.0f, nearClip }).z, 0.0f));
+	TOOL_ASSERT(Near(Project(upUnit, v3 { 0.0f, 0.0f, farClip }).z, 1.0f));
+	TOOL_ASSERT(Near(Project(upSigned, v3 { 0.0f, 0.0f, nearClip }).z, -1.0f));
+	TOOL_ASSERT(Near(Project(upSigned, v3 { 0.0f, 0.0f, farClip }).z, 1.0f));
 
 	v3 top = { 0.0f, edge * 10.0f, 10.0f };
 	v3 right = { edge * 20.0f, 0.0f, 10.0f };
-	TOOL_ASSERT(Near(Project(dx, top).y, 1.0f) && Near(Project(gl, top).y, 1.0f) && Near(Project(vulkan, top).y, -1.0f));
-	TOOL_ASSERT(Near(Project(dx, right).x, 1.0f) && Near(Project(vulkan, right).x, 1.0f));
+	TOOL_ASSERT(Near(Project(upUnit, top).y, 1.0f) && Near(Project(upSigned, top).y, 1.0f) && Near(Project(downUnit, top).y, -1.0f));
+	TOOL_ASSERT(Near(Project(upUnit, right).x, 1.0f) && Near(Project(downUnit, right).x, 1.0f));
 
 	// Orthographic: the box's corners land on the corners of clip space.
-	m4 orthoDX = M4ProjectionOrthographic(16.0f, 9.0f, nearClip, farClip, ClipTypeDX);
-	m4 orthoVulkan = M4ProjectionOrthographic(16.0f, 9.0f, nearClip, farClip, ClipTypeVulkan);
-	m4 orthoGL = M4ProjectionOrthographic(16.0f, 9.0f, nearClip, farClip, ClipTypeOpenGL);
+	m4 orthoUpUnit = M4ProjectionOrthographic(16.0f, 9.0f, nearClip, farClip, ClipTypeUpUnit);
+	m4 orthoDownUnit = M4ProjectionOrthographic(16.0f, 9.0f, nearClip, farClip, ClipTypeDownUnit);
+	m4 orthoUpSigned = M4ProjectionOrthographic(16.0f, 9.0f, nearClip, farClip, ClipTypeUpSigned);
 
-	v3 corner = Project(orthoDX, v3 { 8.0f, 4.5f, nearClip });
+	v3 corner = Project(orthoUpUnit, v3 { 8.0f, 4.5f, nearClip });
 	TOOL_ASSERT(Near(corner.x, 1.0f) && Near(corner.y, 1.0f) && Near(corner.z, 0.0f));
-	corner = Project(orthoDX, v3 { -8.0f, -4.5f, farClip });
+	corner = Project(orthoUpUnit, v3 { -8.0f, -4.5f, farClip });
 	TOOL_ASSERT(Near(corner.x, -1.0f) && Near(corner.y, -1.0f) && Near(corner.z, 1.0f));
-	TOOL_ASSERT(Near(Project(orthoVulkan, v3 { 8.0f, 4.5f, nearClip }).y, -1.0f));
-	TOOL_ASSERT(Near(Project(orthoGL, v3 { 0.0f, 0.0f, nearClip }).z, -1.0f));
-	TOOL_ASSERT(Near(Project(orthoGL, v3 { 0.0f, 0.0f, farClip }).z, 1.0f));
+	TOOL_ASSERT(Near(Project(orthoDownUnit, v3 { 8.0f, 4.5f, nearClip }).y, -1.0f));
+	TOOL_ASSERT(Near(Project(orthoUpSigned, v3 { 0.0f, 0.0f, nearClip }).z, -1.0f));
+	TOOL_ASSERT(Near(Project(orthoUpSigned, v3 { 0.0f, 0.0f, farClip }).z, 1.0f));
 }
 
 
