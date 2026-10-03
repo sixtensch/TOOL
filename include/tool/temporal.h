@@ -5,6 +5,16 @@
 
 
 
+//~ Time
+//
+// Two clocks:
+// - Timepoint is the monotonic clock, for measuring how long things take. It never jumps, but a single value means
+//   nothing on its own: take the difference of two, through the functions here.
+// - SystemTimepoint is the wall clock, in 100-nanosecond ticks since 1601 (Windows' FILETIME), taken as UTC or
+//   local time. ClockTime splits one into a calendar date and a time of day.
+
+
+
 namespace Tool
 {
 	//- Type definitions

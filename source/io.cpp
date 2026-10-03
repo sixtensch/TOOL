@@ -31,8 +31,9 @@ namespace Tool
 {
     //- Platform-agnostic helpers
 
-    // Longest path the helpers below copy, in bytes with the terminator.
-    static constexpr u32 PathCapacity = 4096;
+    // Longest path handled, terminator included: in bytes, and on Windows in UTF-16 units once converted. Paths
+    // convert in stack buffers of this size, so it's kept well below the systems' own limits.
+    static constexpr u32 PathCapacity = 1024;
 
     static b8 PathIsSeparator(c8 c)
     {

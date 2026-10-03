@@ -5,6 +5,20 @@
 
 
 
+//~ Memory
+//
+// Allocators, from the operating system up:
+// - Classic and Page functions: the C heap (malloc and free), and whole pages straight from the system.
+// - Arena: a chunked bump allocator, and the general-purpose choice. ArenaPop frees everything allocated since the
+//   matching ArenaPush. Works on every platform.
+// - MemoryRegion and ContiguousArena: one reserved address range, committed as it grows, so everything stays
+//   contiguous. Only where TOOL_VIRTUAL_MEMORY is defined, which leaves out the web.
+// - MemoryLoop and MagicCircular: memory mapped twice back to back, so a ring buffer's allocations never wrap. Only
+//   where TOOL_MIRRORED_MEMORY is defined, which is Windows.
+// MemoryAllocator wraps any of them as a pair of functions, for code that takes an allocator.
+
+
+
 //~ Definitions
 
 // Arena: chunk payload size when none is given at init

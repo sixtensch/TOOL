@@ -3,6 +3,13 @@
 
 
 
+//~ Utilities
+//
+// Small language helpers: token pasting and unique names for macros, and TOOL_DEFER, which runs a statement when the
+// enclosing scope ends. Several defers in one scope run in reverse order.
+
+
+
 //- Macros
 
 #define TOOL_CONCAT(a, b) TOOL_CONCAT_INNER(a, b)

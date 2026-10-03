@@ -6,6 +6,18 @@
 
 
 
+//~ Boxes
+//
+// Axis-aligned boxes in 2D and 3D, stored as their minimum corner and a size, which is expected not to be negative.
+// The tests between two boxes differ in how they treat edges:
+// - Touches: they share any point, so boxes that only meet at an edge touch.
+// - Overlaps: their insides share area, or volume in 3D, so meeting at an edge isn't enough.
+// - Contains: the second lies inside the first, and their edges may coincide.
+// - Envelops: the second lies inside the first without reaching its edges.
+// For a point, Touches means inside or on an edge, and Envelops strictly inside.
+
+
+
 namespace Tool
 {
 	//~ Struct declarations

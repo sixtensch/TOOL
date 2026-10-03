@@ -3,6 +3,15 @@
 
 
 
+//~ Basics
+//
+// The foundation every other header includes: platform capability defines, the limits of each integer type, and
+// the short type names used throughout (i8 to i64, u8 to u64, f32, f64, b8, b32, c8, c16, c32).
+//
+// The platform itself, TOOL_WINDOWS or TOOL_UNIX, comes from the build. TOOL_WEB is detected from Emscripten.
+
+
+
 //- Definitions
 
 //~ Platform capabilities

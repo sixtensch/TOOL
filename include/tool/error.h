@@ -5,6 +5,19 @@
 
 
 
+//~ Errors and asserts
+//
+// Two mechanisms, for two kinds of problem:
+// - Failures are expected at runtime, like a missing file. The failing function records what went wrong in the
+//   calling thread's error record and returns false or null, and ErrorMessage reads the record afterwards. A
+//   handler set with ErrorSetHandler sees each failure as it happens, for logging.
+// - Asserts catch bugs: conditions that should never be false. A failed assert calls the assert handler, breaks
+//   into an attached debugger on Windows, then aborts.
+//
+// Nothing here throws.
+
+
+
 //~ Definitions
 
 #define TOOL_ERROR_MESSAGE_CAPACITY 1024

@@ -6,6 +6,14 @@
 
 
 
+//~ Vectors
+//
+// 2D, 3D and 4D vectors over any number type: v2 to v4 for f32, v2d to v4d for f64, p2 to p4 for i32 and p2u to p4u
+// for u32. a * b on two vectors is the dot product, and a % b on 3D vectors the cross product. The VEC_CAST macros
+// convert between element types.
+
+
+
 //- Definitions
 
 //~ Parametric

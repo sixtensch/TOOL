@@ -10,8 +10,9 @@
 //~ File IO
 //
 // Paths are UTF-8 with '/' separators on every platform, and relative ones start from the working directory. On
-// Windows, '\' works too, and long paths are handled internally. Functions that can fail return false and record
-// why in the thread's error record (error.h).
+// Windows, '\' works too, and paths past the old 260-character limit work. Paths are limited to 1023 bytes, and on
+// Windows to 1023 characters once made absolute. Functions that can fail return false and record why in the
+// thread's error record (error.h).
 //
 // On the web, paths lead into Emscripten's virtual file system: preloaded files are there before main runs, and
 // files written elsewhere last until the page closes.
