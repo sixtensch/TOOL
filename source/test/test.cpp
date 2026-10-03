@@ -35,6 +35,7 @@ int main()
     TestMatrix();
     TestColor();
     TestRandom();
+    TestThreading();
 
     const c8* intrinsicsFailure = nullptr;
     u32 intrinsicsFailures = TestIntrinsicsRun(&intrinsicsFailure);
