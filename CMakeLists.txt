@@ -120,6 +120,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/test.cpp"
     "${TOOL_SOURCE_DIR}/test/testhashmap.cpp"
     "${TOOL_SOURCE_DIR}/test/testintrinsics.cpp"
+    "${TOOL_SOURCE_DIR}/test/testrandom.cpp"
     )
 
     target_link_libraries(TOOLTest TOOL)
