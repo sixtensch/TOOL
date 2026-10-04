@@ -80,7 +80,7 @@ namespace Tool
 	struct Arena
 	{
 		MemoryAllocator source;
-		u64 chunkSize; // Payload capacity of a regular chunk
+		u64 chunkSize;  // Payload capacity of a regular chunk
 		const c8* name; // Optional, for diagnostics
 
 		ArenaChunk* first;   // Regular chunks in allocation order. Those after 'current' are spares.
@@ -170,7 +170,8 @@ namespace Tool
 	// Plain malloc/free/realloc. Returns null on failure.
 	void* ClassicAlloc(u64 size);
 	void* ClassicAlloc(u64 count, u64 size);
-	template<typename T> inline T* ClassicAlloc();
+	template<typename T>
+	inline T* ClassicAlloc();
 
 	void ClassicDealloc(void* start);
 
@@ -244,7 +245,8 @@ namespace Tool
 	// As ArenaAlloc, with an explicit alignment. 'alignment' must be a power of two.
 	void* ArenaAllocAligned(Arena* arena, u64 size, u64 alignment);
 
-	template<typename T> inline T* ArenaAlloc(Arena* arena);
+	template<typename T>
+	inline T* ArenaAlloc(Arena* arena);
 
 	// Allocates space in two steps, retrieving the location first, then committing the space.
 	// No safety features synchronize mulitple simultaneous allocations, which has to be external.
@@ -255,7 +257,8 @@ namespace Tool
 
 	// Places new object onto the arena.
 	// WARNING: objects created this way will NOT automatically destruct when popping or resetting the arena!
-	template<typename T, class... Args> inline T* ArenaPlace(Arena* arena, Args&&... args);
+	template<typename T, class... Args>
+	inline T* ArenaPlace(Arena* arena, Args&&... args);
 
 	// Saves the current position. The matching ArenaPop releases everything allocated since, child arenas
 	// included, and keeps the chunks for reuse.
@@ -289,7 +292,8 @@ namespace Tool
 	// Allocates space within the current arena frame. Returns null if the arena is exhausted or cannot commit.
 	void* ContiguousArenaAlloc(ContiguousArena* arena, u64 size);
 	void* ContiguousArenaAlloc(ContiguousArena* arena, u64 count, u64 size);
-	template<typename T> inline T* ContiguousArenaAlloc(ContiguousArena* arena);
+	template<typename T>
+	inline T* ContiguousArenaAlloc(ContiguousArena* arena);
 
 	// Allocates space in two steps, retrieving the location first, then committing the space.
 	// No safety features synchronize mulitple simultaneous allocations, which has to be external.
@@ -299,7 +303,8 @@ namespace Tool
 
 	// Places new object onto the current arena frame
 	// WARNING: objects created this way will NOT automatically destruct when popping the arena frame!
-	template<typename T, class... Args> inline T* ContiguousArenaPlace(ContiguousArena* arena, Args&&... args);
+	template<typename T, class... Args>
+	inline T* ContiguousArenaPlace(ContiguousArena* arena, Args&&... args);
 
 	// Pushes a new arena frame.
 	void ContiguousArenaPush(ContiguousArena* arena);
@@ -323,7 +328,8 @@ namespace Tool
 	// Allocate space within the circular buffer. Nullptr indicates insufficient space.
 	void* MagicCircularAlloc(MagicCircular* circular, u64 size);
 	void* MagicCircularAlloc(MagicCircular* circular, u64 count, u64 size);
-	template<typename T> inline T* MagicCircularAlloc(MagicCircular* circular);
+	template<typename T>
+	inline T* MagicCircularAlloc(MagicCircular* circular);
 
 	// Allocates space in two steps, similarly to the same Arena feature.
 	void* MagicCircularAllocBegin(MagicCircular* circular, u64 reservedSize);
@@ -331,7 +337,8 @@ namespace Tool
 
 	// Places new object onto the circular buffer.
 	// WARNING: objects created this way will NOT automatically destruct when popping the arena frame!
-	template<typename T, class... Args> inline T* MagicCircularPlace(MagicCircular* circular, Args&&... args);
+	template<typename T, class... Args>
+	inline T* MagicCircularPlace(MagicCircular* circular, Args&&... args);
 
 	// Get a reference to the current writing location (bookmark).
 	// Can be used to then get a data pointer, or deallocate everything prior to the bookmark.
@@ -361,7 +368,8 @@ namespace Tool
 	// Allocates space using the given allocator method
 	void* AllocatorAlloc(MemoryAllocator allocator, u64 size);
 	void* AllocatorAlloc(MemoryAllocator allocator, u64 count, u64 size);
-	template<typename T> inline T* AllocatorAlloc(MemoryAllocator allocator);
+	template<typename T>
+	inline T* AllocatorAlloc(MemoryAllocator allocator);
 
 	// Deallocates previously allocated data. This might (intentionally) not do anything for certain allocators.
 	void AllocatorDealloc(MemoryAllocator allocator, void* target);
@@ -408,7 +416,7 @@ namespace Tool
 	template<typename T, class... Args>
 	inline T* ArenaPlace(Arena* arena, Args&&... args)
 	{
-		return new (Tool::Placement{}, (T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T(static_cast<Args&&>(args)...);
+		return new (Tool::Placement {}, (T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T(static_cast<Args&&>(args)...);
 	}
 
 #ifdef TOOL_VIRTUAL_MEMORY
@@ -422,7 +430,7 @@ namespace Tool
 	template<typename T, class... Args>
 	inline T* ContiguousArenaPlace(ContiguousArena* arena, Args&&... args)
 	{
-		return new (Tool::Placement{}, (T*)Tool::ContiguousArenaAlloc(arena, sizeof(T))) T(static_cast<Args&&>(args)...);
+		return new (Tool::Placement {}, (T*)Tool::ContiguousArenaAlloc(arena, sizeof(T))) T(static_cast<Args&&>(args)...);
 	}
 
 #endif
@@ -438,7 +446,7 @@ namespace Tool
 	template<typename T, class... Args>
 	inline T* MagicCircularPlace(MagicCircular* circular, Args&&... args)
 	{
-		return new (Tool::Placement{}, (T*)Tool::MagicCircularAlloc(circular, sizeof(T))) T(static_cast<Args&&>(args)...);
+		return new (Tool::Placement {}, (T*)Tool::MagicCircularAlloc(circular, sizeof(T))) T(static_cast<Args&&>(args)...);
 	}
 
 #endif
