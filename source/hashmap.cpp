@@ -27,7 +27,9 @@ namespace Tool
 
     static u64 HashMapKeySize(HashKeyType keyType)
     {
-        return (keyType == HashKeyTypeU64) ? sizeof(u64) : sizeof(s8);
+        if (keyType == HashKeyTypeU64)
+            return sizeof(u64);
+        return (keyType == HashKeyTypePacked) ? sizeof(PackedKey) : sizeof(s8);
     }
 
     static void* HashMapSlotKey(const HashMapCore* map, u64 slot)
@@ -63,6 +65,8 @@ namespace Tool
     {
         if (map->keyType == HashKeyTypeU64)
             return *(const u64*)HashMapSlotKey(map, slot) == *(const u64*)key;
+        if (map->keyType == HashKeyTypePacked)
+            return *(const PackedKey*)HashMapSlotKey(map, slot) == *(const PackedKey*)key;
 
         const s8* a = (const s8*)HashMapSlotKey(map, slot);
         const s8* b = (const s8*)key;
@@ -186,6 +190,10 @@ namespace Tool
             {
                 *(u64*)HashMapSlotKey(map, slot) = *(const u64*)key;
             }
+            else if (map->keyType == HashKeyTypePacked)
+            {
+                *(PackedKey*)HashMapSlotKey(map, slot) = *(const PackedKey*)key;
+            }
             else
             {
                 const s8* source = (const s8*)key;
@@ -271,37 +279,55 @@ namespace Tool
 
     void* HashMapCoreFind(HashMapCore* map, u64 key, u64 hash)
     {
-        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeU64, "Integer key used on a map of string keys.");
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeU64, "Integer key used on a map of other keys.");
+        return HashMapFindAny(map, &key, hash);
+    }
+
+    void* HashMapCoreFind(HashMapCore* map, PackedKey key, u64 hash)
+    {
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypePacked, "Packed key used on a map of other keys.");
         return HashMapFindAny(map, &key, hash);
     }
 
     void* HashMapCoreFind(HashMapCore* map, s8 key, u64 hash)
     {
-        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeS8, "String key used on a map of integer keys.");
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeS8, "String key used on a map of other keys.");
         return HashMapFindAny(map, &key, hash);
     }
 
     void* HashMapCoreInsert(HashMapCore* map, u64 key, u64 hash, const void* value)
     {
-        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeU64, "Integer key used on a map of string keys.");
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeU64, "Integer key used on a map of other keys.");
+        return HashMapInsertAny(map, &key, hash, value);
+    }
+
+    void* HashMapCoreInsert(HashMapCore* map, PackedKey key, u64 hash, const void* value)
+    {
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypePacked, "Packed key used on a map of other keys.");
         return HashMapInsertAny(map, &key, hash, value);
     }
 
     void* HashMapCoreInsert(HashMapCore* map, s8 key, u64 hash, const void* value)
     {
-        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeS8, "String key used on a map of integer keys.");
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeS8, "String key used on a map of other keys.");
         return HashMapInsertAny(map, &key, hash, value);
     }
 
     b8 HashMapCoreRemove(HashMapCore* map, u64 key, u64 hash)
     {
-        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeU64, "Integer key used on a map of string keys.");
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeU64, "Integer key used on a map of other keys.");
+        return HashMapRemoveAny(map, &key, hash);
+    }
+
+    b8 HashMapCoreRemove(HashMapCore* map, PackedKey key, u64 hash)
+    {
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypePacked, "Packed key used on a map of other keys.");
         return HashMapRemoveAny(map, &key, hash);
     }
 
     b8 HashMapCoreRemove(HashMapCore* map, s8 key, u64 hash)
     {
-        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeS8, "String key used on a map of integer keys.");
+        TOOL_DEBUG_ASSERT(map->keyType == HashKeyTypeS8, "String key used on a map of other keys.");
         return HashMapRemoveAny(map, &key, hash);
     }
 

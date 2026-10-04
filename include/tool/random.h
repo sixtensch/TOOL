@@ -4,6 +4,7 @@
 #include "basics.h"
 #include "error.h"
 #include "mathematics.h"
+#include "key.h"
 #include "vector.h"
 
 
@@ -66,36 +67,6 @@ namespace Tool
 
 	inline void RandomKeyedInit(RandomKeyed* random, u64 seed);
 
-	// The key for an *At getter: four 32-bit slots in two words. Build one with Key.
-	struct RandomKey
-	{
-		u64 low;
-		u64 high;
-	};
-
-	// Keys from an ID, 1 to 4 signed coordinates, a point, or an ID or point plus an index. Coordinates fill the
-	// slots in order and missing ones are 0, so Key(x, y) equals Key(x, y, 0). A 64-bit ID fills the first two slots.
-	// There is no float overload, so a float argument is ambiguous and doesn't compile.
-	//
-	// unsigned long, which size_t is on 64-bit Linux and Mac, keys as the u64 of the same value, which matches the u32
-	// key wherever the value fits both. Signed long is deleted: it is 32 bits on Windows and 64 elsewhere, and a
-	// negative value keys differently at the two widths. Cast it to i32 or i64.
-	constexpr RandomKey Key(i64 id);
-	constexpr RandomKey Key(u64 id);
-	constexpr RandomKey Key(unsigned long id);
-	RandomKey Key(long id) = delete;
-	constexpr RandomKey Key(u64 id, i32 index);
-	constexpr RandomKey Key(i32 x);
-	constexpr RandomKey Key(u32 x);
-	constexpr RandomKey Key(i32 x, i32 y);
-	constexpr RandomKey Key(i32 x, i32 y, i32 z);
-	constexpr RandomKey Key(i32 x, i32 y, i32 z, i32 w);
-	inline RandomKey Key(p2 point);
-	inline RandomKey Key(p2 point, i32 index);
-	inline RandomKey Key(p3 point);
-	inline RandomKey Key(p3 point, i32 index);
-	inline RandomKey Key(p4 point);
-
 	//~ Spread
 
 	// Halton points in bases 2, 3 and 5. Each seed shifts every digit by its own random amount (mod the base), which
@@ -118,13 +89,13 @@ namespace Tool
 	// [0, 1), or [min, max).
 	inline f64 RandomF64Next(RandomStream* random);
 	inline f64 RandomF64Next(RandomStream* random, f64 min, f64 max);
-	inline f64 RandomF64At(const RandomKeyed* random, RandomKey key);
-	inline f64 RandomF64At(const RandomKeyed* random, RandomKey key, f64 min, f64 max);
+	inline f64 RandomF64At(const RandomKeyed* random, PackedKey key);
+	inline f64 RandomF64At(const RandomKeyed* random, PackedKey key, f64 min, f64 max);
 
 	inline f32 RandomF32Next(RandomStream* random);
 	inline f32 RandomF32Next(RandomStream* random, f32 min, f32 max);
-	inline f32 RandomF32At(const RandomKeyed* random, RandomKey key);
-	inline f32 RandomF32At(const RandomKeyed* random, RandomKey key, f32 min, f32 max);
+	inline f32 RandomF32At(const RandomKeyed* random, PackedKey key);
+	inline f32 RandomF32At(const RandomKeyed* random, PackedKey key, f32 min, f32 max);
 	f32 RandomF32At(const RandomSpread* random, u64 index);
 
 	//~ Integers
@@ -132,80 +103,80 @@ namespace Tool
 	// Any value of the type, or [min, max).
 	inline i64 RandomI64Next(RandomStream* random);
 	inline i64 RandomI64Next(RandomStream* random, i64 min, i64 max);
-	inline i64 RandomI64At(const RandomKeyed* random, RandomKey key);
-	inline i64 RandomI64At(const RandomKeyed* random, RandomKey key, i64 min, i64 max);
+	inline i64 RandomI64At(const RandomKeyed* random, PackedKey key);
+	inline i64 RandomI64At(const RandomKeyed* random, PackedKey key, i64 min, i64 max);
 
 	// The raw generator output: every other getter is built on these two.
 	inline u64 RandomU64Next(RandomStream* random);
 	inline u64 RandomU64Next(RandomStream* random, u64 min, u64 max);
-	inline u64 RandomU64At(const RandomKeyed* random, RandomKey key);
-	inline u64 RandomU64At(const RandomKeyed* random, RandomKey key, u64 min, u64 max);
+	inline u64 RandomU64At(const RandomKeyed* random, PackedKey key);
+	inline u64 RandomU64At(const RandomKeyed* random, PackedKey key, u64 min, u64 max);
 
 	inline i32 RandomI32Next(RandomStream* random);
 	inline i32 RandomI32Next(RandomStream* random, i32 min, i32 max);
-	inline i32 RandomI32At(const RandomKeyed* random, RandomKey key);
-	inline i32 RandomI32At(const RandomKeyed* random, RandomKey key, i32 min, i32 max);
+	inline i32 RandomI32At(const RandomKeyed* random, PackedKey key);
+	inline i32 RandomI32At(const RandomKeyed* random, PackedKey key, i32 min, i32 max);
 
 	inline u32 RandomU32Next(RandomStream* random);
 	inline u32 RandomU32Next(RandomStream* random, u32 min, u32 max);
-	inline u32 RandomU32At(const RandomKeyed* random, RandomKey key);
-	inline u32 RandomU32At(const RandomKeyed* random, RandomKey key, u32 min, u32 max);
+	inline u32 RandomU32At(const RandomKeyed* random, PackedKey key);
+	inline u32 RandomU32At(const RandomKeyed* random, PackedKey key, u32 min, u32 max);
 
 	inline i16 RandomI16Next(RandomStream* random);
 	inline i16 RandomI16Next(RandomStream* random, i16 min, i16 max);
-	inline i16 RandomI16At(const RandomKeyed* random, RandomKey key);
-	inline i16 RandomI16At(const RandomKeyed* random, RandomKey key, i16 min, i16 max);
+	inline i16 RandomI16At(const RandomKeyed* random, PackedKey key);
+	inline i16 RandomI16At(const RandomKeyed* random, PackedKey key, i16 min, i16 max);
 
 	inline u16 RandomU16Next(RandomStream* random);
 	inline u16 RandomU16Next(RandomStream* random, u16 min, u16 max);
-	inline u16 RandomU16At(const RandomKeyed* random, RandomKey key);
-	inline u16 RandomU16At(const RandomKeyed* random, RandomKey key, u16 min, u16 max);
+	inline u16 RandomU16At(const RandomKeyed* random, PackedKey key);
+	inline u16 RandomU16At(const RandomKeyed* random, PackedKey key, u16 min, u16 max);
 
 	inline i8 RandomI8Next(RandomStream* random);
 	inline i8 RandomI8Next(RandomStream* random, i8 min, i8 max);
-	inline i8 RandomI8At(const RandomKeyed* random, RandomKey key);
-	inline i8 RandomI8At(const RandomKeyed* random, RandomKey key, i8 min, i8 max);
+	inline i8 RandomI8At(const RandomKeyed* random, PackedKey key);
+	inline i8 RandomI8At(const RandomKeyed* random, PackedKey key, i8 min, i8 max);
 
 	inline u8 RandomU8Next(RandomStream* random);
 	inline u8 RandomU8Next(RandomStream* random, u8 min, u8 max);
-	inline u8 RandomU8At(const RandomKeyed* random, RandomKey key);
-	inline u8 RandomU8At(const RandomKeyed* random, RandomKey key, u8 min, u8 max);
+	inline u8 RandomU8At(const RandomKeyed* random, PackedKey key);
+	inline u8 RandomU8At(const RandomKeyed* random, PackedKey key, u8 min, u8 max);
 
 	//~ Booleans
 
 	inline b32 RandomB32Next(RandomStream* random);
-	inline b32 RandomB32At(const RandomKeyed* random, RandomKey key);
+	inline b32 RandomB32At(const RandomKeyed* random, PackedKey key);
 	inline b8 RandomB8Next(RandomStream* random);
-	inline b8 RandomB8At(const RandomKeyed* random, RandomKey key);
+	inline b8 RandomB8At(const RandomKeyed* random, PackedKey key);
 
 	//~ Points
 
 	// Inside the square or cube [0, 1) on each axis. Unlike the circle and sphere below, not centered on the origin.
 	inline v2 RandomInSquareNext(RandomStream* random);
-	inline v2 RandomInSquareAt(const RandomKeyed* random, RandomKey key);
+	inline v2 RandomInSquareAt(const RandomKeyed* random, PackedKey key);
 	v2 RandomInSquareAt(const RandomSpread* random, u64 index);
 
 	inline v3 RandomInCubeNext(RandomStream* random);
-	inline v3 RandomInCubeAt(const RandomKeyed* random, RandomKey key);
+	inline v3 RandomInCubeAt(const RandomKeyed* random, PackedKey key);
 	v3 RandomInCubeAt(const RandomSpread* random, u64 index);
 
 	// On the unit circle or sphere (On), or inside it (In).
 	inline v2 RandomOnCircleNext(RandomStream* random);
-	inline v2 RandomOnCircleAt(const RandomKeyed* random, RandomKey key);
+	inline v2 RandomOnCircleAt(const RandomKeyed* random, PackedKey key);
 	inline v2 RandomInCircleNext(RandomStream* random);
-	inline v2 RandomInCircleAt(const RandomKeyed* random, RandomKey key);
+	inline v2 RandomInCircleAt(const RandomKeyed* random, PackedKey key);
 	inline v3 RandomOnSphereNext(RandomStream* random);
-	inline v3 RandomOnSphereAt(const RandomKeyed* random, RandomKey key);
+	inline v3 RandomOnSphereAt(const RandomKeyed* random, PackedKey key);
 	inline v3 RandomInSphereNext(RandomStream* random);
-	inline v3 RandomInSphereAt(const RandomKeyed* random, RandomKey key);
+	inline v3 RandomInSphereAt(const RandomKeyed* random, PackedKey key);
 
 	//~ Gaussian
 
 	// Normal distribution. Tails end near 8.5 deviations for f64 and 5.8 for f32.
 	inline f64 RandomGaussianF64Next(RandomStream* random, f64 mean, f64 deviation);
-	inline f64 RandomGaussianF64At(const RandomKeyed* random, RandomKey key, f64 mean, f64 deviation);
+	inline f64 RandomGaussianF64At(const RandomKeyed* random, PackedKey key, f64 mean, f64 deviation);
 	inline f32 RandomGaussianF32Next(RandomStream* random, f32 mean, f32 deviation);
-	inline f32 RandomGaussianF32At(const RandomKeyed* random, RandomKey key, f32 mean, f32 deviation);
+	inline f32 RandomGaussianF32At(const RandomKeyed* random, PackedKey key, f32 mean, f32 deviation);
 
 	//~ Collections
 
@@ -213,7 +184,7 @@ namespace Tool
 	template<typename T>
 	void RandomShuffleNext(RandomStream* random, T* items, u64 count);
 	template<typename T>
-	void RandomShuffleAt(const RandomKeyed* random, RandomKey key, T* items, u64 count);
+	void RandomShuffleAt(const RandomKeyed* random, PackedKey key, T* items, u64 count);
 
 	// Fills 'size' bytes with successive outputs, each in little-endian byte order.
 	void RandomFillNext(RandomStream* random, void* dst, u64 size);
@@ -256,23 +227,6 @@ namespace Tool
 		return RandomMix(bits + 0x9e3779b97f4a7c15ull);
 	}
 
-	//~ Keys
-
-	constexpr RandomKey Key(i64 id) { return { (u64)id, 0 }; }
-	constexpr RandomKey Key(u64 id) { return { id, 0 }; }
-	constexpr RandomKey Key(unsigned long id) { return Key((u64)id); }
-	constexpr RandomKey Key(u64 id, i32 index) { return { id, (u32)index }; }
-	constexpr RandomKey Key(i32 x) { return { (u32)x, 0 }; }
-	constexpr RandomKey Key(u32 x) { return { x, 0 }; }
-	constexpr RandomKey Key(i32 x, i32 y) { return { (u32)x | ((u64)(u32)y << 32), 0 }; }
-	constexpr RandomKey Key(i32 x, i32 y, i32 z) { return { (u32)x | ((u64)(u32)y << 32), (u32)z }; }
-	constexpr RandomKey Key(i32 x, i32 y, i32 z, i32 w) { return { (u32)x | ((u64)(u32)y << 32), (u32)z | ((u64)(u32)w << 32) }; }
-	inline RandomKey Key(p2 point) { return Key(point.x, point.y); }
-	inline RandomKey Key(p2 point, i32 index) { return Key(point.x, point.y, index); }
-	inline RandomKey Key(p3 point) { return Key(point.x, point.y, point.z); }
-	inline RandomKey Key(p3 point, i32 index) { return Key(point.x, point.y, point.z, index); }
-	inline RandomKey Key(p4 point) { return Key(point.x, point.y, point.z, point.w); }
-
 	//~ Generators
 
 	inline void RandomStreamInit(RandomStream* random, u64 seed)
@@ -306,7 +260,7 @@ namespace Tool
 
 	// The seed enters both rounds, so each seed is its own permutation of the keys rather than a shifted copy of
 	// another seed's. Keys within the first two slots take two rounds; using the last two adds a third.
-	inline u64 RandomU64At(const RandomKeyed* random, RandomKey key)
+	inline u64 RandomU64At(const RandomKeyed* random, PackedKey key)
 	{
 		u64 inner = RandomMix(key.low ^ random->seed ^ 0x9e3779b97f4a7c15ull);
 		if (key.high != 0)
@@ -394,67 +348,67 @@ namespace Tool
 
 	inline f64 RandomF64Next(RandomStream* random) { return RandomBitsF64(RandomU64Next(random)); }
 	inline f64 RandomF64Next(RandomStream* random, f64 min, f64 max) { return RandomBitsF64(RandomU64Next(random), min, max); }
-	inline f64 RandomF64At(const RandomKeyed* random, RandomKey key) { return RandomBitsF64(RandomU64At(random, key)); }
-	inline f64 RandomF64At(const RandomKeyed* random, RandomKey key, f64 min, f64 max) { return RandomBitsF64(RandomU64At(random, key), min, max); }
+	inline f64 RandomF64At(const RandomKeyed* random, PackedKey key) { return RandomBitsF64(RandomU64At(random, key)); }
+	inline f64 RandomF64At(const RandomKeyed* random, PackedKey key, f64 min, f64 max) { return RandomBitsF64(RandomU64At(random, key), min, max); }
 	inline f32 RandomF32Next(RandomStream* random) { return RandomBitsF32(RandomU64Next(random)); }
 	inline f32 RandomF32Next(RandomStream* random, f32 min, f32 max) { return RandomBitsF32(RandomU64Next(random), min, max); }
-	inline f32 RandomF32At(const RandomKeyed* random, RandomKey key) { return RandomBitsF32(RandomU64At(random, key)); }
-	inline f32 RandomF32At(const RandomKeyed* random, RandomKey key, f32 min, f32 max) { return RandomBitsF32(RandomU64At(random, key), min, max); }
+	inline f32 RandomF32At(const RandomKeyed* random, PackedKey key) { return RandomBitsF32(RandomU64At(random, key)); }
+	inline f32 RandomF32At(const RandomKeyed* random, PackedKey key, f32 min, f32 max) { return RandomBitsF32(RandomU64At(random, key), min, max); }
 
 	// Full-width values take the top bits.
 	inline i64 RandomI64Next(RandomStream* random) { return (i64)RandomU64Next(random); }
 	inline i64 RandomI64Next(RandomStream* random, i64 min, i64 max) { return RandomBitsI64(RandomU64Next(random), min, max); }
-	inline i64 RandomI64At(const RandomKeyed* random, RandomKey key) { return (i64)RandomU64At(random, key); }
-	inline i64 RandomI64At(const RandomKeyed* random, RandomKey key, i64 min, i64 max) { return RandomBitsI64(RandomU64At(random, key), min, max); }
+	inline i64 RandomI64At(const RandomKeyed* random, PackedKey key) { return (i64)RandomU64At(random, key); }
+	inline i64 RandomI64At(const RandomKeyed* random, PackedKey key, i64 min, i64 max) { return RandomBitsI64(RandomU64At(random, key), min, max); }
 	inline u64 RandomU64Next(RandomStream* random, u64 min, u64 max) { return RandomBitsU64(RandomU64Next(random), min, max); }
-	inline u64 RandomU64At(const RandomKeyed* random, RandomKey key, u64 min, u64 max) { return RandomBitsU64(RandomU64At(random, key), min, max); }
+	inline u64 RandomU64At(const RandomKeyed* random, PackedKey key, u64 min, u64 max) { return RandomBitsU64(RandomU64At(random, key), min, max); }
 	inline i32 RandomI32Next(RandomStream* random) { return (i32)(RandomU64Next(random) >> 32); }
 	inline i32 RandomI32Next(RandomStream* random, i32 min, i32 max) { return RandomBitsI32(RandomU64Next(random), min, max); }
-	inline i32 RandomI32At(const RandomKeyed* random, RandomKey key) { return (i32)(RandomU64At(random, key) >> 32); }
-	inline i32 RandomI32At(const RandomKeyed* random, RandomKey key, i32 min, i32 max) { return RandomBitsI32(RandomU64At(random, key), min, max); }
+	inline i32 RandomI32At(const RandomKeyed* random, PackedKey key) { return (i32)(RandomU64At(random, key) >> 32); }
+	inline i32 RandomI32At(const RandomKeyed* random, PackedKey key, i32 min, i32 max) { return RandomBitsI32(RandomU64At(random, key), min, max); }
 	inline u32 RandomU32Next(RandomStream* random) { return (u32)(RandomU64Next(random) >> 32); }
 	inline u32 RandomU32Next(RandomStream* random, u32 min, u32 max) { return RandomBitsU32(RandomU64Next(random), min, max); }
-	inline u32 RandomU32At(const RandomKeyed* random, RandomKey key) { return (u32)(RandomU64At(random, key) >> 32); }
-	inline u32 RandomU32At(const RandomKeyed* random, RandomKey key, u32 min, u32 max) { return RandomBitsU32(RandomU64At(random, key), min, max); }
+	inline u32 RandomU32At(const RandomKeyed* random, PackedKey key) { return (u32)(RandomU64At(random, key) >> 32); }
+	inline u32 RandomU32At(const RandomKeyed* random, PackedKey key, u32 min, u32 max) { return RandomBitsU32(RandomU64At(random, key), min, max); }
 	inline i16 RandomI16Next(RandomStream* random) { return (i16)(RandomU64Next(random) >> 48); }
 	inline i16 RandomI16Next(RandomStream* random, i16 min, i16 max) { return (i16)RandomBitsI32(RandomU64Next(random), min, max); }
-	inline i16 RandomI16At(const RandomKeyed* random, RandomKey key) { return (i16)(RandomU64At(random, key) >> 48); }
-	inline i16 RandomI16At(const RandomKeyed* random, RandomKey key, i16 min, i16 max) { return (i16)RandomBitsI32(RandomU64At(random, key), min, max); }
+	inline i16 RandomI16At(const RandomKeyed* random, PackedKey key) { return (i16)(RandomU64At(random, key) >> 48); }
+	inline i16 RandomI16At(const RandomKeyed* random, PackedKey key, i16 min, i16 max) { return (i16)RandomBitsI32(RandomU64At(random, key), min, max); }
 	inline u16 RandomU16Next(RandomStream* random) { return (u16)(RandomU64Next(random) >> 48); }
 	inline u16 RandomU16Next(RandomStream* random, u16 min, u16 max) { return (u16)RandomBitsU32(RandomU64Next(random), min, max); }
-	inline u16 RandomU16At(const RandomKeyed* random, RandomKey key) { return (u16)(RandomU64At(random, key) >> 48); }
-	inline u16 RandomU16At(const RandomKeyed* random, RandomKey key, u16 min, u16 max) { return (u16)RandomBitsU32(RandomU64At(random, key), min, max); }
+	inline u16 RandomU16At(const RandomKeyed* random, PackedKey key) { return (u16)(RandomU64At(random, key) >> 48); }
+	inline u16 RandomU16At(const RandomKeyed* random, PackedKey key, u16 min, u16 max) { return (u16)RandomBitsU32(RandomU64At(random, key), min, max); }
 	inline i8 RandomI8Next(RandomStream* random) { return (i8)(RandomU64Next(random) >> 56); }
 	inline i8 RandomI8Next(RandomStream* random, i8 min, i8 max) { return (i8)RandomBitsI32(RandomU64Next(random), min, max); }
-	inline i8 RandomI8At(const RandomKeyed* random, RandomKey key) { return (i8)(RandomU64At(random, key) >> 56); }
-	inline i8 RandomI8At(const RandomKeyed* random, RandomKey key, i8 min, i8 max) { return (i8)RandomBitsI32(RandomU64At(random, key), min, max); }
+	inline i8 RandomI8At(const RandomKeyed* random, PackedKey key) { return (i8)(RandomU64At(random, key) >> 56); }
+	inline i8 RandomI8At(const RandomKeyed* random, PackedKey key, i8 min, i8 max) { return (i8)RandomBitsI32(RandomU64At(random, key), min, max); }
 	inline u8 RandomU8Next(RandomStream* random) { return (u8)(RandomU64Next(random) >> 56); }
 	inline u8 RandomU8Next(RandomStream* random, u8 min, u8 max) { return (u8)RandomBitsU32(RandomU64Next(random), min, max); }
-	inline u8 RandomU8At(const RandomKeyed* random, RandomKey key) { return (u8)(RandomU64At(random, key) >> 56); }
-	inline u8 RandomU8At(const RandomKeyed* random, RandomKey key, u8 min, u8 max) { return (u8)RandomBitsU32(RandomU64At(random, key), min, max); }
+	inline u8 RandomU8At(const RandomKeyed* random, PackedKey key) { return (u8)(RandomU64At(random, key) >> 56); }
+	inline u8 RandomU8At(const RandomKeyed* random, PackedKey key, u8 min, u8 max) { return (u8)RandomBitsU32(RandomU64At(random, key), min, max); }
 
 	inline b32 RandomB32Next(RandomStream* random) { return (b32)(RandomU64Next(random) >> 63); }
-	inline b32 RandomB32At(const RandomKeyed* random, RandomKey key) { return (b32)(RandomU64At(random, key) >> 63); }
+	inline b32 RandomB32At(const RandomKeyed* random, PackedKey key) { return (b32)(RandomU64At(random, key) >> 63); }
 	inline b8 RandomB8Next(RandomStream* random) { return (b8)(RandomU64Next(random) >> 63); }
-	inline b8 RandomB8At(const RandomKeyed* random, RandomKey key) { return (b8)(RandomU64At(random, key) >> 63); }
+	inline b8 RandomB8At(const RandomKeyed* random, PackedKey key) { return (b8)(RandomU64At(random, key) >> 63); }
 
 	inline v2 RandomInSquareNext(RandomStream* random) { return RandomBitsInSquare(RandomU64Next(random)); }
-	inline v2 RandomInSquareAt(const RandomKeyed* random, RandomKey key) { return RandomBitsInSquare(RandomU64At(random, key)); }
+	inline v2 RandomInSquareAt(const RandomKeyed* random, PackedKey key) { return RandomBitsInSquare(RandomU64At(random, key)); }
 	inline v3 RandomInCubeNext(RandomStream* random) { return RandomBitsInCube(RandomU64Next(random)); }
-	inline v3 RandomInCubeAt(const RandomKeyed* random, RandomKey key) { return RandomBitsInCube(RandomU64At(random, key)); }
+	inline v3 RandomInCubeAt(const RandomKeyed* random, PackedKey key) { return RandomBitsInCube(RandomU64At(random, key)); }
 	inline v2 RandomOnCircleNext(RandomStream* random) { return RandomBitsOnCircle(RandomU64Next(random)); }
-	inline v2 RandomOnCircleAt(const RandomKeyed* random, RandomKey key) { return RandomBitsOnCircle(RandomU64At(random, key)); }
+	inline v2 RandomOnCircleAt(const RandomKeyed* random, PackedKey key) { return RandomBitsOnCircle(RandomU64At(random, key)); }
 	inline v2 RandomInCircleNext(RandomStream* random) { return RandomBitsInCircle(RandomU64Next(random)); }
-	inline v2 RandomInCircleAt(const RandomKeyed* random, RandomKey key) { return RandomBitsInCircle(RandomU64At(random, key)); }
+	inline v2 RandomInCircleAt(const RandomKeyed* random, PackedKey key) { return RandomBitsInCircle(RandomU64At(random, key)); }
 	inline v3 RandomOnSphereNext(RandomStream* random) { return RandomBitsOnSphere(RandomU64Next(random)); }
-	inline v3 RandomOnSphereAt(const RandomKeyed* random, RandomKey key) { return RandomBitsOnSphere(RandomU64At(random, key)); }
+	inline v3 RandomOnSphereAt(const RandomKeyed* random, PackedKey key) { return RandomBitsOnSphere(RandomU64At(random, key)); }
 	inline v3 RandomInSphereNext(RandomStream* random) { return RandomBitsInSphere(RandomU64Next(random)); }
-	inline v3 RandomInSphereAt(const RandomKeyed* random, RandomKey key) { return RandomBitsInSphere(RandomU64At(random, key)); }
+	inline v3 RandomInSphereAt(const RandomKeyed* random, PackedKey key) { return RandomBitsInSphere(RandomU64At(random, key)); }
 
 	inline f64 RandomGaussianF64Next(RandomStream* random, f64 mean, f64 deviation) { return RandomBitsGaussianF64(RandomU64Next(random), mean, deviation); }
-	inline f64 RandomGaussianF64At(const RandomKeyed* random, RandomKey key, f64 mean, f64 deviation) { return RandomBitsGaussianF64(RandomU64At(random, key), mean, deviation); }
+	inline f64 RandomGaussianF64At(const RandomKeyed* random, PackedKey key, f64 mean, f64 deviation) { return RandomBitsGaussianF64(RandomU64At(random, key), mean, deviation); }
 	inline f32 RandomGaussianF32Next(RandomStream* random, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64Next(random), mean, deviation); }
-	inline f32 RandomGaussianF32At(const RandomKeyed* random, RandomKey key, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64At(random, key), mean, deviation); }
+	inline f32 RandomGaussianF32At(const RandomKeyed* random, PackedKey key, f32 mean, f32 deviation) { return RandomBitsGaussianF32(RandomU64At(random, key), mean, deviation); }
 
 	// The stream form draws once per swap; the keyed form stretches its word once per swap.
 	template<typename T>
@@ -470,7 +424,7 @@ namespace Tool
 	}
 
 	template<typename T>
-	void RandomShuffleAt(const RandomKeyed* random, RandomKey key, T* items, u64 count)
+	void RandomShuffleAt(const RandomKeyed* random, PackedKey key, T* items, u64 count)
 	{
 		u64 bits = RandomU64At(random, key);
 		for (u64 i = count; i > 1; i--)
