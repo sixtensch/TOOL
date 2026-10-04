@@ -147,6 +147,73 @@ static void TestChurn()
 
 
 
+//~ Packed keys
+
+static_assert(Key(1, 2) == Key(1, 2, 0));
+static_assert(Key(1, 2) != Key(2, 1));
+static_assert(Key(-1) == Key(-1, 0, 0, 0));
+static_assert(HashMapHash<HashFunctionRapid>(Key(3, 4, 5)) != HashMapHash<HashFunctionRapid>(Key(3, 4, 6)));
+
+template<HashFunction F>
+static void TestPackedKeysWith()
+{
+    HashMap<F> map = {};
+    HashMapInit<i32>(&map, Allocator(), HashKeyTypePacked);
+
+    // A cube of cells around the origin, negative coordinates included.
+    for (i32 z = -8; z < 8; z++)
+        for (i32 y = -8; y < 8; y++)
+            for (i32 x = -8; x < 8; x++)
+                TOOL_ASSERT(HashMapInsert(&map, Key(x, y, z), x + y * 16 + z * 256) != nullptr);
+    TOOL_ASSERT(map.core.count == 16 * 16 * 16);
+
+    for (i32 z = -8; z < 8; z++)
+        for (i32 y = -8; y < 8; y++)
+            for (i32 x = -8; x < 8; x++)
+            {
+                i32* value = HashMapFind<i32>(&map, Key(x, y, z));
+                TOOL_ASSERT(value != nullptr && *value == x + y * 16 + z * 256);
+            }
+    TOOL_ASSERT(HashMapFind<i32>(&map, Key(8, 0, 0)) == nullptr);
+    TOOL_ASSERT(HashMapFind<i32>(&map, Key(0, 0, 0, 1)) == nullptr);
+
+    // Missing coordinates are 0: Key(p2) finds the z = 0 cell.
+    TOOL_ASSERT(*HashMapFind<i32>(&map, Key(p2 { 3, -2 })) == 3 - 2 * 16);
+
+    for (i32 x = -8; x < 8; x++)
+        TOOL_ASSERT(HashMapRemove(&map, Key(x, 0, 0)));
+    TOOL_ASSERT(!HashMapRemove(&map, Key(0, 0, 0)));
+
+    u64 visited = 0;
+    PackedKey key;
+    i32* value;
+    for (u64 cursor = 0; HashMapNext(&map, &cursor, &key, &value);)
+    {
+        TOOL_ASSERT((key.low >> 32) != 0 || key.high != 0); // Not in the removed row
+        visited++;
+    }
+    TOOL_ASSERT(visited == 16 * 16 * 16 - 16);
+
+    HashMapDeInit(&map);
+}
+
+static void TestPackedKeys()
+{
+    // Rapid and FNV-1a hash a packed key as its little-endian bytes.
+    for (i32 i = -500; i < 500; i++)
+    {
+        PackedKey key = Key(i, i * 7, i * 31, i * 127);
+        TOOL_ASSERT(HashMapHash<HashFunctionRapid>(key) == HashRapid(&key, sizeof(key)));
+        TOOL_ASSERT(HashMapHash<HashFunctionFnv1a>(key) == HashFnv1a(&key, sizeof(key)));
+    }
+
+    TestPackedKeysWith<HashFunctionNone>();
+    TestPackedKeysWith<HashFunctionFnv1a>();
+    TestPackedKeysWith<HashFunctionRapid>();
+}
+
+
+
 //~ String keys
 
 static void TestStringKeys()
@@ -245,6 +312,7 @@ void TestHashMap()
     TestHashes();
     TestIntegerKeys();
     TestChurn();
+    TestPackedKeys();
     TestStringKeys();
     TestArenaSource();
     printf("Hash map: ok\n");

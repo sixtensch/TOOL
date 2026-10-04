@@ -94,14 +94,14 @@ static void TestKeyed()
     for (u32 n = 0; n < samples; n++)
     {
         RandomKeyed base = { RandomU64Next(&stream) };
-        RandomKey key = {};
+        PackedKey key = {};
         key.low = RandomU64Next(&stream);
         key.high = RandomU64Next(&stream) | 1;
         u64 reference = RandomU64At(&base, key);
         for (u32 bit = 0; bit < 192; bit++)
         {
             RandomKeyed flippedSeed = base;
-            RandomKey flippedKey = key;
+            PackedKey flippedKey = key;
             if (bit < 64)
                 flippedKey.low ^= 1ull << bit;
             else if (bit < 128)
