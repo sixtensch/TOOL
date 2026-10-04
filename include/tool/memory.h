@@ -371,6 +371,26 @@ namespace Tool
 
 //- Implementation
 
+//~ Placement new
+// TOOL's own placement form, under a tag of its own, so constructing in place needs no <new> and can't clash with
+// it. Being noexcept, a null address skips the constructor and the new-expression gives null.
+
+namespace Tool
+{
+	struct Placement
+	{
+	};
+}
+
+inline void* operator new(decltype(sizeof(0)), Tool::Placement, void* address) noexcept
+{
+	return address;
+}
+
+inline void operator delete(void*, Tool::Placement, void*) noexcept
+{
+}
+
 namespace Tool
 {
 	template<typename T>
@@ -388,7 +408,7 @@ namespace Tool
 	template<typename T, class... Args>
 	inline T* ArenaPlace(Arena* arena, Args&&... args)
 	{
-		return new ((T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T(static_cast<Args&&>(args)...);
+		return new (Tool::Placement{}, (T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T(static_cast<Args&&>(args)...);
 	}
 
 #ifdef TOOL_VIRTUAL_MEMORY
@@ -402,7 +422,7 @@ namespace Tool
 	template<typename T, class... Args>
 	inline T* ContiguousArenaPlace(ContiguousArena* arena, Args&&... args)
 	{
-		return new ((T*)Tool::ContiguousArenaAlloc(arena, sizeof(T))) T(static_cast<Args&&>(args)...);
+		return new (Tool::Placement{}, (T*)Tool::ContiguousArenaAlloc(arena, sizeof(T))) T(static_cast<Args&&>(args)...);
 	}
 
 #endif
@@ -418,7 +438,7 @@ namespace Tool
 	template<typename T, class... Args>
 	inline T* MagicCircularPlace(MagicCircular* circular, Args&&... args)
 	{
-		return new ((T*)Tool::MagicCircularAlloc(circular, sizeof(T))) T(static_cast<Args&&>(args)...);
+		return new (Tool::Placement{}, (T*)Tool::MagicCircularAlloc(circular, sizeof(T))) T(static_cast<Args&&>(args)...);
 	}
 
 #endif
