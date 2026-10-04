@@ -99,7 +99,7 @@ namespace Tool
 	constexpr s8 S8(const c8* cstr); // A view of a C string. For literals, the size is worked out at compile time
 	s8 S8Copy(s8 string, MemoryAllocator allocator);
 	s8 S8Concat(s8 a, s8 b, MemoryAllocator allocator);
-	s8 S8Format(MemoryAllocator allocator, const c8* format, ...) TOOL_PRINTF_FORMAT(2, 3); // printf's rules
+	s8 S8FormatPrintf(MemoryAllocator allocator, const c8* format, ...) TOOL_PRINTF_FORMAT(2, 3); // printf's rules. tool/format.h has typed {} formatting
 
 	//~ Comparing and searching
 
@@ -165,7 +165,7 @@ namespace Tool
 	u64 CStr16Count(const c16* string); // Units before the terminator
 	u64 CStr8Copy(c8* destination, const c8* source, u64 capacity);
 	u64 CStr16Copy(c16* destination, const c16* source, u64 capacity);
-	u64 CStr8Format(c8* destination, u64 capacity, const c8* format, ...) TOOL_PRINTF_FORMAT(3, 4); // printf's rules
+	u64 CStr8FormatPrintf(c8* destination, u64 capacity, const c8* format, ...) TOOL_PRINTF_FORMAT(3, 4); // printf's rules
 
 	//~ String builder
 

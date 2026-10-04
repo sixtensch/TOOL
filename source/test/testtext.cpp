@@ -39,11 +39,11 @@ static void TestMaking()
 	s8 joined = S8Concat(S8("ab"), S8("cd"), Allocator());
 	TOOL_ASSERT(Is(joined, "abcd") && joined.str[4] == 0);
 
-	s8 formatted = S8Format(Allocator(), "%d-%s-%.2f-%llu", 42, "x", 1.5, 18446744073709551615ull);
+	s8 formatted = S8FormatPrintf(Allocator(), "%d-%s-%.2f-%llu", 42, "x", 1.5, 18446744073709551615ull);
 	TOOL_ASSERT(Is(formatted, "42-x-1.50-18446744073709551615") && formatted.str[formatted.size] == 0);
-	s8 wide = S8Format(Allocator(), "%0300d", 7);
+	s8 wide = S8FormatPrintf(Allocator(), "%0300d", 7);
 	TOOL_ASSERT(wide.size == 300 && wide.str[299] == '7' && wide.str[0] == '0');
-	s8 empty = S8Format(Allocator(), "%s", "");
+	s8 empty = S8FormatPrintf(Allocator(), "%s", "");
 	TOOL_ASSERT(empty.size == 0 && empty.str != nullptr && empty.str[0] == 0);
 
 	AllocatorDealloc(Allocator(), copy.str);
@@ -160,7 +160,7 @@ static void TestLocale()
 
 	if (chosen != nullptr)
 	{
-		s8 formatted = S8Format(Allocator(), "%.1f", 1.5);
+		s8 formatted = S8FormatPrintf(Allocator(), "%.1f", 1.5);
 		f64 value = 0.0;
 		b8 parsed = S8ParseF64(S8("2.5"), &value);
 		b8 comma = S8ParseF64(S8("2,5"), &value);
@@ -267,17 +267,17 @@ static void TestCStrings()
 	TOOL_ASSERT(CStr16Copy(wide, emoji, 3) == 1 && wide[1] == 0); // Not half a pair
 	TOOL_ASSERT(CStr16Copy(wide, emoji, 4) == 3 && wide[3] == 0);
 
-	TOOL_ASSERT(CStr8Format(buffer, sizeof(buffer), "%s=%d", "x", 42) == 4 && strcmp(buffer, "x=42") == 0);
-	TOOL_ASSERT(CStr8Format(buffer, 4, "%s", "abcdef") == 3 && strcmp(buffer, "abc") == 0);
-	TOOL_ASSERT(CStr8Format(buffer, 4, "%s", "a\xC3\xA9\xE2\x82\xAC") == 3 && strcmp(buffer, "a\xC3\xA9") == 0);
-	TOOL_ASSERT(CStr8Format(buffer, 3, "%s", "a\xC3\xA9") == 1 && strcmp(buffer, "a") == 0);
-	TOOL_ASSERT(CStr8Format(buffer, 0, "%d", 1) == 0);
+	TOOL_ASSERT(CStr8FormatPrintf(buffer, sizeof(buffer), "%s=%d", "x", 42) == 4 && strcmp(buffer, "x=42") == 0);
+	TOOL_ASSERT(CStr8FormatPrintf(buffer, 4, "%s", "abcdef") == 3 && strcmp(buffer, "abc") == 0);
+	TOOL_ASSERT(CStr8FormatPrintf(buffer, 4, "%s", "a\xC3\xA9\xE2\x82\xAC") == 3 && strcmp(buffer, "a\xC3\xA9") == 0);
+	TOOL_ASSERT(CStr8FormatPrintf(buffer, 3, "%s", "a\xC3\xA9") == 1 && strcmp(buffer, "a") == 0);
+	TOOL_ASSERT(CStr8FormatPrintf(buffer, 0, "%d", 1) == 0);
 
 	// Appending formatted pieces never runs past the buffer.
 	c8 line[16];
 	u64 at = 0;
 	for (u32 i = 0; i < 10; i++)
-		at += CStr8Format(line + at, sizeof(line) - at, "[%u]", i);
+		at += CStr8FormatPrintf(line + at, sizeof(line) - at, "[%u]", i);
 	TOOL_ASSERT(at < sizeof(line) && strcmp(line, "[0][1][2][3][4]") == 0);
 }
 

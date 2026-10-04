@@ -38,6 +38,7 @@ int main()
     TestThreading();
     TestIO();
     TestText();
+    TestFormat();
 
     const c8* intrinsicsFailure = nullptr;
     u32 intrinsicsFailures = TestIntrinsicsRun(&intrinsicsFailure);

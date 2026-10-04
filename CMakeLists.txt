@@ -37,6 +37,7 @@ set(TOOL_INCLUDE_DIR "include")
 add_library(TOOL
     "${TOOL_SOURCE_DIR}/basics.cpp"
     "${TOOL_SOURCE_DIR}/error.cpp"
+    "${TOOL_SOURCE_DIR}/format.cpp"
     "${TOOL_SOURCE_DIR}/hashmap.cpp"
     "${TOOL_SOURCE_DIR}/intrinsics.cpp"
     "${TOOL_SOURCE_DIR}/mathematics.cpp"
@@ -137,6 +138,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testmathematics.cpp"
     "${TOOL_SOURCE_DIR}/test/testmatrix.cpp"
     "${TOOL_SOURCE_DIR}/test/testcolor.cpp"
+    "${TOOL_SOURCE_DIR}/test/testformat.cpp"
     "${TOOL_SOURCE_DIR}/test/testrandom.cpp"
     "${TOOL_SOURCE_DIR}/test/testthreading.cpp"
     "${TOOL_SOURCE_DIR}/test/testio.cpp"
