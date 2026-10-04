@@ -16,6 +16,7 @@
 // TOOL_NO_MATH:     Do not use TOOL math functions or aliases in the public namespace.
 // TOOL_NO_ALLOC:    Do not provide the ALLOC(...) macro.
 // TOOL_NO_UTF:      Do not provide the UTF8(str) and UTF16(str) macros.
+// TOOL_FORMAT_NO_VALIDATE: Do not check format strings against their arguments at compile time (tool/format.h).
 
 
 
@@ -43,6 +44,8 @@
 #include "tool/matrix.h"
 #include "tool/quaternion.h"
 #include "tool/box.h"
+
+// Opt-in, included on their own: tool/format.h (typed {} formatting), tool/intrinsics.h (SIMD)
 
 
 

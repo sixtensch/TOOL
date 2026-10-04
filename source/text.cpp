@@ -327,7 +327,7 @@ namespace Tool
         return result;
     }
 
-    s8 S8Format(MemoryAllocator allocator, const c8* format, ...)
+    s8 S8FormatPrintf(MemoryAllocator allocator, const c8* format, ...)
     {
         va_list arguments;
         va_list again;
@@ -713,7 +713,7 @@ namespace Tool
         return count;
     }
 
-    u64 CStr8Format(c8* destination, u64 capacity, const c8* format, ...)
+    u64 CStr8FormatPrintf(c8* destination, u64 capacity, const c8* format, ...)
     {
         if (capacity == 0)
             return 0;

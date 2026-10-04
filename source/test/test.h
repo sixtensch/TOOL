@@ -30,6 +30,7 @@ void TestRandom();
 void TestThreading();
 void TestIO();
 void TestText();
+void TestFormat();
 u32 TestIntrinsicsRun(const c8** outFirstFailure);
 
 #endif //TEST_H
