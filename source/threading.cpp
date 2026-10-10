@@ -401,7 +401,10 @@ namespace Tool
             truncated[i] = name[i];
 
 #if defined(TOOL_WEB)
+        // Without pthreads there is only the one thread, and nothing to name it through
+#if defined(__EMSCRIPTEN_PTHREADS__)
         emscripten_set_thread_name(pthread_self(), truncated);
+#endif
 #else
         pthread_setname_np(pthread_self(), truncated);
 #endif
