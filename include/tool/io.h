@@ -63,8 +63,33 @@ namespace Tool
 		c8 name[1024]; // The entry's name alone, UTF-8
 	};
 
+	enum DirectoryChangeType
+	{
+		DirectoryChangeTypeAdded,       // Created, or moved in from outside the watch
+		DirectoryChangeTypeRemoved,     // Deleted, or moved out of the watch
+		DirectoryChangeTypeModified,    // A file's contents or attributes written. Can come many times for one save
+		DirectoryChangeTypeRenamedFrom, // The old path of a rename within the watch. Its RenamedTo comes next
+		DirectoryChangeTypeRenamedTo,   // The new path of the RenamedFrom just before it
+		DirectoryChangeTypeOverflow,    // Changes were lost. Look again at everything under the watched directory
+	};
+
+	struct DirectoryChange
+	{
+		DirectoryChangeType type;
+		b8 directory;  // The path is a directory. False for removed paths where the system doesn't say
+		c8 path[1024]; // Relative to the watched directory, UTF-8 with '/'. Empty for Overflow
+	};
+
+	// Reports changes under a directory, one per DirectoryWatchNext. Zeroed is closed.
+	struct alignas(8) DirectoryWatch
+	{
+		u64 handle; // Internal
+	};
+
 	static_assert(sizeof(PathInfo) == 24 && alignof(PathInfo) == 8, "PathInfo layout");
 	static_assert(sizeof(DirectoryIterator) == 1064 && alignof(DirectoryIterator) == 8, "DirectoryIterator layout");
+	static_assert(sizeof(DirectoryChange) == 1032 && alignof(DirectoryChange) == 4, "DirectoryChange layout");
+	static_assert(sizeof(DirectoryWatch) == 8 && alignof(DirectoryWatch) == 8, "DirectoryWatch layout");
 
 
 
@@ -120,6 +145,37 @@ namespace Tool
 	b8 DirectoryOpen(DirectoryIterator* iterator, const c8* path);
 	b8 DirectoryNext(DirectoryIterator* iterator); // Steps to the next entry. False when there are no more
 	void DirectoryClose(DirectoryIterator* iterator);
+
+	//~ Watching directories
+	// Changes come in the order the system reports them. Take them as hints of where to look: a path can be reported
+	// more than once, a move between directories can come as Removed and Added rather than a rename, and writes are
+	// reported as they happen, so whether a file is complete is for the caller to judge. A directory doesn't report
+	// Modified when its entries change, as they report themselves. Windows and Linux only: elsewhere, opening fails.
+	//
+	// DirectoryWatch watch = {};
+	// if (DirectoryWatchOpen(&watch, "assets", true, Allocator()))
+	// {
+	//     DirectoryChange change;
+	//     while (DirectoryWatchNext(&watch, &change)) // Each frame, say
+	//         Use(change.type, change.path);
+	//     ...
+	//     DirectoryWatchClose(&watch);
+	// }
+
+	// Starts collecting changes to 'path' and, if 'recursive', to everything below it. 'allocator' holds the watch's
+	// buffers, and on Linux a record per directory watched, which grows as directories are added.
+	b8 DirectoryWatchOpen(DirectoryWatch* watch, const c8* path, b8 recursive, MemoryAllocator allocator);
+
+	// Gives the next change, waiting up to 'timeout' milliseconds for one. False when none came. If the watched
+	// directory itself goes away or can't be read anymore, an Overflow comes, the reason is recorded, and the watch
+	// reports nothing more.
+	b8 DirectoryWatchNext(DirectoryWatch* watch, DirectoryChange* outChange, u32 timeout = 0);
+
+	// True if anything changed, for callers that look again themselves rather than follow each path. Waits up to
+	// 'timeout' milliseconds for the first change, then takes every change already there.
+	b8 DirectoryWatchChanged(DirectoryWatch* watch, u32 timeout = 0);
+
+	void DirectoryWatchClose(DirectoryWatch* watch);
 } //namespace Tool
 
 #endif //_TOOL_IO_H

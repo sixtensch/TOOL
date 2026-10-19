@@ -208,6 +208,104 @@ static void TestLongPaths()
 
 
 
+// Takes changes until one of 'type' at 'path' comes, passing others by, as systems differ in what else they report.
+static b8 WatchExpect(DirectoryWatch* watch, DirectoryChangeType type, const c8* path, b8 directory)
+{
+	Timepoint start = TimepointNow();
+	DirectoryChange change;
+	while (NanosecondsSince(start) < 3000000000ll)
+		if (DirectoryWatchNext(watch, &change, 100) && change.type == type && strcmp(change.path, path) == 0)
+			return change.directory == directory;
+
+	return false;
+}
+
+// A rename within the watch comes as its two halves, back to back.
+static b8 WatchExpectRename(DirectoryWatch* watch, const c8* from, const c8* to, b8 directory)
+{
+	if (!WatchExpect(watch, DirectoryChangeTypeRenamedFrom, from, directory))
+		return false;
+
+	DirectoryChange change;
+	return DirectoryWatchNext(watch, &change, 0) && change.type == DirectoryChangeTypeRenamedTo && strcmp(change.path, to) == 0 && change.directory == directory;
+}
+
+static void WriteSmall(const c8* path, const c8* text)
+{
+	File file = 0;
+	TOOL_ASSERT(FileOpen(&file, path, OpenModeNewOrOverwrite), "%s", ErrorMessage());
+	TOOL_ASSERT(FileWrite(file, text, strlen(text)));
+	FileClose(file);
+}
+
+static void TestWatch()
+{
+	TOOL_ASSERT(DirectoryCreate("tooltest_io/watch"));
+
+	DirectoryWatch watch = {};
+	DirectoryChange change;
+	TOOL_ASSERT(DirectoryWatchOpen(&watch, "tooltest_io/watch", true, Allocator()), "%s", ErrorMessage());
+	TOOL_ASSERT(!DirectoryWatchNext(&watch, &change, 0));
+
+	// Files coming, changing, renamed and going.
+	WriteSmall("tooltest_io/watch/one.txt", "1");
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeAdded, "one.txt", false));
+	WriteSmall("tooltest_io/watch/one.txt", "11");
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeModified, "one.txt", false));
+	TOOL_ASSERT(FileMove("tooltest_io/watch/one.txt", "tooltest_io/watch/two.txt"));
+	TOOL_ASSERT(WatchExpectRename(&watch, "one.txt", "two.txt", false));
+	TOOL_ASSERT(FileDelete("tooltest_io/watch/two.txt"));
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeRemoved, "two.txt", false));
+
+	// New directories are watched as they come, with what was put in them before.
+	TOOL_ASSERT(DirectoryCreate("tooltest_io/watch/sub/deep"));
+	WriteSmall("tooltest_io/watch/sub/deep/three.txt", "3");
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeAdded, "sub", true));
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeAdded, "sub/deep", true));
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeAdded, "sub/deep/three.txt", false));
+
+	// A moved directory reports from its new place.
+	TOOL_ASSERT(FileMove("tooltest_io/watch/sub", "tooltest_io/watch/moved"));
+	TOOL_ASSERT(WatchExpectRename(&watch, "sub", "moved", true));
+	WriteSmall("tooltest_io/watch/moved/deep/three.txt", "33");
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeModified, "moved/deep/three.txt", false));
+	TOOL_ASSERT(FileDelete("tooltest_io/watch/moved/deep/three.txt"));
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeRemoved, "moved/deep/three.txt", false));
+
+	// Only whether anything changed.
+	while (DirectoryWatchNext(&watch, &change, 200))
+		;
+	TOOL_ASSERT(!DirectoryWatchChanged(&watch, 0));
+	WriteSmall("tooltest_io/watch/moved/four.txt", "4");
+	TOOL_ASSERT(DirectoryWatchChanged(&watch, 3000));
+	TOOL_ASSERT(!DirectoryWatchChanged(&watch, 200));
+	DirectoryWatchClose(&watch);
+	DirectoryWatchClose(&watch);
+	TOOL_ASSERT(!DirectoryWatchNext(&watch, &change, 0));
+
+	// Without recursion, only the directory's own entries.
+	TOOL_ASSERT(DirectoryWatchOpen(&watch, "tooltest_io/watch/", false, Allocator()), "%s", ErrorMessage());
+	WriteSmall("tooltest_io/watch/moved/deep/five.txt", "5");
+	WriteSmall("tooltest_io/watch/six.txt", "6");
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeAdded, "six.txt", false));
+	while (DirectoryWatchNext(&watch, &change, 200))
+		TOOL_ASSERT(strchr(change.path, '/') == nullptr, "Unexpected change to %s", change.path);
+	DirectoryWatchClose(&watch);
+
+	// A watched directory going away ends its watch.
+	TOOL_ASSERT(DirectoryCreate("tooltest_io/gone"));
+	TOOL_ASSERT(DirectoryWatchOpen(&watch, "tooltest_io/gone", true, Allocator()), "%s", ErrorMessage());
+	TOOL_ASSERT(DirectoryDelete("tooltest_io/gone"), "%s", ErrorMessage());
+	TOOL_ASSERT(WatchExpect(&watch, DirectoryChangeTypeOverflow, "", false));
+	TOOL_ASSERT(!DirectoryWatchNext(&watch, &change, 100));
+	DirectoryWatchClose(&watch);
+
+	TOOL_ASSERT(!DirectoryWatchOpen(&watch, "tooltest_io/missing", true, Allocator()) && watch.handle == 0);
+	TOOL_ASSERT(!DirectoryWatchOpen(&watch, "tooltest_io/watch/six.txt", true, Allocator()) && watch.handle == 0);
+}
+
+
+
 void TestIO()
 {
 	DeleteTree(root);
@@ -222,6 +320,7 @@ void TestIO()
 	TestPaths();
 	TestListing();
 	TestLongPaths();
+	TestWatch();
 
 	DeleteTree(root);
 	TOOL_ASSERT(!DirectoryExists(root));
