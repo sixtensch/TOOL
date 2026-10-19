@@ -24,7 +24,7 @@ Goals:
 | `vector.h` / `matrix.h` / `quaternion.h` / `box.h` | Vectors, column-major matrices, quaternions, AABBs |
 | `color.h` | Byte and float colors, HSV/HSL |
 | `atomic.h` / `threading.h` | Atomics, threads and zero-init primitives (mutex, semaphore, ...) on futex-style waits |
-| `io.h` | Files and directories with UTF-8 paths |
+| `io.h` | Files and directories with UTF-8 paths, and watching directories for changes |
 | `temporal.h` | Monotonic and wall clocks |
 | `linking.h` | Loading shared libraries and their symbols |
 | `error.h` | Per-thread error records and asserts |
