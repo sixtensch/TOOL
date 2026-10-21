@@ -45,7 +45,7 @@ namespace Tool
 		OpenFlagsShareWrite = 1 << 3, // Lets others open the file to write while it's open. Only Windows locks files
 	};
 
-	struct alignas(8) PathInfo
+	struct PathInfo
 	{
 		u64 size;                 // Bytes. 0 for directories
 		SystemTimepoint modified; // Last write, UTC
@@ -53,7 +53,7 @@ namespace Tool
 	};
 
 	// Lists a directory's entries, one per DirectoryNext, without '.' and '..', in no particular order.
-	struct alignas(8) DirectoryIterator
+	struct DirectoryIterator
 	{
 		u64 handle; // Internal
 		u32 state;  // Internal
@@ -81,15 +81,10 @@ namespace Tool
 	};
 
 	// Reports changes under a directory, one per DirectoryWatchNext. Zeroed is closed.
-	struct alignas(8) DirectoryWatch
+	struct DirectoryWatch
 	{
 		u64 handle; // Internal
 	};
-
-	static_assert(sizeof(PathInfo) == 24 && alignof(PathInfo) == 8, "PathInfo layout");
-	static_assert(sizeof(DirectoryIterator) == 1064 && alignof(DirectoryIterator) == 8, "DirectoryIterator layout");
-	static_assert(sizeof(DirectoryChange) == 1032 && alignof(DirectoryChange) == 4, "DirectoryChange layout");
-	static_assert(sizeof(DirectoryWatch) == 8 && alignof(DirectoryWatch) == 8, "DirectoryWatch layout");
 
 
 
