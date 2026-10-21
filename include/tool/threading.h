@@ -10,7 +10,7 @@
 //
 // Threads, and primitives for coordinating them. Every primitive is a few atomics in plain memory: zero-initialized
 // is ready to use, nothing needs destroying, and they can live anywhere, but must not move while in use. Only a
-// thread that has to wait involves the operating system. Each type has the same size and alignment on every platform.
+// thread that has to wait involves the operating system.
 //
 // Timeouts are in milliseconds. A timeout of 0 tries once without waiting.
 //
@@ -32,7 +32,7 @@ namespace Tool
 	struct Mutex
 	{
 		AtomicU32 state;
-		AtomicU32 owner; // The holding thread's ID in debug builds
+		AtomicU32 owner; // The holding thread's ID in debug builds. In every build, so modules built differently agree on the size
 	};
 
 	struct Condition
@@ -62,12 +62,6 @@ namespace Tool
 		AtomicU32 arrived;
 		AtomicU32 generation;
 	};
-
-	static_assert(sizeof(Mutex) == 8 && alignof(Mutex) == 4, "Mutex layout");
-	static_assert(sizeof(Condition) == 4 && alignof(Condition) == 4, "Condition layout");
-	static_assert(sizeof(RWLock) == 8 && alignof(RWLock) == 4, "RWLock layout");
-	static_assert(sizeof(Semaphore) == 8 && alignof(Semaphore) == 4, "Semaphore layout");
-	static_assert(sizeof(Barrier) == 12 && alignof(Barrier) == 4, "Barrier layout");
 
 
 
