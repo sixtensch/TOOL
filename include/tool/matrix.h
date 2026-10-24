@@ -1129,7 +1129,7 @@ namespace Tool
 
 //~ Acronym usings
 
-#ifndef TOOL_NO_ACRONYMS
+#if !TOOL_NO_ACRONYMS
 
 using Tool::m2; // Matrix2x2
 using Tool::m3; // Matrix3x3

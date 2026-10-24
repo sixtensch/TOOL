@@ -47,8 +47,32 @@ Tool::ArenaInit(&arena, Tool::Allocator(), 64 * 1024, "Level");
 Tool::s8 name = Tool::S8Format(Tool::Allocator(&arena), "Level {}: {:.1f}s", index, time);
 ```
 
-Configuration flags are listed at the top of `include/tool.h`. Builds on Windows and Linux with MSVC, GCC and Clang.
-The web (Emscripten) has code paths but isn't routinely tested yet.
+Builds on Windows and Linux with MSVC, GCC and Clang, and for the web with Emscripten.
+
+## Defines
+
+TOOL's defines come in three kinds, all listed in `include/tool/basics.h` (instruction sets in
+`include/tool/intrinsics.h`). Each is always defined, to 1 or 0, so test them by value: `#if TOOL_WINDOWS`, never
+`#ifdef`.
+
+- **Facts about the target**, detected from the compiler's own macros, which describe the target and never the
+  machine compiling, so cross-compiling needs nothing more than the right compiler. A target TOOL doesn't know
+  stops the build with an `#error`.
+  - System, exactly one: `TOOL_WINDOWS`, `TOOL_LINUX`, `TOOL_APPLE`, `TOOL_WEB`. `TOOL_UNIX` is the POSIX layer:
+    Linux, Apple's systems and the web.
+  - Compiler, exactly one: `TOOL_MSVC` (not clang-cl), `TOOL_CLANG` (clang-cl and Emscripten included), `TOOL_GCC`.
+  - Architecture, exactly one: `TOOL_X64`, `TOOL_X86`, `TOOL_ARM64`, `TOOL_ARM32`, `TOOL_WASM`.
+  - Instruction sets the build enables: `TOOL_CPU_SSE`, `TOOL_CPU_SSE41`, `TOOL_CPU_AVX`, `TOOL_CPU_AVX2`,
+    `TOOL_CPU_AVX512`, `TOOL_CPU_FMA`.
+- **Capabilities**, derived from the facts, for code that needs something rather than a particular platform:
+  `TOOL_THREADS`, `TOOL_VIRTUAL_MEMORY`, `TOOL_MIRRORED_MEMORY`, `TOOL_INT128`, and the SIMD backend,
+  `TOOL_SIMD_VECTOR`, `TOOL_SIMD_X86` or `TOOL_SIMD_SCALAR`.
+- **Options**, which only a build or a program can choose, set to 1 before including TOOL, 0 otherwise:
+  `TOOL_DEBUG_ASSERTS` (TOOL's CMake sets it in Debug), `TOOL_NO_ACRONYMS`, `TOOL_NO_UTF`, `TOOL_NO_MATH`,
+  `TOOL_NO_FORMAT_VALIDATION`, `TOOL_NO_SIMD`.
+
+TOOL's own sources build with undefined macros in `#if` as errors (`-Werror=undef`, MSVC's `/we4668` with `<...>`
+headers excluded); a program using TOOL can do the same.
 
 The test program (`TOOLTest`) builds when TOOL is the top-level CMake project.
 

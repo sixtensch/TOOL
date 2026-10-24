@@ -4,12 +4,12 @@
 
 
 //~ Unix
-#if defined(TOOL_UNIX)
+#if TOOL_UNIX
 
 #include <time.h>
 
 //~ Windows
-#elif defined(TOOL_WINDOWS)
+#elif TOOL_WINDOWS
 
 #include <Windows.h>
 

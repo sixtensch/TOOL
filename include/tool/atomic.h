@@ -124,9 +124,10 @@ namespace Tool
 //
 // Every operation goes through one template per operation over the unsigned type of the same width.
 
-#if defined(__clang__) || defined(__GNUC__)
+#if TOOL_CLANG || TOOL_GCC
 #define TOOL_ATOMIC_BUILTIN 1
-#elif defined(_MSC_VER)
+#elif TOOL_MSVC
+#define TOOL_ATOMIC_BUILTIN 0
 // Declared as <intrin.h> does, to spare every includer that header.
 extern "C" long _InterlockedExchange(long volatile* target, long value);
 extern "C" long _InterlockedCompareExchange(long volatile* destination, long exchange, long comparand);
@@ -141,7 +142,7 @@ extern "C" void _ReadWriteBarrier(void);
 #pragma intrinsic(_InterlockedExchange, _InterlockedCompareExchange, _InterlockedExchangeAdd)
 #pragma intrinsic(_InterlockedAnd, _InterlockedOr, _InterlockedXor, _InterlockedCompareExchange64)
 #pragma intrinsic(__iso_volatile_load32, __iso_volatile_load64, _ReadWriteBarrier)
-#if !defined(_M_IX86)
+#if !TOOL_X86
 extern "C" __int64 _InterlockedExchange64(__int64 volatile* target, __int64 value);
 extern "C" __int64 _InterlockedExchangeAdd64(__int64 volatile* addend, __int64 value);
 extern "C" __int64 _InterlockedAnd64(__int64 volatile* value, __int64 mask);
@@ -149,7 +150,7 @@ extern "C" __int64 _InterlockedOr64(__int64 volatile* value, __int64 mask);
 extern "C" __int64 _InterlockedXor64(__int64 volatile* value, __int64 mask);
 #pragma intrinsic(_InterlockedExchange64, _InterlockedExchangeAdd64, _InterlockedAnd64, _InterlockedOr64, _InterlockedXor64)
 #endif
-#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#if TOOL_ARM64
 extern "C" void __dmb(unsigned int type);
 #pragma intrinsic(__dmb)
 #endif
@@ -161,7 +162,7 @@ namespace Tool
 {
 	//~ Width-generic operations
 
-#if defined(TOOL_ATOMIC_BUILTIN)
+#if TOOL_ATOMIC_BUILTIN
 
 	template<typename T> inline T AtomicRawLoad(const T* atomic) { return __atomic_load_n(atomic, __ATOMIC_SEQ_CST); }
 	template<typename T> inline void AtomicRawStore(T* atomic, T value) { __atomic_store_n(atomic, value, __ATOMIC_SEQ_CST); }
@@ -182,7 +183,7 @@ namespace Tool
 	// Orders a plain load after every earlier atomic operation and before every later one.
 	inline void AtomicLoadBarrier()
 	{
-#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#if TOOL_ARM64
 		__dmb(0xB); // Inner shareable, full
 #else
 		_ReadWriteBarrier(); // x86 never moves loads before earlier locked operations; only the compiler might
@@ -217,7 +218,7 @@ namespace Tool
 			return (T)_InterlockedExchange((volatile long*)atomic, (long)value);
 		else
 		{
-#if defined(_M_IX86)
+#if TOOL_X86
 			T found = AtomicRawLoad(atomic);
 			for (T seen; (seen = AtomicRawCompareExchangeValue(atomic, found, value)) != found; found = seen) {}
 			return found;
@@ -256,7 +257,7 @@ namespace Tool
 			return (T)_InterlockedExchangeAdd((volatile long*)atomic, (long)value);
 		else
 		{
-#if defined(_M_IX86)
+#if TOOL_X86
 			TOOL_ATOMIC_UPDATE_64(atomic, found + value);
 #else
 			return (T)_InterlockedExchangeAdd64((volatile __int64*)atomic, (__int64)value);
@@ -271,7 +272,7 @@ namespace Tool
 			return (T)_InterlockedAnd((volatile long*)atomic, (long)value);
 		else
 		{
-#if defined(_M_IX86)
+#if TOOL_X86
 			TOOL_ATOMIC_UPDATE_64(atomic, found & value);
 #else
 			return (T)_InterlockedAnd64((volatile __int64*)atomic, (__int64)value);
@@ -286,7 +287,7 @@ namespace Tool
 			return (T)_InterlockedOr((volatile long*)atomic, (long)value);
 		else
 		{
-#if defined(_M_IX86)
+#if TOOL_X86
 			TOOL_ATOMIC_UPDATE_64(atomic, found | value);
 #else
 			return (T)_InterlockedOr64((volatile __int64*)atomic, (__int64)value);
@@ -301,7 +302,7 @@ namespace Tool
 			return (T)_InterlockedXor((volatile long*)atomic, (long)value);
 		else
 		{
-#if defined(_M_IX86)
+#if TOOL_X86
 			TOOL_ATOMIC_UPDATE_64(atomic, found ^ value);
 #else
 			return (T)_InterlockedXor64((volatile __int64*)atomic, (__int64)value);
@@ -365,13 +366,13 @@ namespace Tool
 	//~ Pointer
 	// Through the unsigned type of pointer width on MSVC.
 
-#if defined(TOOL_ATOMIC_BUILTIN)
+#if TOOL_ATOMIC_BUILTIN
 	inline void* AtomicPointerLoad(const AtomicPointer* atomic) { return AtomicRawLoad(&atomic->value); }
 	inline void AtomicPointerStore(AtomicPointer* atomic, void* value) { AtomicRawStore(&atomic->value, value); }
 	inline void* AtomicPointerExchange(AtomicPointer* atomic, void* value) { return AtomicRawExchange(&atomic->value, value); }
 	inline b8 AtomicPointerCompareExchange(AtomicPointer* atomic, void** expected, void* desired) { return AtomicRawCompareExchange(&atomic->value, expected, desired); }
 #else
-#if defined(_WIN64)
+#if TOOL_X64 || TOOL_ARM64
 	typedef u64 AtomicPointerBits;
 #else
 	typedef u32 AtomicPointerBits;

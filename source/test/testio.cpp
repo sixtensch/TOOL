@@ -123,7 +123,7 @@ static void TestPaths()
 	TOOL_ASSERT(FileExists("tooltest_io/a/whole.bin") && !DirectoryExists("tooltest_io/a/whole.bin"));
 	TOOL_ASSERT(DirectoryExists("tooltest_io/a") && !FileExists("tooltest_io/a"));
 	TOOL_ASSERT(DirectoryExists("tooltest_io/a/"));
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 	TOOL_ASSERT(DirectoryExists("tooltest_io\\a")); // Elsewhere '\' is part of a name
 #endif
 

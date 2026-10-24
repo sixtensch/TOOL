@@ -8,7 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#if defined(__APPLE__)
+#if TOOL_APPLE
 #include <xlocale.h>
 #endif
 
@@ -232,7 +232,7 @@ namespace Tool
     // printf and strtod follow the C library's locale, which an application (Qt on Linux, for one) may set to use ','
     // for decimals. Every call here uses the "C" locale instead.
 
-#if defined(TOOL_WINDOWS)
+#if TOOL_WINDOWS
 
     static _locale_t LocaleC()
     {

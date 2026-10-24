@@ -15,7 +15,7 @@
 //     operation to the target's SIMD (SSE/AVX, NEON, wasm simd128 with -msimd128), or to scalar code without it.
 //   MSVC x64: SSE/AVX intrinsics, using what the build enables. MSVC defines no SSE4/FMA macros, so SSE3/SSSE3/SSE4.1
 //     are taken from /arch:AVX and FMA from /arch:AVX2. Missing instructions are emulated with SSE2.
-//   Anything else, or TOOL_SIMD_SCALAR defined before including: per-lane loops.
+//   Anything else, or TOOL_NO_SIMD set to 1 (tool/basics.h): per-lane loops.
 // There is no runtime CPU dispatch. The build flags decide, so a build must only enable what its target CPUs have.
 // Every file in a program must be built with the same flags: these functions are inline, and the linker keeps one
 // copy of each, so code built for two instruction sets mixes. On GCC and Clang, 8-wide values are also passed
@@ -27,36 +27,74 @@
 
 
 
-//- Backend selection
+//- Instruction sets
+// What the target's CPU has, as the build enables it, derived here from the compiler's own macros like the target
+// facts in basics.h. Each is 1 or 0.
 
-#if defined(TOOL_SIMD_SCALAR)
-#elif defined(__clang__) || defined(__GNUC__)
-#define TOOL_SIMD_VECTOR 1
-#elif defined(_MSC_VER) && defined(_M_X64) && !defined(_M_ARM64EC)
-#define TOOL_SIMD_X86 1
-#if defined(__AVX__)
-#define TOOL_SIMD_AVX 1 // SSE3, SSSE3, SSE4.1 and 256-bit floats
-#endif
-#if defined(__AVX2__)
-#define TOOL_SIMD_AVX2 1 // 256-bit integers and FMA
-#endif
-#if defined(__AVX512VL__) && defined(__AVX512DQ__)
-#define TOOL_SIMD_AVX512 1 // 64-bit integer multiply and abs
-#endif
+#if defined(__SSE__) || (TOOL_MSVC && TOOL_X64)
+#define TOOL_CPU_SSE 1 // SSE, and SSE2, which every x64 CPU has
 #else
+#define TOOL_CPU_SSE 0
+#endif
+
+#if defined(__SSE4_1__) || (TOOL_MSVC && defined(__AVX__))
+#define TOOL_CPU_SSE41 1 // SSE4.1, which MSVC takes from /arch:AVX
+#else
+#define TOOL_CPU_SSE41 0
+#endif
+
+#if defined(__AVX__)
+#define TOOL_CPU_AVX 1 // AVX: 256-bit floats
+#else
+#define TOOL_CPU_AVX 0
+#endif
+
+#if defined(__AVX2__)
+#define TOOL_CPU_AVX2 1 // AVX2: 256-bit integers
+#else
+#define TOOL_CPU_AVX2 0
+#endif
+
+#if defined(__AVX512VL__) && defined(__AVX512DQ__)
+#define TOOL_CPU_AVX512 1 // AVX-512 VL and DQ: 64-bit integer multiply and abs
+#else
+#define TOOL_CPU_AVX512 0
+#endif
+
+#if defined(__FMA__) || defined(__ARM_FEATURE_FMA) || TOOL_ARM64 || (TOOL_MSVC && defined(__AVX2__))
+#define TOOL_CPU_FMA 1 // Fused multiply-add, which every 64-bit ARM CPU has and MSVC takes from /arch:AVX2
+#else
+#define TOOL_CPU_FMA 0
+#endif
+
+//- Backend selection
+// Exactly one of TOOL_SIMD_VECTOR, TOOL_SIMD_X86 and TOOL_SIMD_SCALAR is 1.
+
+#if !TOOL_NO_SIMD && (TOOL_CLANG || TOOL_GCC)
+#define TOOL_SIMD_VECTOR 1
+#define TOOL_SIMD_X86 0
+#define TOOL_SIMD_SCALAR 0
+#elif !TOOL_NO_SIMD && TOOL_MSVC && TOOL_X64
+#define TOOL_SIMD_VECTOR 0
+#define TOOL_SIMD_X86 1
+#define TOOL_SIMD_SCALAR 0
+#else
+#define TOOL_SIMD_VECTOR 0
+#define TOOL_SIMD_X86 0
 #define TOOL_SIMD_SCALAR 1
 #endif
 
-// 256-bit types without native registers are two 128-bit halves.
-#if defined(TOOL_SIMD_SCALAR) || (defined(TOOL_SIMD_X86) && !defined(TOOL_SIMD_AVX))
-#define TOOL_SIMD_HALVES_FLOAT256 1
-#endif
-#if defined(TOOL_SIMD_SCALAR) || (defined(TOOL_SIMD_X86) && !defined(TOOL_SIMD_AVX2))
-#define TOOL_SIMD_HALVES_INT256 1
-#endif
+// The intrinsics the x86 backend uses
+#define TOOL_SIMD_AVX (TOOL_SIMD_X86 && TOOL_CPU_AVX)       // SSE3, SSSE3, SSE4.1 and 256-bit floats
+#define TOOL_SIMD_AVX2 (TOOL_SIMD_X86 && TOOL_CPU_AVX2)     // 256-bit integers and FMA
+#define TOOL_SIMD_AVX512 (TOOL_SIMD_X86 && TOOL_CPU_AVX512) // 64-bit integer multiply and abs
 
-#if defined(TOOL_SIMD_X86)
-#if defined(TOOL_SIMD_AVX)
+// 256-bit types without native registers are two 128-bit halves
+#define TOOL_SIMD_HALVES_FLOAT256 (TOOL_SIMD_SCALAR || (TOOL_SIMD_X86 && !TOOL_SIMD_AVX))
+#define TOOL_SIMD_HALVES_INT256 (TOOL_SIMD_SCALAR || (TOOL_SIMD_X86 && !TOOL_SIMD_AVX2))
+
+#if TOOL_SIMD_X86
+#if TOOL_SIMD_AVX
 #include <immintrin.h>
 #else
 #include <emmintrin.h>
@@ -71,7 +109,7 @@ namespace Tool
 
 	//~ Native registers
 
-#if defined(TOOL_SIMD_VECTOR)
+#if TOOL_SIMD_VECTOR
 	typedef f32 SimdF32x4 __attribute__((vector_size(16)));
 	typedef f32 SimdF32x8 __attribute__((vector_size(32)));
 	typedef f64 SimdF64x2 __attribute__((vector_size(16)));
@@ -98,11 +136,11 @@ namespace Tool
 
 	typedef SimdI64x2 SimdI128; // Integer128 register, recast per lane width
 	typedef SimdI64x4 SimdI256;
-#elif defined(TOOL_SIMD_X86)
+#elif TOOL_SIMD_X86
 	typedef __m128 SimdF32x4;
 	typedef __m128d SimdF64x2;
 	typedef __m128i SimdI128;
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	typedef __m256 SimdF32x8;
 	typedef __m256d SimdF64x4;
 	typedef __m256i SimdI256;
@@ -113,7 +151,7 @@ namespace Tool
 
 	union Float32x4
 	{
-#if !defined(TOOL_SIMD_SCALAR)
+#if !TOOL_SIMD_SCALAR
 		SimdF32x4 m;
 #endif
 
@@ -125,7 +163,7 @@ namespace Tool
 
 	union Float64x2
 	{
-#if !defined(TOOL_SIMD_SCALAR)
+#if !TOOL_SIMD_SCALAR
 		SimdF64x2 m;
 #endif
 
@@ -136,7 +174,7 @@ namespace Tool
 
 	union Integer128
 	{
-#if !defined(TOOL_SIMD_SCALAR)
+#if !TOOL_SIMD_SCALAR
 		SimdI128 m;
 #endif
 
@@ -153,7 +191,7 @@ namespace Tool
 
 	union Float32x8
 	{
-#if !defined(TOOL_SIMD_HALVES_FLOAT256)
+#if !TOOL_SIMD_HALVES_FLOAT256
 		SimdF32x8 m;
 #endif
 
@@ -166,7 +204,7 @@ namespace Tool
 
 	union Float64x4
 	{
-#if !defined(TOOL_SIMD_HALVES_FLOAT256)
+#if !TOOL_SIMD_HALVES_FLOAT256
 		SimdF64x4 m;
 #endif
 
@@ -179,7 +217,7 @@ namespace Tool
 
 	union Integer256
 	{
-#if !defined(TOOL_SIMD_SCALAR) && (defined(TOOL_SIMD_VECTOR) || defined(TOOL_SIMD_AVX))
+#if !TOOL_SIMD_SCALAR && (TOOL_SIMD_VECTOR || TOOL_SIMD_AVX)
 		SimdI256 m;
 #endif
 
@@ -532,7 +570,7 @@ namespace Tool
 
 namespace Tool
 {
-#if defined(TOOL_SIMD_VECTOR)
+#if TOOL_SIMD_VECTOR
 
 	//- Vector extension backend
 
@@ -741,12 +779,12 @@ namespace Tool
 	inline f64_x4  F64x4Sqrt(f64_x4 a)                     TOOL_SIMD_LANES(f64_x4, f, 4, __builtin_sqrt(a.f[i]))
 #endif
 
-#if defined(__SSE__)
+#if TOOL_CPU_SSE
 	inline f32_x4  F32x4InvSqrt(f32_x4 a)                  { return { __builtin_ia32_rsqrtps(a.m) }; }
 #else
 	inline f32_x4  F32x4InvSqrt(f32_x4 a)                  { return { 1.0f / F32x4Sqrt(a).m }; }
 #endif
-#if defined(__AVX__)
+#if TOOL_CPU_AVX
 	inline f32_x8  F32x8InvSqrt(f32_x8 a)                  { return { __builtin_ia32_rsqrtps256(a.m) }; }
 #else
 	inline f32_x8  F32x8InvSqrt(f32_x8 a)                  { return { 1.0f / F32x8Sqrt(a).m }; }
@@ -754,7 +792,7 @@ namespace Tool
 
 	//~ Rounding
 
-#if (defined(__x86_64__) || defined(__i386__)) && !defined(__SSE4_1__)
+#if (TOOL_X64 || TOOL_X86) && !TOOL_CPU_SSE41
 	// No rounding instruction before SSE4.1, and the compiler would call the C runtime per lane, which may lack
 	// roundeven (MSVC's does). Adding and subtracting 2^23 (2^52 for f64) rounds the fraction away, ties to even;
 	// magnitudes from there up are already whole. Floor and ceiling step by one where rounding landed on the wrong
@@ -832,12 +870,12 @@ namespace Tool
 
 	//~ Inverse (Reciprocal)
 
-#if defined(__SSE__)
+#if TOOL_CPU_SSE
 	inline f32_x4  F32x4Inv(f32_x4 a)                      { return { __builtin_ia32_rcpps(a.m) }; }
 #else
 	inline f32_x4  F32x4Inv(f32_x4 a)                      { return { 1.0f / a.m }; }
 #endif
-#if defined(__AVX__)
+#if TOOL_CPU_AVX
 	inline f32_x8  F32x8Inv(f32_x8 a)                      { return { __builtin_ia32_rcpps256(a.m) }; }
 #else
 	inline f32_x8  F32x8Inv(f32_x8 a)                      { return { 1.0f / a.m }; }
@@ -845,7 +883,7 @@ namespace Tool
 
 	//~ MulAdd (a * b + c), MulSub (a * b - c)
 
-#if (defined(__FMA__) || defined(__aarch64__) || defined(__ARM_FEATURE_FMA)) && TOOL_SIMD_HAS_BUILTIN(__builtin_elementwise_fma)
+#if TOOL_CPU_FMA && TOOL_SIMD_HAS_BUILTIN(__builtin_elementwise_fma)
 	inline f32_x4  F32x4MulAdd(f32_x4 a, f32_x4 b, f32_x4 c)     { return { __builtin_elementwise_fma(a.m, b.m, c.m) }; }
 	inline f32_x8  F32x8MulAdd(f32_x8 a, f32_x8 b, f32_x8 c)     { return { __builtin_elementwise_fma(a.m, b.m, c.m) }; }
 	inline f64_x2  F64x2MulAdd(f64_x2 a, f64_x2 b, f64_x2 c)     { return { __builtin_elementwise_fma(a.m, b.m, c.m) }; }
@@ -991,7 +1029,7 @@ namespace Tool
 
 
 
-#elif defined(TOOL_SIMD_X86)
+#elif TOOL_SIMD_X86
 
 	//- MSVC x64 backend
 
@@ -1000,7 +1038,7 @@ namespace Tool
 	// are already whole. Floor and ceiling step the rounded value by one where it landed on the wrong side, then
 	// restore the input's sign, which neither can change: ceil(-0.7) is -0, not the +0 that -1 + 1 gives.
 
-#if !defined(TOOL_SIMD_AVX)
+#if !TOOL_SIMD_AVX
 	inline __m128 SimdX86RoundEven(__m128 a)
 	{
 		__m128 sign = _mm_set1_ps(-0.0f);
@@ -1061,7 +1099,7 @@ namespace Tool
 		return _mm_add_epi64(_mm_mul_epu32(a, b), _mm_slli_epi64(cross, 32));
 	}
 
-#if defined(TOOL_SIMD_AVX2)
+#if TOOL_SIMD_AVX2
 	inline __m256i SimdX86MulI64(__m256i a, __m256i b)
 	{
 		__m256i cross = _mm256_add_epi64(_mm256_mul_epu32(a, _mm256_srli_epi64(b, 32)), _mm256_mul_epu32(_mm256_srli_epi64(a, 32), b));
@@ -1071,7 +1109,7 @@ namespace Tool
 
 	//~ Comparison predicates (AVX)
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	constexpr i32 SimdX86Predicate(Comparison comparison)
 	{
 		switch (comparison)
@@ -1151,7 +1189,7 @@ namespace Tool
 	inline f32_x4  F32x4Mul(f32_x4 a, f32_x4 b)            { return { _mm_mul_ps(a.m, b.m) }; }
 	inline f64_x2  F64x2Mul(f64_x2 a, f64_x2 b)            { return { _mm_mul_pd(a.m, b.m) }; }
 	inline i16_x8  I16x8Mul(i16_x8 a, i16_x8 b)            { return { _mm_mullo_epi16(a.m, b.m) }; }
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	inline i32_x4  I32x4Mul(i32_x4 a, i32_x4 b)            { return { _mm_mullo_epi32(a.m, b.m) }; }
 #else
 	inline i32_x4 I32x4Mul(i32_x4 a, i32_x4 b)
@@ -1161,7 +1199,7 @@ namespace Tool
 		return { _mm_unpacklo_epi32(_mm_shuffle_epi32(even, _MM_SHUFFLE(0, 0, 2, 0)), _mm_shuffle_epi32(odd, _MM_SHUFFLE(0, 0, 2, 0))) };
 	}
 #endif
-#if defined(TOOL_SIMD_AVX512)
+#if TOOL_SIMD_AVX512
 	inline i64_x2  I64x2Mul(i64_x2 a, i64_x2 b)            { return { _mm_mullo_epi64(a.m, b.m) }; }
 #else
 	inline i64_x2  I64x2Mul(i64_x2 a, i64_x2 b)            { return { SimdX86MulI64(a.m, b.m) }; }
@@ -1172,7 +1210,7 @@ namespace Tool
 
 	//~ Absolute value
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	inline i8_x16  I8x16Abs(i8_x16 a)                      { return { _mm_abs_epi8(a.m) }; }
 	inline i16_x8  I16x8Abs(i16_x8 a)                      { return { _mm_abs_epi16(a.m) }; }
 	inline i32_x4  I32x4Abs(i32_x4 a)                      { return { _mm_abs_epi32(a.m) }; }
@@ -1193,7 +1231,7 @@ namespace Tool
 		return { _mm_sub_epi32(_mm_xor_si128(a.m, s), s) };
 	}
 #endif
-#if defined(TOOL_SIMD_AVX512)
+#if TOOL_SIMD_AVX512
 	inline i64_x2  I64x2Abs(i64_x2 a)                      { return { _mm_abs_epi64(a.m) }; }
 #else
 	inline i64_x2 I64x2Abs(i64_x2 a)
@@ -1212,7 +1250,7 @@ namespace Tool
 
 	//~ Rounding
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	inline f32_x4  F32x4Ceil(f32_x4 a)                     { return { _mm_ceil_ps(a.m) }; }
 	inline f64_x2  F64x2Ceil(f64_x2 a)                     { return { _mm_ceil_pd(a.m) }; }
 	inline f32_x4  F32x4Floor(f32_x4 a)                    { return { _mm_floor_ps(a.m) }; }
@@ -1231,7 +1269,7 @@ namespace Tool
 	//~ MulAdd (a * b + c), MulSub (a * b - c)
 	// Fused (one rounding) with AVX2, a multiply then an add otherwise.
 
-#if defined(TOOL_SIMD_AVX2)
+#if TOOL_SIMD_AVX2
 	inline f32_x4  F32x4MulAdd(f32_x4 a, f32_x4 b, f32_x4 c)     { return { _mm_fmadd_ps(a.m, b.m, c.m) }; }
 	inline f64_x2  F64x2MulAdd(f64_x2 a, f64_x2 b, f64_x2 c)     { return { _mm_fmadd_pd(a.m, b.m, c.m) }; }
 	inline f32_x4  F32x4MulSub(f32_x4 a, f32_x4 b, f32_x4 c)     { return { _mm_fmsub_ps(a.m, b.m, c.m) }; }
@@ -1245,7 +1283,7 @@ namespace Tool
 
 	//~ AddSub
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	inline f32_x4 F32x4AddSub(f32_x4 a, f32_x4 b)          { return { _mm_addsub_ps(a.m, b.m) }; }
 	inline f64_x2 F64x2AddSub(f64_x2 a, f64_x2 b)          { return { _mm_addsub_pd(a.m, b.m) }; }
 #else
@@ -1263,7 +1301,7 @@ namespace Tool
 
 	//~ Comparison
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	template<Comparison C>
 	inline f32_x4_mask F32x4Compare(f32_x4 a, f32_x4 b)    { return { _mm_cmp_ps(a.m, b.m, SimdX86Predicate(C)) }; }
 
@@ -1295,7 +1333,7 @@ namespace Tool
 
 	//~ Blending
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	inline f32_x4 F32x4Blend(f32_x4 a, f32_x4 b, f32_x4_mask mask) { return { _mm_blendv_ps(a.m, b.m, mask.m) }; }
 	inline f64_x2 F64x2Blend(f64_x2 a, f64_x2 b, f64_x2_mask mask) { return { _mm_blendv_pd(a.m, b.m, mask.m) }; }
 #else
@@ -1316,7 +1354,7 @@ namespace Tool
 
 	//~ 256-bit floats (AVX)
 
-#if defined(TOOL_SIMD_AVX)
+#if TOOL_SIMD_AVX
 	inline f32_x8 F32x8Set(f32 all)                        { return { _mm256_set1_ps(all) }; }
 	inline f64_x4 F64x4Set(f64 all)                        { return { _mm256_set1_pd(all) }; }
 	inline f32_x8 F32x8Set(f32 f0, f32 f1, f32 f2, f32 f3,
@@ -1349,7 +1387,7 @@ namespace Tool
 	inline f32_x8  F32x8Round(f32_x8 a)                    { return { _mm256_round_ps(a.m, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) }; }
 	inline f64_x4  F64x4Round(f64_x4 a)                    { return { _mm256_round_pd(a.m, _MM_FROUND_TO_NEAREST_INT | _MM_FROUND_NO_EXC) }; }
 
-#if defined(TOOL_SIMD_AVX2)
+#if TOOL_SIMD_AVX2
 	inline f32_x8  F32x8MulAdd(f32_x8 a, f32_x8 b, f32_x8 c)     { return { _mm256_fmadd_ps(a.m, b.m, c.m) }; }
 	inline f64_x4  F64x4MulAdd(f64_x4 a, f64_x4 b, f64_x4 c)     { return { _mm256_fmadd_pd(a.m, b.m, c.m) }; }
 	inline f32_x8  F32x8MulSub(f32_x8 a, f32_x8 b, f32_x8 c)     { return { _mm256_fmsub_ps(a.m, b.m, c.m) }; }
@@ -1385,7 +1423,7 @@ namespace Tool
 
 	//~ 256-bit integers (AVX2)
 
-#if defined(TOOL_SIMD_AVX2)
+#if TOOL_SIMD_AVX2
 	inline i8_x32 I8x32Set(i8 all)                         { return { _mm256_set1_epi8(all) }; }
 	inline i16_x16 I16x16Set(i16 all)                      { return { _mm256_set1_epi16(all) }; }
 	inline i32_x8 I32x8Set(i32 all)                        { return { _mm256_set1_epi32(all) }; }
@@ -1436,7 +1474,7 @@ namespace Tool
 
 	inline i16_x16 I16x16Mul(i16_x16 a, i16_x16 b)         { return { _mm256_mullo_epi16(a.m, b.m) }; }
 	inline i32_x8  I32x8Mul(i32_x8 a, i32_x8 b)            { return { _mm256_mullo_epi32(a.m, b.m) }; }
-#if defined(TOOL_SIMD_AVX512)
+#if TOOL_SIMD_AVX512
 	inline i64_x4  I64x4Mul(i64_x4 a, i64_x4 b)            { return { _mm256_mullo_epi64(a.m, b.m) }; }
 #else
 	inline i64_x4  I64x4Mul(i64_x4 a, i64_x4 b)            { return { SimdX86MulI64(a.m, b.m) }; }
@@ -1445,7 +1483,7 @@ namespace Tool
 	inline i8_x32  I8x32Abs(i8_x32 a)                      { return { _mm256_abs_epi8(a.m) }; }
 	inline i16_x16 I16x16Abs(i16_x16 a)                    { return { _mm256_abs_epi16(a.m) }; }
 	inline i32_x8  I32x8Abs(i32_x8 a)                      { return { _mm256_abs_epi32(a.m) }; }
-#if defined(TOOL_SIMD_AVX512)
+#if TOOL_SIMD_AVX512
 	inline i64_x4  I64x4Abs(i64_x4 a)                      { return { _mm256_abs_epi64(a.m) }; }
 #else
 	inline i64_x4 I64x4Abs(i64_x4 a)
@@ -1652,7 +1690,7 @@ namespace Tool
 
 	//- 256-bit from 128-bit halves
 
-#if defined(TOOL_SIMD_HALVES_FLOAT256)
+#if TOOL_SIMD_HALVES_FLOAT256
 
 	//~ Floats
 
@@ -1726,7 +1764,7 @@ namespace Tool
 
 #endif
 
-#if defined(TOOL_SIMD_HALVES_INT256)
+#if TOOL_SIMD_HALVES_INT256
 
 	//~ Integers
 
@@ -1845,7 +1883,7 @@ namespace Tool
 
 //~ Acronym usings
 
-#ifndef TOOL_NO_ACRONYMS
+#if !TOOL_NO_ACRONYMS
 
 using Tool::f32_x4;
 using Tool::f32_x8;

@@ -21,7 +21,7 @@
 
 //- Macros
 
-#ifndef TOOL_NO_UTF
+#if !TOOL_NO_UTF
 #define UTF8(str) ((const c8*)(u8##str))
 #define UTF16(str) ((const c16*)(u##str))
 #endif
@@ -30,7 +30,7 @@
 #define S8_NONE U64_MAX
 
 // Lets GCC and Clang check printf-style arguments against the format.
-#if defined(__GNUC__) || defined(__clang__)
+#if TOOL_GCC || TOOL_CLANG
 #define TOOL_PRINTF_FORMAT(formatIndex, argumentIndex) __attribute__((format(printf, formatIndex, argumentIndex)))
 #else
 #define TOOL_PRINTF_FORMAT(formatIndex, argumentIndex)
@@ -242,7 +242,7 @@ namespace Tool
 
 //~ Acronym usings
 
-#ifndef TOOL_NO_ACRONYMS
+#if !TOOL_NO_ACRONYMS
 
 using Tool::s8;
 using Tool::s16;

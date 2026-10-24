@@ -170,12 +170,12 @@ namespace Tool
 //- Implementation
 
 // The two multiply intrinsics, declared as <intrin.h> does, to spare every includer that header.
-#if defined(_MSC_VER) && !defined(__SIZEOF_INT128__)
+#if TOOL_MSVC
 extern "C" unsigned __int64 _umul128(unsigned __int64 _Multiplier, unsigned __int64 _Multiplicand, unsigned __int64* _HighProduct);
 extern "C" unsigned __int64 __umulh(unsigned __int64 _Multiplier, unsigned __int64 _Multiplicand);
-#if defined(_M_X64)
+#if TOOL_X64
 #pragma intrinsic(_umul128)
-#elif defined(_M_ARM64)
+#elif TOOL_ARM64
 #pragma intrinsic(__umulh)
 #endif
 #endif
@@ -382,15 +382,15 @@ namespace Tool
 	// At compile time, and where there is no 128-bit type or intrinsic, the product is built from 32-bit halves.
 	constexpr u64 U64MulWide(u64 a, u64 b, u64* high)
 	{
-#if defined(__SIZEOF_INT128__)
+#if TOOL_INT128
 		unsigned __int128 product = (unsigned __int128)a * b;
 		*high = (u64)(product >> 64);
 		return (u64)product;
 #else
-#if defined(_MSC_VER) && (defined(_M_X64) || defined(_M_ARM64))
+#if TOOL_MSVC && (TOOL_X64 || TOOL_ARM64)
 		if (!__builtin_is_constant_evaluated())
 		{
-#if defined(_M_X64)
+#if TOOL_X64
 			return _umul128(a, b, high);
 #else
 			*high = __umulh(a, b);
@@ -478,7 +478,7 @@ namespace Tool
 
 
 
-#ifndef TOOL_NO_MATH
+#if !TOOL_NO_MATH
 
 // f64
 using Tool::F64Sin;

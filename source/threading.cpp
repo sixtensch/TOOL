@@ -5,15 +5,15 @@
 
 
 //~ Windows
-#if defined(TOOL_WINDOWS)
+#if TOOL_WINDOWS
 
 #include <Windows.h>
-#if defined(_MSC_VER) && !defined(__clang__)
+#if TOOL_MSVC
 #include <intrin.h>
 #endif
 
 //~ Unix
-#elif defined(TOOL_UNIX)
+#elif TOOL_UNIX
 
 #include <errno.h>
 #include <pthread.h>
@@ -22,9 +22,9 @@
 #include <time.h>
 #include <unistd.h>
 
-#if defined(TOOL_WEB)
+#if TOOL_WEB
 #include <emscripten/threading.h>
-#elif defined(__linux__)
+#elif TOOL_LINUX
 #include <linux/futex.h>
 #include <sys/syscall.h>
 #else
@@ -60,15 +60,15 @@ namespace Tool
     // A hint to the processor inside a spin loop.
     static inline void SpinPause()
     {
-#if defined(_MSC_VER) && !defined(__clang__)
-#if defined(_M_ARM64) || defined(_M_ARM64EC)
+#if TOOL_MSVC
+#if TOOL_ARM64
         __yield();
 #else
         _mm_pause();
 #endif
-#elif defined(__x86_64__) || defined(__i386__)
+#elif TOOL_X64 || TOOL_X86
         __builtin_ia32_pause();
-#elif defined(__aarch64__) || defined(__arm__)
+#elif TOOL_ARM64 || TOOL_ARM32
         __asm__ __volatile__("yield");
 #endif
     }
@@ -81,7 +81,7 @@ namespace Tool
     // Sleeps while the atomic holds 'expected', at most 'timeout' milliseconds. False only on timeout.
     // The wakes report whether they surely woke a thread; false may still have woken one.
 
-#if defined(TOOL_WINDOWS)
+#if TOOL_WINDOWS
 
     static b8 AddressWait(AtomicU32* atomic, u32 expected, u32 timeout)
     {
@@ -102,7 +102,7 @@ namespace Tool
         WakeByAddressAll(&atomic->value);
     }
 
-#elif defined(TOOL_WEB)
+#elif TOOL_WEB
 
     static b8 AddressWait(AtomicU32* atomic, u32 expected, u32 timeout)
     {
@@ -120,7 +120,7 @@ namespace Tool
         emscripten_futex_wake(&atomic->value, I32_MAX);
     }
 
-#elif defined(TOOL_UNIX)
+#elif TOOL_UNIX
 
     static b8 AddressWait(AtomicU32* atomic, u32 expected, u32 timeout)
     {
@@ -203,7 +203,7 @@ namespace Tool
 
     //~ Thread Windows implementation
 
-#if defined(TOOL_WINDOWS)
+#if TOOL_WINDOWS
 
     static DWORD WINAPI ThreadEntry(LPVOID parameter)
     {
@@ -293,7 +293,7 @@ namespace Tool
 
     //~ Thread Unix implementation
 
-#if defined(TOOL_UNIX)
+#if TOOL_UNIX
 
     static void* ThreadEntry(void* parameter)
     {
@@ -400,9 +400,9 @@ namespace Tool
         for (u32 i = 0; i < length; i++)
             truncated[i] = name[i];
 
-#if defined(TOOL_WEB)
+#if TOOL_WEB
         // Without pthreads there is only the one thread, and nothing to name it through
-#if defined(__EMSCRIPTEN_PTHREADS__)
+#if TOOL_THREADS
         emscripten_set_thread_name(pthread_self(), truncated);
 #endif
 #else
@@ -414,7 +414,7 @@ namespace Tool
     {
         if (currentThreadId == 0)
         {
-#if defined(TOOL_WEB)
+#if TOOL_WEB
             currentThreadId = (u32)(uintptr_t)pthread_self();
 #else
             currentThreadId = (u32)syscall(SYS_gettid);
@@ -473,7 +473,7 @@ namespace Tool
 
     static void MutexClaim(Mutex* mutex)
     {
-#if defined(TOOL_DEBUG_ASSERTS)
+#if TOOL_DEBUG_ASSERTS
         AtomicU32Store(&mutex->owner, ThreadCurrentId());
 #else
         (void)mutex;
@@ -507,7 +507,7 @@ namespace Tool
 
     void MutexUnlock(Mutex* mutex)
     {
-#if defined(TOOL_DEBUG_ASSERTS)
+#if TOOL_DEBUG_ASSERTS
         TOOL_DEBUG_ASSERT(AtomicU32Load(&mutex->owner) == ThreadCurrentId(), "Unlocking a Mutex this thread doesn't hold.");
         AtomicU32Store(&mutex->owner, 0);
 #endif

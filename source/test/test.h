@@ -4,12 +4,12 @@
 #include <cstdio>
 #include "tool/basics.h"
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 #define DLL_EXPORT extern "C"  __declspec(dllexport)
 #define DLL_IMPORT extern "C"  __declspec(dllimport)
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
 #define DLL_EXPORT extern "C"  __attribute__((visibility("default")))
 #define DLL_IMPORT extern "C"
 #endif

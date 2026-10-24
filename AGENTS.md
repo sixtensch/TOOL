@@ -23,7 +23,7 @@ build/Debug/TOOLTest
 ```
 
 - Each suite prints `<Name>: passed`/`ok`, and a failed `TOOL_ASSERT` aborts.
-- Debug defines `TOOL_DEBUG_ASSERTS`.
+- Debug sets `TOOL_DEBUG_ASSERTS=1`.
 - CMake lists sources explicitly: add new `.cpp` and test files to `CMakeLists.txt`.
 - New tests:
   - Write `static void` cases plus `void TestX()` in `source/test/testx.cpp`.
@@ -69,8 +69,16 @@ build/Debug/TOOLTest
 **Stability**
 - `random.h` and `hash.h` outputs get persisted (seeds, saved hashes). Changing them is a breaking change.
 
-**Platforms**
-- `TOOL_WINDOWS` and `TOOL_UNIX`/`TOOL_LINUX` come from CMake. `TOOL_WEB` is detected from Emscripten.
+**Defines** (README "Defines" lists them all)
+- Facts about the target (system, compiler, architecture, instruction sets) are detected only in `basics.h` and
+  `intrinsics.h`, from the compiler's own macros. Nowhere else tests `_WIN32`, `__linux__`, `_MSC_VER` and the
+  like; use the `TOOL_*` fact. What a system or library header defines about itself (`O_DIRECT`) is tested where
+  it's used. Never define a fact from CMake: the compiler knows its target, CMake may describe the host.
+- Every TOOL define is always 0 or 1 and tested by value (`#if TOOL_X`, never `#ifdef`/`defined()`). An option
+  gets its default of 0 in `basics.h`, the only place `#ifndef` appears. Undefined macros in `#if` are errors.
+- Prefer a capability (`TOOL_THREADS`, `TOOL_VIRTUAL_MEMORY`) over a list of platforms. Add a new fact or
+  capability to `basics.h` and the README together.
+- Test a fact only after including a TOOL header.
 - Keep platform branches in `.cpp` files.
 - The instruction set is the consumer's choice: never add `-march` or similar.
 
