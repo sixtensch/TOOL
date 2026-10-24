@@ -33,12 +33,12 @@
 
 #define TOOL_FAIL(format, ...) ::Tool::ErrorFail(TOOL_ERROR_SITE, format, ##__VA_ARGS__)
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 #define TOOL_FAIL_WINDOWS() ::Tool::ErrorFailWindowsLast(TOOL_ERROR_SITE)
 #define TOOL_FAIL_WINDOWS_CODE(code) ::Tool::ErrorFailWindows(TOOL_ERROR_SITE, (::Tool::u32)(code))
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
 #define TOOL_FAIL_ERRNO() ::Tool::ErrorFailErrno(TOOL_ERROR_SITE)
 #endif
 
@@ -54,7 +54,7 @@
 #define TOOL_ASSERT(condition, ...) \
     do { if (!(condition)) ::Tool::AssertFail(#condition, TOOL_ERROR_SITE, ##__VA_ARGS__); } while (0)
 
-#ifdef TOOL_DEBUG_ASSERTS
+#if TOOL_DEBUG_ASSERTS
 #define TOOL_DEBUG_ASSERT(condition, ...) TOOL_ASSERT(condition, ##__VA_ARGS__)
 #else
 #define TOOL_DEBUG_ASSERT(condition, ...) do { } while (0)
@@ -125,12 +125,12 @@ namespace Tool
     
     b8 ErrorFail(ErrorSite site, const c8* format, ...);
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
     b8 ErrorFailWindows(ErrorSite site, u32 code);
     b8 ErrorFailWindowsLast(ErrorSite site);
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
     b8 ErrorFailErrno(ErrorSite site);
 #endif
 

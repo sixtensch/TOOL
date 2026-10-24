@@ -250,7 +250,7 @@ namespace Tool
 
 //~ Acronym usings
 
-#ifndef TOOL_NO_ACRONYMS
+#if !TOOL_NO_ACRONYMS
 
 using Tool::b2f;
 using Tool::b2i;

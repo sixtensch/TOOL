@@ -366,7 +366,7 @@ namespace Tool
 
 //~ Acronym usings
 
-#ifndef TOOL_NO_ACRONYMS
+#if !TOOL_NO_ACRONYMS
 
 using Tool::c3u;
 using Tool::c4u;

@@ -537,7 +537,7 @@ namespace Tool
 
 //~ Acronym usings
 
-#ifndef TOOL_NO_ACRONYMS
+#if !TOOL_NO_ACRONYMS
 
 using Tool::v2; // Vector2
 using Tool::v3; // Vector3

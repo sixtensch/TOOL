@@ -64,7 +64,7 @@ int main()
         printf("Part of scope\n");
     }
     
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
     MemoryLoop loop;
     Tool::LoopAlloc(&loop, 1, 1);
     

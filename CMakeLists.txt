@@ -8,15 +8,8 @@ project(
     LANGUAGES CXX
 )
 
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    add_compile_definitions(TOOL_WINDOWS=1)
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-    add_compile_definitions(TOOL_LINUX=1)
-endif()
-
-if (UNIX)
-    add_compile_definitions(TOOL_UNIX=1)
-endif()
+# What the target is, its system, compiler and architecture, is detected in tool/basics.h from the compiler's own
+# macros, so nothing here defines it, and a cross-compile needs nothing more than the right compiler.
 
 # TOOL initializes nested aggregates without inner braces.
 if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
@@ -71,13 +64,14 @@ target_compile_features(TOOL PUBLIC
 # about.
 target_compile_options(TOOL PUBLIC $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-psabi>)
 
-target_compile_definitions(TOOL PRIVATE
-    $<$<CONFIG:Debug>:DEBUG_BUILD>
+# An option (tool/basics.h): TOOL's checks in Debug, for TOOL and everything built with it
+target_compile_definitions(TOOL PUBLIC
+    $<$<CONFIG:Debug>:TOOL_DEBUG_ASSERTS=1>
 )
 
-target_compile_definitions(TOOL PUBLIC
-    $<$<CONFIG:Debug>:TOOL_DEBUG_ASSERTS>
-)
+# Every TOOL define is tested by value, so one misspelled or never defined is an error, where the compiler can say
+target_compile_options(TOOL PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wundef -Werror=undef>)
+target_compile_options(TOOL PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/external:anglebrackets /external:W0 /we4668>)
 
 # Position-independent, since it links statically into shared libraries.
 set_target_properties(TOOL PROPERTIES
@@ -146,6 +140,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     )
 
     target_link_libraries(TOOLTest TOOL)
+    target_compile_options(TOOLTest PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wundef -Werror=undef>)
     # target_include_directories(TOOLTest ${TOOL_INCLUDE_DIRS})
 
     target_compile_features(TOOLTest PRIVATE cxx_std_20)

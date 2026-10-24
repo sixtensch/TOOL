@@ -15,7 +15,7 @@
 // debug strings ('?'), and display widths, as width counts code points.
 //
 // Opt-in: not part of tool.h. Format strings are literals, checked against the argument types at compile time
-// unless TOOL_FORMAT_NO_VALIDATE is defined. Strings made at runtime go through the *Args functions, which check
+// unless TOOL_NO_FORMAT_VALIDATION is set. Strings made at runtime go through the *Args functions, which check
 // as they render.
 //
 // Formats bool, c8 (as a character), every integer type, unscoped enums (as integers), f32 and f64 (shortest
@@ -831,7 +831,7 @@ namespace Tool
 		template<decltype(sizeof(0)) N>
 		consteval FormatString(const c8 (&literal)[N]) : string{ (c8*)literal, N - 1 }
 		{
-#ifndef TOOL_FORMAT_NO_VALIDATE
+#if !TOOL_NO_FORMAT_VALIDATION
 			const FormatType types[sizeof...(A) + 1] = { FormatTypeOf<A>..., FormatTypeNone };
 			FormatValidator validator = { types };
 			FormatReportError(FormatWalk(string, (u32)sizeof...(A), &validator));

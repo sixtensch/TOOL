@@ -130,7 +130,7 @@ namespace Tool
 			return value;
 		}
 
-#if defined(__clang__) || defined(__GNUC__)
+#if TOOL_CLANG || TOOL_GCC
 		u64 value;
 		__builtin_memcpy(&value, p, 8);
 		return value;
@@ -150,7 +150,7 @@ namespace Tool
 			return value;
 		}
 
-#if defined(__clang__) || defined(__GNUC__)
+#if TOOL_CLANG || TOOL_GCC
 		u32 value;
 		__builtin_memcpy(&value, p, 4);
 		return value;

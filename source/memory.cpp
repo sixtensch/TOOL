@@ -5,11 +5,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 #include <Windows.h>
 #endif
 
-#if defined(TOOL_UNIX) && defined(TOOL_VIRTUAL_MEMORY)
+#if TOOL_UNIX && TOOL_VIRTUAL_MEMORY
 #include <sys/mman.h>
 #include <unistd.h>
 #include <errno.h>
@@ -21,7 +21,7 @@
 
 //~ Windows static helper functions
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 
 // Get DWORD parts
 static DWORD GetLowDWORD(u64 whole) { return (DWORD)(whole & 0xffffffff); }
@@ -86,13 +86,13 @@ namespace Tool
     
     
     
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
     
     //- Page allocation
     
     //~ Page allocation Windows implementation
     
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
     
     void* PageAlloc(u64 size)
     {
@@ -118,7 +118,7 @@ namespace Tool
     
     //~ Page allocation Unix implementation
     
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
     
     void* PageAlloc(u64 size)
     {
@@ -147,7 +147,7 @@ namespace Tool
     
     //~ Memory region Windows implementation
     
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
     
     b8 RegionReserve(MemoryRegion* region, u64 size)
     {
@@ -215,7 +215,7 @@ namespace Tool
     
     //~ Memory region Unix implementation
     
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
     
     // On Unix, mmap does not actually allocate the memory. Physical pages will only be assigned when the memory is acted upon, such as by writing.
     
@@ -331,13 +331,13 @@ namespace Tool
     
     
     
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
     
     //- Memory loop
     
     //~ Memory loop Windows implementation
     
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
     
     //~ Definitions and function types for runtime loading
     
@@ -605,7 +605,7 @@ namespace Tool
 
     static void ArenaPoison(u8* start, u64 size)
     {
-#ifdef TOOL_DEBUG_ASSERTS
+#if TOOL_DEBUG_ASSERTS
         memset(start, TOOL_ARENA_POISON, size);
 #else
         (void)start;
@@ -1004,7 +1004,7 @@ namespace Tool
 
 
 
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
     
     //- Contiguous arena
     
@@ -1120,7 +1120,7 @@ namespace Tool
     
     
     
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
     
     //- Magic circular buffer
     
@@ -1255,14 +1255,14 @@ namespace Tool
         return ArenaAlloc((Arena*)data, size);
     }
     
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
     static void* AllocationTriggerContiguousArena(u64 size, void* data)
     {
         return ContiguousArenaAlloc((ContiguousArena*)data, size);
     }
 #endif
     
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
     static void* AllocationTriggerMagicCircular(u64 size, void* data)
     {
         return MagicCircularAlloc((MagicCircular*)data, size);
@@ -1281,14 +1281,14 @@ namespace Tool
         return { &AllocationTriggerArena, nullptr, (void*)arena };
     }
     
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
     MemoryAllocator Allocator(ContiguousArena* arena) // Contiguous arena
     {
         return { &AllocationTriggerContiguousArena, nullptr, (void*)arena };
     }
 #endif
     
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
     MemoryAllocator Allocator(MagicCircular* circular) // Magic circular buffer
     {
         return { &AllocationTriggerMagicCircular, nullptr, (void*)circular };

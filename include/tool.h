@@ -10,13 +10,10 @@
 
 
 
-//~ All flags:
-// 
-// TOOL_NO_ACRONYMS: Do not use TOOL acronyms (f32, v2, m4, etc) in the public namespace.
-// TOOL_NO_MATH:     Do not use TOOL math functions or aliases in the public namespace.
-// TOOL_NO_ALLOC:    Do not provide the ALLOC(...) macro.
-// TOOL_NO_UTF:      Do not provide the UTF8(str) and UTF16(str) macros.
-// TOOL_FORMAT_NO_VALIDATE: Do not check format strings against their arguments at compile time (tool/format.h).
+//~ Options
+//
+// What a program may set before including TOOL, such as TOOL_NO_ACRONYMS, and the facts TOOL detects about its
+// target, such as TOOL_WINDOWS, are listed in tool/basics.h.
 
 
 

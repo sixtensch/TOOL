@@ -5,12 +5,12 @@
 
 
 //~ Windows
-#if defined(TOOL_WINDOWS)
+#if TOOL_WINDOWS
 
 #include <Windows.h>
 
 //~ Unix
-#elif defined(TOOL_UNIX)
+#elif TOOL_UNIX
 
 #define _FILE_OFFSET_BITS 64 // 64-bit sizes and offsets on 32-bit Linux too
 
@@ -23,7 +23,7 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#if defined(__linux__) && !defined(TOOL_WEB)
+#if TOOL_LINUX
 #include <poll.h>
 #include <sys/inotify.h>
 #endif
@@ -98,7 +98,7 @@ namespace Tool
 
     //- Windows implementation
 
-#if defined(TOOL_WINDOWS)
+#if TOOL_WINDOWS
 
     // Windows' own form of a path: UTF-16 with '\' separators. A path too long for the classic limit becomes
     // absolute with the \\?\ prefix, which lifts the limit.
@@ -833,7 +833,7 @@ namespace Tool
 
     //- Unix implementation
 
-#if defined(TOOL_UNIX)
+#if TOOL_UNIX
 
     // File descriptors start at 0, so a File holds the descriptor plus one.
     static i32 FileDescriptor(File file)
@@ -844,7 +844,7 @@ namespace Tool
     static SystemTimepoint TimepointFromStat(const struct stat* status)
     {
         constexpr i64 secondsFrom1601To1970 = 11644473600;
-#if defined(__APPLE__)
+#if TOOL_APPLE
         timespec time = status->st_mtimespec;
 #else
         timespec time = status->st_mtim;
@@ -1075,14 +1075,14 @@ namespace Tool
 
     b8 PathExecutableDirectory(c8* outPath, u32 capacity)
     {
-#if defined(TOOL_WEB)
+#if TOOL_WEB
         if (capacity < 2)
             return TOOL_FAIL("The buffer is too small for the path.");
 
         outPath[0] = '/';
         outPath[1] = 0;
         return true;
-#elif defined(__linux__)
+#elif TOOL_LINUX
         ssize_t length = readlink("/proc/self/exe", outPath, capacity);
         if (length < 0)
             return TOOL_FAIL_ERRNO();
@@ -1163,7 +1163,7 @@ namespace Tool
 
     //~ Watching directories
 
-#if defined(__linux__) && !defined(TOOL_WEB)
+#if TOOL_LINUX
 
     static constexpr u32 WatchMask = IN_CREATE | IN_DELETE | IN_MODIFY | IN_ATTRIB | IN_CLOSE_WRITE | IN_MOVED_FROM | IN_MOVED_TO | IN_ONLYDIR | IN_EXCL_UNLINK;
 

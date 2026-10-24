@@ -5,11 +5,11 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 #include <Windows.h>
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
 #include <errno.h>
 #endif
 
@@ -59,7 +59,7 @@ namespace Tool
             case ErrorKindMessage:
             return errorRecord.message;
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
             case ErrorKindWindows:
             {
                 DWORD size = FormatMessageA(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
@@ -86,7 +86,7 @@ namespace Tool
             }
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
             case ErrorKindUnix:
             snprintf(errorFormatted, TOOL_ERROR_MESSAGE_CAPACITY, "%s", strerror((i32)errorRecord.code));
             return errorFormatted;
@@ -133,7 +133,7 @@ namespace Tool
         return ErrorRecord(ErrorKindMessage, 0, site);
     }
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
     b8 ErrorFailWindows(ErrorSite site, u32 code)
     {
         errorRecord.message[0] = '\0';
@@ -146,7 +146,7 @@ namespace Tool
     }
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
     b8 ErrorFailErrno(ErrorSite site)
     {
         errorRecord.message[0] = '\0';
@@ -182,7 +182,7 @@ namespace Tool
             fflush(stderr);
         }
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
         if (IsDebuggerPresent())
         {
             __debugbreak();

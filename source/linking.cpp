@@ -6,11 +6,11 @@
 
 //#include <stdio.h>
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 #include <Windows.h>
 #endif
 
-#ifdef TOOL_UNIX
+#if TOOL_UNIX
 #include <dlfcn.h>
 #endif
 

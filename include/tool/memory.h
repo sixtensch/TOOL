@@ -100,7 +100,7 @@ namespace Tool
 		u32 chunkCount; // Chunks held from the source, spares included
 	};
 
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
 
 	//~ Memory region
 
@@ -132,7 +132,7 @@ namespace Tool
 
 #endif // TOOL_VIRTUAL_MEMORY
 
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
 
 	//~ Memory loop
 
@@ -179,7 +179,7 @@ namespace Tool
 	b8 ClassicRealloc(void** target, u64 currentSize, u64 newSize);
 	b8 ClassicRealloc(void** target, u64 currentCount, u64 newCount, u64 size);
 
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
 
 	//~ Page functionality
 
@@ -208,7 +208,7 @@ namespace Tool
 
 #endif // TOOL_VIRTUAL_MEMORY
 
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
 
 	//~ Memory loop
 
@@ -281,7 +281,7 @@ namespace Tool
 	// The arena's name, or a placeholder if it has none. Never null.
 	const c8* ArenaName(const Arena* arena);
 
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
 
 	//~ Contiguous arena
 
@@ -317,7 +317,7 @@ namespace Tool
 
 #endif // TOOL_VIRTUAL_MEMORY
 
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
 
 	//~ Magic circular buffer
 
@@ -357,11 +357,11 @@ namespace Tool
 	MemoryAllocator Allocator();             // Heap (malloc/free)
 	MemoryAllocator Allocator(Arena* arena); // Arena, with no deallocate
 
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
 	MemoryAllocator Allocator(ContiguousArena* arena); // Contiguous arena, with no deallocate
 #endif
 
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
 	MemoryAllocator Allocator(MagicCircular* circular); // Magic circular buffer, with no deallocate
 #endif
 
@@ -419,7 +419,7 @@ namespace Tool
 		return new (Tool::Placement {}, (T*)Tool::ArenaAllocAligned(arena, sizeof(T), alignof(T))) T(static_cast<Args&&>(args)...);
 	}
 
-#ifdef TOOL_VIRTUAL_MEMORY
+#if TOOL_VIRTUAL_MEMORY
 
 	template<typename T>
 	inline T* ContiguousArenaAlloc(ContiguousArena* arena)
@@ -435,7 +435,7 @@ namespace Tool
 
 #endif
 
-#ifdef TOOL_MIRRORED_MEMORY
+#if TOOL_MIRRORED_MEMORY
 
 	template<typename T>
 	inline T* MagicCircularAlloc(MagicCircular* circular)

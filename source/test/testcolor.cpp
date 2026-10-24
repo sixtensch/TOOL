@@ -2,7 +2,7 @@
 #include "test.h"
 #include <stdio.h>
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 #include <Windows.h>
 #endif
 
@@ -135,7 +135,7 @@ static void TestClockTime()
 	ClockTime after = ClockTimeFromSystemTimepoint(SystemTimepointNow(false));
 	TOOL_ASSERT(before.hour != after.hour || (now.year == before.year && now.month == before.month && now.day == before.day && now.hour == before.hour));
 
-#ifdef TOOL_WINDOWS
+#if TOOL_WINDOWS
 	// Every day from 1601 to 9999 at a varying time of day, against the operating system's calendar.
 	for (u64 days = 0; days < 3067671; days++)
 	{

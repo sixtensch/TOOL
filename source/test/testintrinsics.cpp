@@ -1,7 +1,7 @@
 #include "tool/intrinsics.h"
 
 // Freestanding: no C runtime under Clang, so the same file runs as wasm without one.
-#if defined(_MSC_VER) && !defined(__clang__)
+#if TOOL_MSVC
 #include <cmath>
 #endif
 
@@ -25,7 +25,7 @@ static void Check(b8 ok, const c8* name)
 
 //~ Scalar references
 
-#if defined(_MSC_VER) && !defined(__clang__)
+#if TOOL_MSVC
 static f32 RefSqrt(f32 x) { return std::sqrt(x); }
 static f64 RefSqrt(f64 x) { return std::sqrt(x); }
 static f32 RefFloor(f32 x) { return std::floor(x); }
@@ -46,7 +46,7 @@ static f64 RefCeil(f64 x) { return __builtin_ceil(x); }
 // nearbyint rounds ties to even in the default mode, and unlike roundeven every C runtime has it.
 static f32 RefRound(f32 x) { return __builtin_nearbyintf(x); }
 static f64 RefRound(f64 x) { return __builtin_nearbyint(x); }
-#if defined(__wasm__)
+#if TOOL_WASM
 // wasm has no FMA, so MulAdd never fuses there, and without a C runtime there is no fma() to call.
 static f32 RefFma(f32 a, f32 b, f32 c) { return a * b + c; }
 static f64 RefFma(f64 a, f64 b, f64 c) { return a * b + c; }
