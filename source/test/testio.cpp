@@ -151,6 +151,24 @@ static void TestPaths()
 	TOOL_ASSERT(length > 0 && DirectoryExists(executable) && strchr(executable, '\\') == nullptr);
 	TOOL_ASSERT(length == 1 || executable[length - 1] != '/');
 	TOOL_ASSERT(!PathExecutableDirectory(executable, 2));
+
+	// Absolute paths come from the text alone: relative ones join the working directory, "." and ".." go, and so
+	// does a trailing '/' but a root's.
+	c8 here[4096];
+	c8 absolute[4096];
+	TOOL_ASSERT(PathAbsolute(".", here, sizeof(here)));
+	TOOL_ASSERT(strchr(here, '\\') == nullptr && DirectoryExists(here));
+	TOOL_ASSERT(PathAbsolute("tooltest_io/./a/../b/", absolute, sizeof(absolute)));
+	u64 hereLength = strlen(here);
+	TOOL_ASSERT(strncmp(absolute, here, hereLength) == 0 && strcmp(absolute + hereLength, here[hereLength - 1] == '/' ? "tooltest_io/b" : "/tooltest_io/b") == 0, "%s", absolute);
+#if TOOL_WINDOWS
+	TOOL_ASSERT(PathAbsolute("C:\\x\\y\\..\\z\\", absolute, sizeof(absolute)) && strcmp(absolute, "C:/x/z") == 0, "%s", absolute);
+	TOOL_ASSERT(PathAbsolute("C:/x/..", absolute, sizeof(absolute)) && strcmp(absolute, "C:/") == 0, "%s", absolute);
+#else
+	TOOL_ASSERT(PathAbsolute("/x/y/../z/", absolute, sizeof(absolute)) && strcmp(absolute, "/x/z") == 0, "%s", absolute);
+	TOOL_ASSERT(PathAbsolute("/x/../..", absolute, sizeof(absolute)) && strcmp(absolute, "/") == 0, "%s", absolute);
+#endif
+	TOOL_ASSERT(!PathAbsolute("tooltest_io", absolute, 2));
 }
 
 static void TestListing()

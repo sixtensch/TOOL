@@ -128,6 +128,10 @@ namespace Tool
 	// The directory holding the running executable, without a trailing '/'. "/" on the web.
 	b8 PathExecutableDirectory(c8* outPath, u32 capacity);
 
+	// 'path' made absolute against the working directory, with '/' separators, "." and ".." taken out and no trailing
+	// '/' but a root's. Worked out from the text alone: the path needn't exist, and links aren't followed.
+	b8 PathAbsolute(const c8* path, c8* outPath, u32 capacity);
+
 	//~ Directory listing
 	// DirectoryIterator iterator;
 	// if (DirectoryOpen(&iterator, "assets"))
