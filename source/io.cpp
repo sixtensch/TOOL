@@ -71,6 +71,29 @@ namespace Tool
         return name[0] == '.' && (name[1] == 0 || (name[1] == '.' && name[2] == 0));
     }
 
+    // Copies a finished absolute path out, without a trailing '/' unless it is a root ("/", "C:/")
+    static b8 PathAbsoluteOut(const c8* path, c8* outPath, u32 capacity)
+    {
+        u32 length = 0;
+        while (path[length] != 0)
+            length++;
+
+        b8 driveRoot = length == 3 && path[1] == ':';
+        while (length > 1 && path[length - 1] == '/' && !driveRoot)
+        {
+            length--;
+            driveRoot = length == 3 && path[1] == ':';
+        }
+
+        if (length + 1 > capacity)
+            return TOOL_FAIL("The buffer is too small for the path.");
+
+        for (u32 i = 0; i < length; i++)
+            outPath[i] = path[i];
+        outPath[length] = 0;
+        return true;
+    }
+
     // Creates one directory. True if it exists afterwards. Quiet leaves failures unrecorded.
     static b8 DirectoryMake(const c8* path, b8 quiet);
 
@@ -422,6 +445,42 @@ namespace Tool
             *lastSeparator = 0;
 
         return true;
+    }
+
+    b8 PathAbsolute(const c8* path, c8* outPath, u32 capacity)
+    {
+        WidePath wide;
+        if (!WidePathConvert(&wide, path))
+            return false;
+
+        WidePath full;
+        DWORD length = GetFullPathNameW(wide.text, PathCapacity, full.text, nullptr);
+        if (length == 0 || length >= PathCapacity)
+            return TOOL_FAIL_WINDOWS();
+
+        // Without the prefix a long path takes, and a network path's prefixed form back to its usual one
+        const wchar_t* start = full.text;
+        b8 prefixed = length >= 4 && start[0] == L'\\' && start[1] == L'\\' && start[2] == L'?' && start[3] == L'\\';
+        b8 network = prefixed && length >= 8 && start[4] == L'U' && start[5] == L'N' && start[6] == L'C' && start[7] == L'\\';
+        if (network)
+        {
+            start += 6;
+            full.text[6] = L'\\';
+        }
+        else if (prefixed)
+        {
+            start += 4;
+        }
+
+        c8 narrow[PathCapacity];
+        if (WideCharToMultiByte(CP_UTF8, 0, start, -1, narrow, sizeof(narrow), nullptr, nullptr) == 0)
+            return TOOL_FAIL_WINDOWS();
+
+        for (c8* c = narrow; *c != 0; c++)
+            if (*c == '\\')
+                *c = '/';
+
+        return PathAbsoluteOut(narrow, outPath, capacity);
     }
 
     //~ Directory listing
@@ -1100,6 +1159,61 @@ namespace Tool
 #else
 #error "No executable path for this platform"
 #endif
+    }
+
+    b8 PathAbsolute(const c8* path, c8* outPath, u32 capacity)
+    {
+        c8 joined[PathCapacity];
+        if (path[0] == '/')
+        {
+            if (!PathCopy(joined, path))
+                return false;
+        }
+        else
+        {
+            if (getcwd(joined, sizeof(joined)) == nullptr)
+                return TOOL_FAIL_ERRNO();
+
+            u32 length = (u32)strlen(joined);
+            if (length + 1 + strlen(path) + 1 > sizeof(joined))
+                return TOOL_FAIL("Path too long: %.64s...", path);
+
+            joined[length] = '/';
+            strcpy(joined + length + 1, path);
+        }
+
+        // Each name after the root in turn, in place: what is written never passes what is read
+        u32 write = 1;
+        const c8* read = joined + 1;
+        while (*read != 0)
+        {
+            const c8* name = read;
+            while (*read != 0 && *read != '/')
+                read++;
+            u32 length = (u32)(read - name);
+            if (*read == '/')
+                read++;
+
+            if (length == 0 || (length == 1 && name[0] == '.'))
+                continue;
+
+            if (length == 2 && name[0] == '.' && name[1] == '.')
+            {
+                while (write > 1 && joined[write - 1] != '/')
+                    write--;
+                if (write > 1)
+                    write--;
+                continue;
+            }
+
+            if (write > 1)
+                joined[write++] = '/';
+            memmove(joined + write, name, length);
+            write += length;
+        }
+        joined[write] = 0;
+
+        return PathAbsoluteOut(joined, outPath, capacity);
     }
 
     //~ Directory listing
