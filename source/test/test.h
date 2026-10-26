@@ -27,6 +27,7 @@ void TestMathematics();
 void TestMatrix();
 void TestColor();
 void TestRandom();
+void TestSort();
 void TestThreading();
 void TestIO();
 void TestText();

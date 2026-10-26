@@ -35,6 +35,7 @@ int main()
     TestMatrix();
     TestColor();
     TestRandom();
+    TestSort();
     TestThreading();
     TestIO();
     TestText();

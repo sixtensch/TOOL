@@ -19,6 +19,7 @@ Goals:
 | `text.h` | `s8` string views, slicing, searching, number parsing, UTF-8/UTF-16, bounded C strings |
 | `format.h` | Opt-in `std::format`-syntax formatting, checked at compile time, with captures for deferred rendering |
 | `hash.h` / `hashmap.h` | FNV-1a and rapidhash, all `constexpr`, and an open-addressing hash map |
+| `sort.h` | Introsort by comparison, and a stable radix sort by `u64` key with keys for signed and float values |
 | `key.h` / `random.h` | Lossless packed keys; stream, keyed (stateless) and low-discrepancy random generators |
 | `mathematics.h` | Scalar math named by width (`F32Sin`, `I32Wrap`) |
 | `vector.h` / `matrix.h` / `quaternion.h` / `box.h` | Vectors, column-major matrices, quaternions, AABBs |
