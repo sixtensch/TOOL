@@ -26,6 +26,7 @@ Goals:
 | `color.h` | Byte and float colors, HSV/HSL |
 | `atomic.h` / `threading.h` | Atomics, threads and zero-init primitives (mutex, semaphore, ...) on futex-style waits |
 | `io.h` | Files and directories with UTF-8 paths, and watching directories for changes |
+| `network.h` | IPv4/IPv6 addresses, name lookup, non-blocking TCP and UDP sockets, polling |
 | `temporal.h` | Monotonic and wall clocks |
 | `linking.h` | Loading shared libraries and their symbols |
 | `error.h` | Per-thread error records and asserts |
@@ -66,7 +67,7 @@ TOOL's defines come in three kinds, all listed in `include/tool/basics.h` (instr
   - Instruction sets the build enables: `TOOL_CPU_SSE`, `TOOL_CPU_SSE41`, `TOOL_CPU_AVX`, `TOOL_CPU_AVX2`,
     `TOOL_CPU_AVX512`, `TOOL_CPU_FMA`.
 - **Capabilities**, derived from the facts, for code that needs something rather than a particular platform:
-  `TOOL_THREADS`, `TOOL_VIRTUAL_MEMORY`, `TOOL_MIRRORED_MEMORY`, `TOOL_INT128`, and the SIMD backend,
+  `TOOL_THREADS`, `TOOL_VIRTUAL_MEMORY`, `TOOL_MIRRORED_MEMORY`, `TOOL_SOCKETS`, `TOOL_INT128`, and the SIMD backend,
   `TOOL_SIMD_VECTOR`, `TOOL_SIMD_X86` or `TOOL_SIMD_SCALAR`.
 - **Options**, which only a build or a program can choose, set to 1 before including TOOL, 0 otherwise:
   `TOOL_DEBUG_ASSERTS` (TOOL's CMake sets it in Debug), `TOOL_NO_ACRONYMS`, `TOOL_NO_UTF`, `TOOL_NO_MATH`,
