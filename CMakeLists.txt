@@ -43,13 +43,14 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/threading.cpp"
     "${TOOL_SOURCE_DIR}/temporal.cpp"
     "${TOOL_SOURCE_DIR}/io.cpp"
+    "${TOOL_SOURCE_DIR}/net.cpp"
 )
 
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")
 
-# Threads wait through WaitOnAddress on Windows and pthreads with futexes on Unix.
+# Threads wait through WaitOnAddress on Windows and pthreads with futexes on Unix. Sockets are Winsock on Windows.
 if (WIN32)
-    target_link_libraries(TOOL PUBLIC Synchronization)
+    target_link_libraries(TOOL PUBLIC Synchronization ws2_32)
 elseif (UNIX)
     find_package(Threads REQUIRED)
     target_link_libraries(TOOL PUBLIC Threads::Threads)
@@ -138,6 +139,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testsort.cpp"
     "${TOOL_SOURCE_DIR}/test/testthreading.cpp"
     "${TOOL_SOURCE_DIR}/test/testio.cpp"
+    "${TOOL_SOURCE_DIR}/test/testnet.cpp"
     "${TOOL_SOURCE_DIR}/test/testtext.cpp"
     )
 

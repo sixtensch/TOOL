@@ -4,6 +4,10 @@
 #include <stdio.h>
 #include <string>
 
+#if TOOL_MSVC
+#include <crtdbg.h>
+#endif
+
 using namespace Tool;
 
 class A
@@ -30,6 +34,15 @@ class C
 
 int main()
 {
+#if TOOL_MSVC && defined(_DEBUG)
+    // Debug CRT reports print rather than wait on a dialog, so an unattended run fails instead of hanging
+    for (int type : { _CRT_WARN, _CRT_ERROR, _CRT_ASSERT })
+    {
+        _CrtSetReportMode(type, _CRTDBG_MODE_FILE);
+        _CrtSetReportFile(type, _CRTDBG_FILE_STDERR);
+    }
+#endif
+
     TestHashMap();
     TestMathematics();
     TestMatrix();
@@ -38,6 +51,7 @@ int main()
     TestSort();
     TestThreading();
     TestIO();
+    TestNet();
     TestText();
     TestFormat();
 

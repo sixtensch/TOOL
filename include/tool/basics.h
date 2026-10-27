@@ -134,6 +134,9 @@
 // The same physical pages can be mapped at two virtual addresses
 #define TOOL_MIRRORED_MEMORY TOOL_WINDOWS
 
+// Sockets and looking up names: everywhere but the web, whose pages have none
+#define TOOL_SOCKETS (TOOL_WINDOWS || TOOL_LINUX || TOOL_APPLE)
+
 // A 128-bit integer type
 #if defined(__SIZEOF_INT128__)
 #define TOOL_INT128 1
