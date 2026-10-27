@@ -9,21 +9,15 @@
 
 //~ Sorting
 //
-// Two sorts, for two kinds of work:
-// - Sort orders items by comparing them, in place, with no memory of its own. Not stable: items that compare equal
-//   may end up in any order. Never slower than O(n log n), whatever order the items come in.
-// - SortByKey orders items by a u64 key each, smallest first, and is stable: items with equal keys keep their order.
-//   Its time grows with the count alone, which wins for many items with integer keys, such as ids or depths. It needs
-//   memory for two keys and two indices per item while it runs.
+// - Sort: comparison sort, in place, unstable, O(n log n) worst case.
+// - SortByKey: stable radix sort by a u64 key per item, O(n), 32 bytes of scratch per item. Wins for many items with
+//   integer keys (ids, depths).
 //
 //     Sort(entries, count, [](const Entry& a, const Entry& b) { return a.id < b.id; });
 //     SortByKey(entries, count, [](const Entry& entry) { return entry.id; }, Allocator());
 //
-// Both move items as plain values, by copy and assignment, so they suit plain structs.
-//
-// A key of several fields packs the first to sort by highest: ((u64)layer << 32) | (u64)order. A key wider than 64
-// bits is sorted a part at a time with SortByKey, least significant part first, as each pass keeps the order of the
-// one before. Signed and float values become keys of the same order through SortKeyI64, SortKeyF32 and SortKeyF64.
+// Items move by copy and assignment. Pack multi-field keys most significant first: ((u64)layer << 32) | order. Wider
+// keys: one SortByKey pass per part, least significant first. Signed and float values: SortKeyI64/F32/F64.
 
 
 
@@ -31,23 +25,17 @@ namespace Tool
 {
 	//~ Sorting
 
-	// Order 'items' so that less(b, a) holds for no item 'a' before an item 'b'. 'less' is anything callable as
-	// b8 less(const T& a, const T& b), such as a lambda, and must be a strict ordering: less(a, a) is false.
-	// Quicksort, turning to heapsort when its partitions keep coming out uneven, and to insertion sort for short runs.
+	// 'less' is b8(const T& a, const T& b), a strict weak ordering
 	template<typename T, typename Less>
 	void Sort(T* items, u64 count, Less less);
 
-	// Order 'items' by key, smallest first, keeping the order of items with equal keys. 'key' is anything callable as
-	// u64 key(const T& item), called once per item. A radix sort, a byte at a time, skipping bytes every key shares.
-	// Its memory, 32 bytes per item, comes from 'allocator' and goes back to it before returning. False if it can't
-	// be had, which is recorded, with the items left as they were.
+	// 'key' is u64(const T& item), called once per item. False if 'allocator' fails, items untouched.
 	template<typename T, typename Key>
 	b8 SortByKey(T* items, u64 count, Key key, MemoryAllocator allocator);
 
 	//~ Keys
 
-	// A key whose order as a u64 is the value's own: the smallest value has the smallest key. For floats, -0 comes
-	// just before +0, and NaN after +infinity, or before -infinity when its sign is set.
+	// Order-preserving u64 keys. Floats: -0 before +0, NaNs beyond the infinities on their sign's side.
 	constexpr u64 SortKeyI64(i64 value);
 	constexpr u64 SortKeyF32(f32 value);
 	constexpr u64 SortKeyF64(f64 value);
@@ -58,17 +46,14 @@ namespace Tool
 
 //- Implementation
 //
-// Sort is an introsort: median-of-three quicksort with a Hoare partition, recursing into the smaller side and
-// looping on the larger so the stack stays O(log n), with heapsort past a depth of 2 log2(n) and insertion sort
-// below 16 items. SortByKey pairs each item's key with its index, sorts the pairs in an untyped least significant
-// digit radix sort (SortPairsByKey, sort.cpp), then moves the items into place by following the permutation's
-// cycles, so the items themselves are never copied aside.
+// Sort: introsort. Median-of-three Hoare partition, recursion on the smaller side (O(log n) stack), heapsort past depth
+// 2 log2(n), insertion sort at 16 or fewer. SortByKey: (key, index) pairs through an untyped LSD radix sort
+// (SortPairsByKey, sort.cpp) that skips bytes all keys share, then the permutation applied in place cycle by cycle.
 
 namespace Tool
 {
 	//~ Building blocks
 
-	// Runs this short or shorter are finished by insertion sort
 	constexpr u64 sortInsertionMax = 16;
 
 	struct SortPair
@@ -77,8 +62,7 @@ namespace Tool
 		u64 index;
 	};
 
-	// Sort 'pairs' by key, keeping the order of equal keys. 'scratch' holds as many pairs. Returns whichever of the
-	// two holds the sorted pairs.
+	// Stable. 'scratch' holds 'count' pairs. Returns whichever buffer ends up sorted.
 	SortPair* SortPairsByKey(SortPair* pairs, SortPair* scratch, u64 count);
 
 	template<typename T>
@@ -149,8 +133,7 @@ namespace Tool
 
 			depth--;
 
-			// The median of the first, middle and last, which also leaves an item no greater than the pivot first and
-			// one no less last, so neither scan below runs past the ends
+			// Median of three, which also leaves sentinels at both ends for the scans below
 			u64 middle = count / 2;
 			if (less(items[middle], items[0]))
 				SortSwap(items[middle], items[0]);
@@ -229,8 +212,8 @@ namespace Tool
 
 		SortPair* sorted = SortPairsByKey(pairs, pairs + count, count);
 
-		// Item j takes the one at sorted[j].index. Each cycle of that permutation is followed once, from its first
-		// place, holding only that place's item aside; places done are marked by pointing at themselves.
+		// Item j takes the one at sorted[j].index. Each cycle is walked once, holding one item aside; finished places
+		// point at themselves.
 		for (u64 i = 0; i < count; i++)
 		{
 			if (sorted[i].index == i)
@@ -268,8 +251,7 @@ namespace Tool
 	{
 		u32 bits = __builtin_bit_cast(u32, value);
 
-		// Positive values gain the sign bit, so they follow the negative ones, whose bits all flip, so the largest
-		// magnitude comes first
+		// Negatives: flip all bits. Positives: flip the sign bit.
 		u32 mask = (bits & 0x80000000u) != 0 ? 0xFFFFFFFFu : 0x80000000u;
 		return (u64)(bits ^ mask);
 	}

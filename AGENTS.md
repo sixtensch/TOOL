@@ -86,8 +86,11 @@ build/Debug/TOOLTest
 - Indent with tabs. Some older files still use spaces; don't mass-convert them unasked.
 - Braces on their own line, left-bound pointers (`T* p`), no column limit, comments wrapped near 120 columns.
 - Source files are ASCII-only. Write non-ASCII as `\x` escapes.
-- Comments explain what holds going forward, short and plain. No change history.
+- Comments explain what holds going forward. No change history.
+- Terse: say what isn't obvious from the name and signature, in common technical terms (O(n log n), stable, RFC
+  5952), usually one line. Overview comments can be a few short lines plus an example. No prose for its own sake.
 - Doc comments sit above the declaration, not the implementation.
 
 **Commits**
-- Commit messages are full sentences stating what the library now does (see `git log`).
+- A subject of at most ~60 characters saying what the library now does, a blank line, then a short body: the notable
+  points, a few lines or bullets, not every detail.
