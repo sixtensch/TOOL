@@ -31,6 +31,7 @@ void TestSort();
 void TestThreading();
 void TestIO();
 void TestNetwork();
+void TestHttp();
 void TestText();
 void TestFormat();
 u32 TestIntrinsicsRun(const c8** outFirstFailure);

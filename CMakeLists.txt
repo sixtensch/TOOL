@@ -44,6 +44,7 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/temporal.cpp"
     "${TOOL_SOURCE_DIR}/io.cpp"
     "${TOOL_SOURCE_DIR}/network.cpp"
+    "${TOOL_SOURCE_DIR}/http.cpp"
 )
 
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")
@@ -140,6 +141,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testthreading.cpp"
     "${TOOL_SOURCE_DIR}/test/testio.cpp"
     "${TOOL_SOURCE_DIR}/test/testnetwork.cpp"
+    "${TOOL_SOURCE_DIR}/test/testhttp.cpp"
     "${TOOL_SOURCE_DIR}/test/testtext.cpp"
     )
 

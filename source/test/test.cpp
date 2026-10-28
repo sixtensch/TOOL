@@ -52,6 +52,7 @@ int main()
     TestThreading();
     TestIO();
     TestNetwork();
+    TestHttp();
     TestText();
     TestFormat();
 

@@ -27,6 +27,7 @@ Goals:
 | `atomic.h` / `threading.h` | Atomics, threads and zero-init primitives (mutex, semaphore, ...) on futex-style waits |
 | `io.h` | Files and directories with UTF-8 paths, and watching directories for changes |
 | `network.h` | IPv4/IPv6 addresses, name lookup, non-blocking TCP and UDP sockets, polling |
+| `http.h` | URLs, a polled HTTP/1.1 server and client, WebSocket both ends (the browser's on the web) |
 | `temporal.h` | Monotonic and wall clocks |
 | `linking.h` | Loading shared libraries and their symbols |
 | `error.h` | Per-thread error records and asserts |
