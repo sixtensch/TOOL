@@ -51,6 +51,8 @@ int main()
     TestSort();
     TestThreading();
     TestIO();
+    TestProcess();
+    TestLinking();
     TestNetwork();
     TestHttp();
     TestText();

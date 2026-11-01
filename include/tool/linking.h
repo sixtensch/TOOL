@@ -8,7 +8,8 @@
 //
 // Loads shared libraries (modules) while running and looks up their symbols by name. Names go without prefix or
 // extension: ModuleLoad("Engine") tries Engine.dll, then libEngine.dll, through Windows' library search, and
-// ./libEngine.so, then ./Engine.so, from the working directory on Unix.
+// ./libEngine.so, then ./Engine.so, from the working directory on Unix. An absolute path is the file itself, less its
+// extension.
 
 
 

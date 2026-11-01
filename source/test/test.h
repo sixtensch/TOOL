@@ -30,6 +30,8 @@ void TestRandom();
 void TestSort();
 void TestThreading();
 void TestIO();
+void TestProcess();
+void TestLinking();
 void TestNetwork();
 void TestHttp();
 void TestText();

@@ -43,6 +43,7 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/threading.cpp"
     "${TOOL_SOURCE_DIR}/temporal.cpp"
     "${TOOL_SOURCE_DIR}/io.cpp"
+    "${TOOL_SOURCE_DIR}/process.cpp"
     "${TOOL_SOURCE_DIR}/network.cpp"
     "${TOOL_SOURCE_DIR}/http.cpp"
 )
@@ -140,12 +141,15 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testsort.cpp"
     "${TOOL_SOURCE_DIR}/test/testthreading.cpp"
     "${TOOL_SOURCE_DIR}/test/testio.cpp"
+    "${TOOL_SOURCE_DIR}/test/testprocess.cpp"
+    "${TOOL_SOURCE_DIR}/test/testlinking.cpp"
     "${TOOL_SOURCE_DIR}/test/testnetwork.cpp"
     "${TOOL_SOURCE_DIR}/test/testhttp.cpp"
     "${TOOL_SOURCE_DIR}/test/testtext.cpp"
     )
 
     target_link_libraries(TOOLTest TOOL)
+    add_dependencies(TOOLTest TOOLTestLib)
     target_compile_options(TOOLTest PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wundef -Werror=undef>)
     # target_include_directories(TOOLTest ${TOOL_INCLUDE_DIRS})
 

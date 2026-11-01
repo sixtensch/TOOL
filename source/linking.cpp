@@ -25,9 +25,9 @@ namespace Tool
     
     Module ModuleLoad(const c8* filename, bool lazy)
     {
-        // Convert the string to Windows-proper wide character UTF16
+        // Convert the string to Windows-proper wide character UTF16. UTF-8 never has fewer code units than UTF-16.
         StringBuilder builder;
-        StringBuilderInit(&builder, 256, StringTypeUTF16);
+        StringBuilderInit(&builder, (CStr8Size(filename) + sizeof("lib.dll")) * sizeof(c16), StringTypeUTF16);
         StringBuilderAdd(&builder, filename);
         StringBuilderAdd(&builder, UTF16(".dll"));
         
@@ -94,28 +94,34 @@ namespace Tool
     Module ModuleLoad(const c8* filename, bool lazy)
     {
         StringBuilder builder;
-        StringBuilderInit(&builder, 256, StringTypeUTF8);
-        StringBuilderAdd(&builder, "./lib");
-        StringBuilderAdd(&builder, filename);
-        StringBuilderAdd(&builder, ".so");
-        
-        //printf("Trying to open %s\n", builder.str8); 
-        Module module = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
-        
-        if (module != nullptr)
+        StringBuilderInit(&builder, CStr8Size(filename) + sizeof("./lib.so"), StringTypeUTF8);
+
+        // An absolute path is the file itself, so it takes neither prefix
+        if (filename[0] != '/')
         {
-            StringBuilderDestroy(&builder);
-            return module;
+            StringBuilderAdd(&builder, "./lib");
+            StringBuilderAdd(&builder, filename);
+            StringBuilderAdd(&builder, ".so");
+
+            //printf("Trying to open %s\n", builder.str8);
+            Module prefixed = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
+
+            if (prefixed != nullptr)
+            {
+                StringBuilderDestroy(&builder);
+                return prefixed;
+            }
+
+            StringBuilderReset(&builder);
+            StringBuilderAdd(&builder, "./");
         }
-        
-        StringBuilderReset(&builder);
-        StringBuilderAdd(&builder, "./");
+
         StringBuilderAdd(&builder, filename);
         StringBuilderAdd(&builder, ".so");
-        
-        //printf("Trying to open %s\n", builder.str8); 
-        module = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
-        
+
+        //printf("Trying to open %s\n", builder.str8);
+        Module module = dlopen(builder.str8, (lazy ? RTLD_LAZY : RTLD_NOW) | RTLD_LOCAL);
+
         StringBuilderDestroy(&builder);
         
         if (module != nullptr)
