@@ -46,6 +46,7 @@ add_library(TOOL
     "${TOOL_SOURCE_DIR}/process.cpp"
     "${TOOL_SOURCE_DIR}/network.cpp"
     "${TOOL_SOURCE_DIR}/http.cpp"
+    "${TOOL_SOURCE_DIR}/json.cpp"
 )
 
 target_include_directories(TOOL PUBLIC "${TOOL_INCLUDE_DIR}")
@@ -145,6 +146,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testlinking.cpp"
     "${TOOL_SOURCE_DIR}/test/testnetwork.cpp"
     "${TOOL_SOURCE_DIR}/test/testhttp.cpp"
+    "${TOOL_SOURCE_DIR}/test/testjson.cpp"
     "${TOOL_SOURCE_DIR}/test/testtext.cpp"
     )
 

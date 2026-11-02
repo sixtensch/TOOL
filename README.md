@@ -29,6 +29,7 @@ Goals:
 | `process.h` | Starting programs, reading what they print and waiting for them to end |
 | `network.h` | IPv4/IPv6 addresses, name lookup, non-blocking TCP and UDP sockets, polling |
 | `http.h` | URLs, a polled HTTP/1.1 server and client, WebSocket both ends (the browser's on the web) |
+| `json.h` | Reading JSON into a tree, and escaping strings for writing |
 | `temporal.h` | Monotonic and wall clocks |
 | `linking.h` | Loading shared libraries and their symbols |
 | `error.h` | Per-thread error records and asserts |

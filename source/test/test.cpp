@@ -55,6 +55,7 @@ int main()
     TestLinking();
     TestNetwork();
     TestHttp();
+    TestJson();
     TestText();
     TestFormat();
 

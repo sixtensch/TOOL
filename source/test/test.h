@@ -34,6 +34,7 @@ void TestProcess();
 void TestLinking();
 void TestNetwork();
 void TestHttp();
+void TestJson();
 void TestText();
 void TestFormat();
 u32 TestIntrinsicsRun(const c8** outFirstFailure);
