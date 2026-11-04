@@ -25,6 +25,7 @@ typedef int (*IntFunc)();
 void TestHashMap();
 void TestMathematics();
 void TestMatrix();
+void TestQuaternion();
 void TestColor();
 void TestRandom();
 void TestSort();

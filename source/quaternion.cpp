@@ -135,12 +135,13 @@ namespace Tool
         f32 cy = F32Cos(yaw * 0.5f);
         f32 cz = F32Cos(roll * 0.5f);
         
+        // Yaw * pitch * roll
         return
         {
-            cx * sy * sz + sx * cy * cz,
-            cx * sy * cz - sx * cy * sz,
-            sx * sy * cz + cx * cy * sz,
-            cx * cy * cz - sx * sy * sz
+            cy * sx * cz + sy * cx * sz,
+            sy * cx * cz - cy * sx * sz,
+            cy * cx * sz - sy * sx * cz,
+            cy * cx * cz + sy * sx * sz
         };
     }
     
@@ -202,6 +203,24 @@ namespace Tool
         f32 n = Q4Norm(quaternion);
         f32 s = 2.0f / (n * n);
         return GetMatrix(quaternion, s);
+    }
+
+    v3 Q4GetEuler(q4 q)
+    {
+        // Pitch from the rotation matrix's row 1, column 2 (-sin pitch); yaw and roll from what is left of row 1 and
+        // column 2. Facing straight up or down, yaw and roll turn about one axis, so all of it goes to yaw.
+        f32 sine = 2.0f * (q.w * q.x - q.y * q.z);
+        if (F32Abs(sine) >= 0.999999f)
+        {
+            f32 pitch = sine > 0.0f ? F32_PI * 0.5f : -F32_PI * 0.5f;
+            f32 yaw = F32Atan2(2.0f * (q.w * q.y - q.x * q.z), 1.0f - 2.0f * (q.y * q.y + q.z * q.z));
+            return { pitch, yaw, 0.0f };
+        }
+
+        f32 pitch = F32Asin(sine);
+        f32 yaw = F32Atan2(2.0f * (q.x * q.z + q.w * q.y), 1.0f - 2.0f * (q.x * q.x + q.y * q.y));
+        f32 roll = F32Atan2(2.0f * (q.x * q.y + q.w * q.z), 1.0f - 2.0f * (q.x * q.x + q.z * q.z));
+        return { pitch, yaw, roll };
     }
     
     //~ Operations

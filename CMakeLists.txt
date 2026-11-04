@@ -136,6 +136,7 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
     "${TOOL_SOURCE_DIR}/test/testintrinsics.cpp"
     "${TOOL_SOURCE_DIR}/test/testmathematics.cpp"
     "${TOOL_SOURCE_DIR}/test/testmatrix.cpp"
+    "${TOOL_SOURCE_DIR}/test/testquaternion.cpp"
     "${TOOL_SOURCE_DIR}/test/testcolor.cpp"
     "${TOOL_SOURCE_DIR}/test/testformat.cpp"
     "${TOOL_SOURCE_DIR}/test/testrandom.cpp"

@@ -13,7 +13,8 @@
 // and initializer lists give the elements column by column. Element mIJ is row I, column J. Vectors are columns:
 // matrix * vector transforms, and a * b applies b first, then a.
 //
-// Angles are in radians, except the perspective field of view, in degrees. Projections are left-handed, looking
+// Angles are in radians, except the perspective field of view, in degrees. Euler rotations are pitch, yaw and roll,
+// about x, y and z, applied roll first, then pitch, then yaw. Projections are left-handed, looking
 // down +z, and target a ClipType: the y direction and depth range of a graphics API's clip space.
 
 

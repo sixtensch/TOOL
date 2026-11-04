@@ -46,6 +46,7 @@ int main()
     TestHashMap();
     TestMathematics();
     TestMatrix();
+    TestQuaternion();
     TestColor();
     TestRandom();
     TestSort();

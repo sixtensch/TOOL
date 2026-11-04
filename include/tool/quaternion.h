@@ -10,6 +10,10 @@
 // Rotations as unit quaternions (q4): x, y and z are the imaginary part, w the real part. q * v rotates a vector, and
 // a * b rotates by a, then by b. Angles are in radians. Functions expect unit quaternions unless their name says
 // otherwise, like Q4GetMatrixNonNormal.
+//
+// Euler angles are pitch, yaw and roll, about x, y and z, applied roll first, then pitch, then yaw, as M4Rotation.
+// Q4GetEuler gives pitch in [-pi/2, pi/2] and yaw and roll in [-pi, pi], and all the turn to yaw facing straight up or
+// down.
 
 
 
@@ -74,7 +78,8 @@ namespace Tool
     
     m4 Q4GetMatrix(q4 quaternion);
     m4 Q4GetMatrixNonNormal(q4 quaternion);
-    
+    v3 Q4GetEuler(q4 quaternion);
+
     f32 Q4Norm(q4 quaternion);
     q4 Q4Conjugate(q4 quaternion);
     q4 Q4Normalize(q4 quaternion);
